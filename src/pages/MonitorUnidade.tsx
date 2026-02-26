@@ -29,6 +29,7 @@ function MonitorContent() {
   const [funcoes, setFuncoes] = useState<FuncaoDB[]>([]);
   const [atestados, setAtestados] = useState<AtestadoDB[]>([]);
   const [faltasAbonadas, setFaltasAbonadas] = useState<FaltaAbonadaDB[]>([]);
+  const [afastamentos, setAfastamentos] = useState<AfastamentoDB[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Atestado form
