@@ -62,6 +62,8 @@ export function EditServidorModal({
     is_diretor: false,
     is_coordenador: false,
     is_coordenador_medico: false,
+    vinculo2: "",
+    duplo_vinculo: false,
   });
 
   useEffect(() => {
