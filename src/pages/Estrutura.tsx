@@ -61,7 +61,7 @@ function EstruturaContent() {
       supabase.from("funcoes").select("*").order("nome"),
     ]);
     // Fetch all servidores with pagination (bypass 1000 limit)
-    const selectCols = "id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, setor_id, is_diretor, is_coordenador, is_secretario, is_diretor_geral";
+    const selectCols = "id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, setor_id, funcao_id, is_diretor, is_coordenador, is_secretario, is_diretor_geral";
     const PAGE = 1000;
     let offset = 0;
     let allServidores: any[] = [];
