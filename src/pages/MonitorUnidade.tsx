@@ -27,12 +27,23 @@ function MonitorContent() {
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
   const [funcoes, setFuncoes] = useState<FuncaoDB[]>([]);
   const [atestados, setAtestados] = useState<AtestadoDB[]>([]);
+  const [faltasAbonadas, setFaltasAbonadas] = useState<FaltaAbonadaDB[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Atestado form
   const [showAtestadoForm, setShowAtestadoForm] = useState(false);
   const [atestadoForm, setAtestadoForm] = useState({ servidor_id: "", tipo: "médico", data_inicio: "", data_fim: "", dias: 1, observacao: "" });
   const [atestadoSearch, setAtestadoSearch] = useState("");
+
+  // Falta abonada form
+  const [showFaltaForm, setShowFaltaForm] = useState(false);
+  const [faltaForm, setFaltaForm] = useState({ servidor_id: "", data: "", observacao: "" });
+  const [faltaSearch, setFaltaSearch] = useState("");
+
+  // Bulk edit escalas
+  const [showBulkEscala, setShowBulkEscala] = useState(false);
+  const [bulkEscalas, setBulkEscalas] = useState<Record<string, { inicio1: string; fim1: string; inicio2: string; fim2: string; total: string }>>({});
+  const [savingBulk, setSavingBulk] = useState(false);
 
   // Expanded diretorias
   const [expandedDirs, setExpandedDirs] = useState<Record<string, boolean>>({});
