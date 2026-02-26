@@ -442,8 +442,16 @@ function EstruturaContent() {
                     onClick={() => setAssigningSecretaria(true)}
                     className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80 transition-colors"
                   >
-                    <Users className="h-3.5 w-3.5" /> Vincular
+                    <Users className="h-3.5 w-3.5" /> Vincular ao Gabinete
                   </button>
+                  {diretorias.length > 0 && (
+                    <button
+                      onClick={() => setAlocandoDiretoria(true)}
+                      className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80 transition-colors"
+                    >
+                      <Building2 className="h-3.5 w-3.5" /> Alocar em Diretoria
+                    </button>
+                  )}
                 </div>
               </div>
 
