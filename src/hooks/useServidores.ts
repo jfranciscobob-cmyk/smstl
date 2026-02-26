@@ -73,6 +73,7 @@ export interface UnidadeDB {
   nome: string;
   sigla: string;
   diretoria_id: string;
+  agrupamento_id: string | null;
   created_at: string;
   updated_at: string;
 }
