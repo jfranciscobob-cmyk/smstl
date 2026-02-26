@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Loader2, UserPlus, Shield, Building2, Users, Trash2, Key } from "lucide-react";
+import { ArrowLeft, Loader2, UserPlus, Shield, Building2, Users, Pencil, Key, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface ProfileRow {
@@ -28,6 +28,11 @@ export default function AdminUsuarios() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ email: "", password: "", nome: "", role: "coordenador" as string });
   const [creating, setCreating] = useState(false);
+
+  // Edit user
+  const [editUser, setEditUser] = useState<ProfileRow | null>(null);
+  const [editForm, setEditForm] = useState({ nome: "", role: "", password: "" });
+  const [saving, setSaving] = useState(false);
 
   const loadData = useCallback(async () => {
     const [p, r] = await Promise.all([
@@ -76,6 +81,45 @@ export default function AdminUsuarios() {
     setShowForm(false);
     setForm({ email: "", password: "", nome: "", role: "coordenador" });
     setCreating(false);
+    loadData();
+  };
+
+  const openEdit = (profile: ProfileRow) => {
+    const userRoles = getRoles(profile.id);
+    setEditUser(profile);
+    setEditForm({
+      nome: profile.nome || "",
+      role: userRoles[0] || "coordenador",
+      password: "",
+    });
+  };
+
+  const saveEdit = async () => {
+    if (!editUser) return;
+    if (editForm.password && editForm.password.length < 6) {
+      toast({ title: "Senha deve ter no mínimo 6 caracteres", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+
+    const { data, error } = await supabase.functions.invoke("update-user", {
+      body: {
+        user_id: editUser.id,
+        nome: editForm.nome,
+        role: editForm.role,
+        password: editForm.password || undefined,
+      },
+    });
+
+    if (error || !data?.success) {
+      toast({ title: "Erro ao salvar", description: data?.error || error?.message, variant: "destructive" });
+      setSaving(false);
+      return;
+    }
+
+    toast({ title: "Usuário atualizado com sucesso!" });
+    setEditUser(null);
+    setSaving(false);
     loadData();
   };
 
@@ -176,6 +220,66 @@ export default function AdminUsuarios() {
           </div>
         )}
 
+        {/* Edit user modal */}
+        {editUser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 space-y-4 shadow-lg">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-bold text-foreground">Editar Usuário</h2>
+                <button onClick={() => setEditUser(null)} className="text-muted-foreground hover:text-foreground">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground">{editUser.email}</p>
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">Nome</label>
+                  <input
+                    value={editForm.nome}
+                    onChange={e => setEditForm(f => ({ ...f, nome: e.target.value }))}
+                    className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">Papel</label>
+                  <select
+                    value={editForm.role}
+                    onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))}
+                    className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                  >
+                    <option value="coordenador">Coordenador</option>
+                    <option value="diretor">Diretor</option>
+                    <option value="admin">Administrador</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">Nova Senha (deixe vazio para manter)</label>
+                  <input
+                    type="text"
+                    value={editForm.password}
+                    onChange={e => setEditForm(f => ({ ...f, password: e.target.value }))}
+                    placeholder="Mínimo 6 caracteres"
+                    className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  onClick={saveEdit}
+                  disabled={saving}
+                  className="flex items-center gap-2 h-9 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+                >
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Pencil className="h-4 w-4" />}
+                  {saving ? "Salvando..." : "Salvar"}
+                </button>
+                <button onClick={() => setEditUser(null)} className="text-sm text-muted-foreground hover:text-foreground">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Users list */}
         <div className="space-y-2">
           {profiles.map(p => {
@@ -195,6 +299,13 @@ export default function AdminUsuarios() {
                       {roleLabel[r] || r}
                     </span>
                   ))}
+                  <button
+                    onClick={() => openEdit(p)}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
+                    title="Editar usuário"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
             );
