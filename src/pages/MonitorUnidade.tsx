@@ -398,7 +398,7 @@ function MonitorContent() {
                 {diretorias.map(dir => {
                   const dirServs = servidores.filter(s => s.diretoria_id === dir.id);
                   const dirPresentes = dirServs.filter(s => s.status_presenca === "presente").length;
-                  const dirFolha = dirServs.reduce((sum, s) => sum + ((s as any).salario || 0), 0);
+                  const dirFolha = dirServs.reduce((sum, s) => sum + (s.salario || 0), 0);
                   const dirUnidades = unidades.filter(u => u.diretoria_id === dir.id);
                   const diretor = servidores.find(s => s.diretoria_id === dir.id && s.is_diretor);
 
