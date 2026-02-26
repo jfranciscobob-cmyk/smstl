@@ -134,6 +134,7 @@ serve(async (req) => {
           status_presenca: "presente",
           escala_total_horas: s.carga_horaria > 0 ? Math.round(s.carga_horaria / 5) : null,
           salario: s.salario,
+          data_admissao: dataAdmissaoISO,
         });
       }
     }
