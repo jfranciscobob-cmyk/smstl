@@ -43,6 +43,11 @@ function EstruturaContent() {
   const [assigningSetor, setAssigningSetor] = useState<{ setor_id: string } | null>(null);
   const [setorAssignSearch, setSetorAssignSearch] = useState("");
   const [assignSelectedIds, setAssignSelectedIds] = useState<Set<string>>(new Set());
+  // Alocar para diretoria
+  const [alocandoDiretoria, setAlocandoDiretoria] = useState(false);
+  const [alocDirSearch, setAlocDirSearch] = useState("");
+  const [alocDirSelectedIds, setAlocDirSelectedIds] = useState<Set<string>>(new Set());
+  const [alocDirTargetId, setAlocDirTargetId] = useState<string>("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -323,9 +328,18 @@ function EstruturaContent() {
               <Shield className="h-6 w-6 text-primary" />
               <div>
                 <h2 className="text-lg font-bold text-foreground">Secretaria Municipal de Saúde</h2>
-                <p className="text-xs text-muted-foreground">{diretorias.length} diretoria(s) · {servidores.length} servidores</p>
+                <p className="text-xs text-muted-foreground">
+                  {diretorias.length} diretoria(s) · {servidores.length} total · {secretariaServidores.length} no gabinete
+                </p>
               </div>
             </button>
+            {/* Allocation progress */}
+            <div className="flex items-center gap-3 mr-3">
+              <span className="text-xs text-muted-foreground font-mono">
+                <span className="font-bold text-foreground">{servidores.filter(s => s.diretoria_id).length}</span> alocados
+              </span>
+              <span className="text-xs text-warning font-mono font-bold">{secretariaServidores.length} pendentes</span>
+            </div>
           </div>
 
           {/* Secretário picker */}
@@ -428,8 +442,16 @@ function EstruturaContent() {
                     onClick={() => setAssigningSecretaria(true)}
                     className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80 transition-colors"
                   >
-                    <Users className="h-3.5 w-3.5" /> Vincular
+                    <Users className="h-3.5 w-3.5" /> Vincular ao Gabinete
                   </button>
+                  {diretorias.length > 0 && (
+                    <button
+                      onClick={() => setAlocandoDiretoria(true)}
+                      className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80 transition-colors"
+                    >
+                      <Building2 className="h-3.5 w-3.5" /> Alocar em Diretoria
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -480,6 +502,75 @@ function EstruturaContent() {
                       </button>
                     )}
                     <button onClick={() => { setAssigningSecretaria(false); setSecAssignSearch(""); setSecSelectedIds(new Set()); }} className="text-xs text-muted-foreground">Cancelar</button>
+                  </div>
+                </div>
+              )}
+
+              {/* Alocar em Diretoria */}
+              {alocandoDiretoria && (
+                <div className="mb-3 space-y-2 rounded-lg border border-primary/20 bg-primary/5 p-3">
+                  <h4 className="text-xs font-bold text-foreground flex items-center gap-2">
+                    <Building2 className="h-3.5 w-3.5 text-primary" /> Alocar servidores em uma diretoria
+                  </h4>
+                  <select
+                    value={alocDirTargetId}
+                    onChange={e => setAlocDirTargetId(e.target.value)}
+                    className="w-full h-8 rounded border border-input bg-card px-3 text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                  >
+                    <option value="">Selecione a diretoria destino...</option>
+                    {diretorias.map(d => (
+                      <option key={d.id} value={d.id}>{d.nome}</option>
+                    ))}
+                  </select>
+                  <input
+                    value={alocDirSearch}
+                    onChange={e => setAlocDirSearch(e.target.value)}
+                    placeholder="Buscar servidor por nome..."
+                    className="w-full h-8 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                  />
+                  <div className="max-h-56 overflow-y-auto bg-card rounded border border-border shadow-md">
+                    {(() => {
+                      const filtered = alocDirSearch.length >= 2
+                        ? secretariaServidores.filter(s => s.nome.toLowerCase().includes(alocDirSearch.toLowerCase()))
+                        : secretariaServidores;
+                      return filtered.slice(0, 50).map(s => (
+                        <label key={s.id} className="flex items-center gap-2 w-full px-2 py-1.5 text-xs hover:bg-primary/10 text-foreground cursor-pointer">
+                          <Checkbox
+                            checked={alocDirSelectedIds.has(s.id)}
+                            onCheckedChange={() => {
+                              setAlocDirSelectedIds(prev => {
+                                const next = new Set(prev);
+                                if (next.has(s.id)) next.delete(s.id); else next.add(s.id);
+                                return next;
+                              });
+                            }}
+                          />
+                          <span className="font-medium">{s.nome}</span>
+                          <span className="text-muted-foreground">({s.cargo})</span>
+                        </label>
+                      ));
+                    })()}
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] text-muted-foreground">{alocDirSelectedIds.size} selecionado(s)</span>
+                    {alocDirSelectedIds.size > 0 && alocDirTargetId && (
+                      <button
+                        onClick={async () => {
+                          const { error } = await supabase.from("servidores").update({ diretoria_id: alocDirTargetId }).in("id", Array.from(alocDirSelectedIds));
+                          if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+                          toast({ title: `${alocDirSelectedIds.size} servidor(es) alocado(s) na diretoria!` });
+                          setAlocandoDiretoria(false);
+                          setAlocDirSearch("");
+                          setAlocDirSelectedIds(new Set());
+                          setAlocDirTargetId("");
+                          loadData();
+                        }}
+                        className="flex items-center gap-1 h-7 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
+                      >
+                        <Check className="h-3 w-3" /> Alocar {alocDirSelectedIds.size}
+                      </button>
+                    )}
+                    <button onClick={() => { setAlocandoDiretoria(false); setAlocDirSearch(""); setAlocDirSelectedIds(new Set()); setAlocDirTargetId(""); }} className="text-xs text-muted-foreground hover:text-foreground">Cancelar</button>
                   </div>
                 </div>
               )}
