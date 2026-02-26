@@ -58,6 +58,7 @@ export function EditServidorModal({
     observacao: "",
     data_admissao: "",
     data_encerramento_contrato: "",
+    tipo_escala: "fixa",
     is_diretor: false,
     is_coordenador: false,
   });
@@ -91,7 +92,8 @@ export function EditServidorModal({
         ferias_vencidas: servidor.ferias_vencidas?.toString() || "",
         observacao: servidor.observacao || "",
         data_admissao: servidor.data_admissao || "",
-        data_encerramento_contrato: (servidor as any).data_encerramento_contrato || "",
+        data_encerramento_contrato: servidor.data_encerramento_contrato || "",
+        tipo_escala: servidor.tipo_escala || "fixa",
         is_diretor: servidor.is_diretor,
         is_coordenador: servidor.is_coordenador,
       });
@@ -139,6 +141,7 @@ export function EditServidorModal({
       is_coordenador: form.is_coordenador,
       data_admissao: form.data_admissao || null,
       data_encerramento_contrato: form.data_encerramento_contrato || null,
+      tipo_escala: form.tipo_escala,
     };
 
     const { error } = await supabase
@@ -314,6 +317,18 @@ export function EditServidorModal({
             <h3 className="text-sm font-semibold text-foreground mb-3 border-b border-border pb-1">
               Escala de Trabalho
             </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className={labelClass}>Tipo de Escala</label>
+                <select className={selectClass} value={form.tipo_escala} onChange={(e) => set("tipo_escala", e.target.value)}>
+                  <option value="fixa">Fixa (horário comercial)</option>
+                  <option value="plantao_12x36">Plantão 12x36</option>
+                  <option value="plantao_24x72">Plantão 24x72</option>
+                  <option value="plantao_12x60">Plantão 12x60</option>
+                  <option value="variavel">Variável (por dia)</option>
+                </select>
+              </div>
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div>
                 <label className={labelClass}>Entrada 1</label>

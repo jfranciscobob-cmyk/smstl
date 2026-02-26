@@ -260,11 +260,11 @@ function MonitorContent() {
     const folha = servs.reduce((sum, s) => sum + (s.salario || 0), 0);
     const count = servs.length;
     return (
-      <div className="rounded-xl border border-border bg-card p-4">
+      <div className="rounded-xl border border-border bg-card p-4 min-w-0">
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-          <DollarSign className="h-3.5 w-3.5 text-primary" /> {label}
+          <DollarSign className="h-3.5 w-3.5 text-primary flex-shrink-0" /> <span className="truncate">{label}</span>
         </div>
-        <p className="text-xl font-bold text-foreground font-mono">{formatCurrency(folha)}</p>
+        <p className="text-lg font-bold text-foreground font-mono truncate">{formatCurrency(folha)}</p>
         <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
           <span>{count} servidores</span>
         </div>
@@ -361,7 +361,7 @@ function MonitorContent() {
         {viewMode === "tudo" && !selectedDiretoriaId && (
           <div className="space-y-6">
             {/* Stats row */}
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Users className="h-3.5 w-3.5" /> Total</div>
                 <p className="text-2xl font-bold text-foreground">{servidores.length.toLocaleString("pt-BR")}</p>
@@ -454,7 +454,7 @@ function MonitorContent() {
         {selectedDiretoriaId && !selectedUnidadeId && (
           <div className="space-y-6">
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Users className="h-3.5 w-3.5" /> Total</div>
                 <p className="text-2xl font-bold text-foreground">{filteredServidores.length}</p>
@@ -496,7 +496,7 @@ function MonitorContent() {
         {selectedUnidadeId && (
           <div className="space-y-6">
             {/* Stats cards */}
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Users className="h-3.5 w-3.5" /> Total</div>
                 <p className="text-2xl font-bold text-foreground">{filteredServidores.length}</p>
@@ -790,20 +790,21 @@ function MonitorContent() {
                   </div>
                 )}
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
+              <div className="overflow-x-auto -mx-5 px-5">
+                <table className="w-full text-xs min-w-[900px]">
                   <thead>
                     <tr className="border-b border-border text-left">
-                      <th className="pb-2 font-semibold text-muted-foreground">Servidor</th>
-                      <th className="pb-2 font-semibold text-muted-foreground">Cargo</th>
-                      <th className="pb-2 font-semibold text-muted-foreground">Admissão</th>
-                      <th className="pb-2 font-semibold text-muted-foreground">Turno 1</th>
-                      <th className="pb-2 font-semibold text-muted-foreground">Turno 2</th>
-                      <th className="pb-2 font-semibold text-muted-foreground">Total</th>
-                      <th className="pb-2 font-semibold text-muted-foreground">Salário</th>
-                      <th className="pb-2 font-semibold text-muted-foreground">F.Abon.</th>
-                      <th className="pb-2 font-semibold text-muted-foreground">Status</th>
-                      <th className="pb-2 font-semibold text-muted-foreground w-10">Sem.</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Servidor</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Cargo</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Admissão</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Turno 1</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Turno 2</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Total</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Escala</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Salário</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">F.Abon.</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Status</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap w-10">Sem.</th>
                       <th className="pb-2 font-semibold text-muted-foreground">F.Abon.</th>
                       <th className="pb-2 font-semibold text-muted-foreground">Status</th>
                     </tr>
@@ -847,7 +848,14 @@ function MonitorContent() {
                                 <td className="py-2 font-mono font-bold text-foreground">{s.escala_total_horas ? `${s.escala_total_horas}h` : "—"}</td>
                               </>
                             )}
-                            <td className="py-2 font-mono text-primary">{s.salario > 0 ? formatCurrency(s.salario) : "—"}</td>
+                            <td className="py-2">
+                              <span className={cn("inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold whitespace-nowrap",
+                                s.tipo_escala?.includes("plantao") ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300" : "bg-muted text-muted-foreground"
+                              )}>
+                                {s.tipo_escala === "plantao_12x36" ? "12×36" : s.tipo_escala === "plantao_24x72" ? "24×72" : s.tipo_escala === "plantao_12x60" ? "12×60" : s.tipo_escala === "variavel" ? "Var." : "Fixa"}
+                              </span>
+                            </td>
+                            <td className="py-2 font-mono text-primary whitespace-nowrap">{s.salario > 0 ? formatCurrency(s.salario) : "—"}</td>
                             <td className="py-2">
                               <span className={cn("text-xs font-mono font-bold", faltaInfo.usadas >= 5 ? "text-destructive" : faltaInfo.usadas >= 3 ? "text-warning" : "text-muted-foreground")}>{faltaInfo.usadas}/5</span>
                             </td>
