@@ -653,6 +653,92 @@ function MonitorContent() {
               </div>
             </div>
 
+            {/* Faltas Abonadas */}
+            <div className="rounded-xl border border-primary/30 bg-card p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-2">
+                  <CalendarCheck className="h-3.5 w-3.5" /> Faltas Abonadas
+                </h3>
+                <button onClick={() => setShowFaltaForm(true)} className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80">
+                  <Plus className="h-3.5 w-3.5" /> Registrar
+                </button>
+              </div>
+              {showFaltaForm && (
+                <div className="mb-3 space-y-2 rounded-lg border border-border bg-muted/20 p-3">
+                  <div className="space-y-1">
+                    <input value={faltaSearch} onChange={e => setFaltaSearch(e.target.value)} placeholder="Buscar servidor..."
+                      className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                    {!faltaForm.servidor_id && (
+                      <div className="max-h-28 overflow-y-auto bg-card rounded border border-border shadow-md">
+                        {filteredFaltaServidores.map(s => (
+                          <button key={s.id} onClick={() => { setFaltaForm(f => ({ ...f, servidor_id: s.id })); setFaltaSearch(s.nome); }}
+                            className="w-full text-left px-2 py-1 text-xs hover:bg-primary/10 text-foreground">{s.nome} <span className="text-muted-foreground">({s.cargo})</span></button>
+                        ))}
+                      </div>
+                    )}
+                    {faltaForm.servidor_id && (() => {
+                      const srv = servidores.find(s => s.id === faltaForm.servidor_id);
+                      const info = getFaltasNoAno(faltaForm.servidor_id, srv?.data_admissao || null);
+                      return (
+                        <p className="text-[10px] text-muted-foreground">
+                          Período: {info.anoInicio} a {info.anoFim} — <span className={info.usadas >= 5 ? "text-destructive font-bold" : "text-primary font-bold"}>{info.usadas}/5 usadas</span>
+                          {!srv?.data_admissao && <span className="text-warning ml-1">(sem data de admissão)</span>}
+                        </p>
+                      );
+                    })()}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div><label className="text-[10px] text-muted-foreground">Data</label>
+                      <input type="date" value={faltaForm.data} onChange={e => setFaltaForm(f => ({ ...f, data: e.target.value }))}
+                        className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground focus:ring-1 focus:ring-ring focus:outline-none" /></div>
+                    <div><label className="text-[10px] text-muted-foreground">Observação</label>
+                      <input value={faltaForm.observacao} onChange={e => setFaltaForm(f => ({ ...f, observacao: e.target.value }))} placeholder="Opcional"
+                        className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-ring focus:outline-none" /></div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={addFaltaAbonada} className="h-7 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90">Salvar</button>
+                    <button onClick={() => { setShowFaltaForm(false); setFaltaSearch(""); setFaltaForm({ servidor_id: "", data: "", observacao: "" }); }}
+                      className="text-xs text-muted-foreground">Cancelar</button>
+                  </div>
+                </div>
+              )}
+              <div className="space-y-1 max-h-64 overflow-y-auto">
+                {filteredServidores.map(s => {
+                  const info = getFaltasNoAno(s.id, s.data_admissao);
+                  if (info.usadas === 0 && !s.data_admissao) return null;
+                  return (
+                    <div key={s.id} className="flex items-center justify-between rounded-lg px-3 py-1.5 bg-muted/20">
+                      <span className="text-xs text-foreground">{s.nome}</span>
+                      <span className={cn("text-xs font-mono font-bold", info.usadas >= 5 ? "text-destructive" : info.usadas >= 3 ? "text-warning" : "text-primary")}>{info.usadas}/5</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Contract Alerts */}
+            {contractAlerts.length > 0 && (
+              <div className="rounded-xl border border-warning/30 bg-card p-5">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-warning flex items-center gap-2 mb-3">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Contratos Temporários — Monitoramento
+                </h3>
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                  {contractAlerts.map(s => (
+                    <div key={s.id} className="flex items-center justify-between rounded-lg px-3 py-2 bg-warning/5 border border-warning/10">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{s.nome}</p>
+                        <p className="text-[10px] text-muted-foreground">{s.vinculo}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xs font-mono text-warning">{s.daysFromAdmission} dias</span>
+                        <p className="text-[10px] text-muted-foreground">Admissão: {s.data_admissao ? format(parseISO(s.data_admissao), "dd/MM/yyyy") : "—"}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Funções breakdown */}
             {(() => {
               const unidadeFuncoes = funcoes.filter(f => f.unidade_id === selectedUnidadeId);
@@ -675,14 +761,6 @@ function MonitorContent() {
                             <span className="text-success font-medium">{fPresentes} presentes</span>
                             {fFolha > 0 && <span className="text-primary font-mono font-medium">{formatCurrency(fFolha)}</span>}
                           </div>
-                          <div className="mt-2 space-y-0.5">
-                            {fServs.slice(0, 5).map(s => (
-                              <div key={s.id} className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                <span className={`h-1.5 w-1.5 rounded-full ${s.status_presenca === "presente" ? "bg-success" : "bg-muted"}`} />{s.nome}
-                              </div>
-                            ))}
-                            {fServs.length > 5 && <p className="text-[10px] text-muted-foreground">+{fServs.length - 5} mais</p>}
-                          </div>
                         </div>
                       );
                     })}
@@ -691,45 +769,94 @@ function MonitorContent() {
               );
             })()}
 
-            {/* Carga horária individual */}
+            {/* Carga horária individual + Bulk edit */}
             <div className="rounded-xl border border-border bg-card p-5">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2 mb-4">
-                <Clock className="h-3.5 w-3.5" /> Carga Horária Individual
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <Clock className="h-3.5 w-3.5" /> Carga Horária Individual
+                </h3>
+                {!showBulkEscala ? (
+                  <button onClick={initBulkEscalas} className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80">
+                    <Pencil className="h-3.5 w-3.5" /> Editar Escalas em Massa
+                  </button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button onClick={saveBulkEscalas} disabled={savingBulk} className="flex items-center gap-1 h-7 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50">
+                      {savingBulk ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />} Salvar Todos
+                    </button>
+                    <button onClick={() => setShowBulkEscala(false)} className="text-xs text-muted-foreground">Cancelar</button>
+                  </div>
+                )}
+              </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="border-b border-border text-left">
                       <th className="pb-2 font-semibold text-muted-foreground">Servidor</th>
                       <th className="pb-2 font-semibold text-muted-foreground">Cargo</th>
+                      <th className="pb-2 font-semibold text-muted-foreground">Admissão</th>
                       <th className="pb-2 font-semibold text-muted-foreground">Turno 1</th>
                       <th className="pb-2 font-semibold text-muted-foreground">Turno 2</th>
                       <th className="pb-2 font-semibold text-muted-foreground">Total</th>
                       <th className="pb-2 font-semibold text-muted-foreground">Salário</th>
+                      <th className="pb-2 font-semibold text-muted-foreground">F.Abon.</th>
                       <th className="pb-2 font-semibold text-muted-foreground">Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredServidores.slice(0, 50).map(s => (
-                      <tr key={s.id} className="border-b border-border/30 hover:bg-muted/20">
-                        <td className="py-2 font-medium text-foreground">{s.nome}</td>
-                        <td className="py-2 text-muted-foreground">{s.cargo}</td>
-                        <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio1 ? `${s.escala_inicio1}-${s.escala_fim1}` : "—"}</td>
-                        <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio2 ? `${s.escala_inicio2}-${s.escala_fim2}` : "—"}</td>
-                        <td className="py-2 font-mono font-bold text-foreground">{s.escala_total_horas ? `${s.escala_total_horas}h` : "—"}</td>
-                        <td className="py-2 font-mono text-primary">{(s as any).salario > 0 ? formatCurrency((s as any).salario) : "—"}</td>
-                        <td className="py-2">
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                            s.status_presenca === "presente" ? "bg-success/10 text-success" :
-                            s.status_presenca === "ferias" ? "bg-warning/10 text-warning" :
-                            "bg-destructive/10 text-destructive"
-                          }`}>{s.status_presenca}</span>
-                        </td>
-                      </tr>
-                    ))}
+                    {filteredServidores.map(s => {
+                      const faltaInfo = getFaltasNoAno(s.id, s.data_admissao);
+                      return (
+                        <tr key={s.id} className="border-b border-border/30 hover:bg-muted/20">
+                          <td className="py-2 font-medium text-foreground">{s.nome}</td>
+                          <td className="py-2 text-muted-foreground">{s.cargo}</td>
+                          <td className="py-2 text-muted-foreground font-mono">{s.data_admissao ? format(parseISO(s.data_admissao), "dd/MM/yyyy") : "—"}</td>
+                          {showBulkEscala && bulkEscalas[s.id] ? (
+                            <>
+                              <td className="py-1">
+                                <div className="flex gap-1">
+                                  <input type="time" value={bulkEscalas[s.id].inicio1} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], inicio1: e.target.value } }))}
+                                    className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                  <input type="time" value={bulkEscalas[s.id].fim1} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], fim1: e.target.value } }))}
+                                    className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                </div>
+                              </td>
+                              <td className="py-1">
+                                <div className="flex gap-1">
+                                  <input type="time" value={bulkEscalas[s.id].inicio2} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], inicio2: e.target.value } }))}
+                                    className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                  <input type="time" value={bulkEscalas[s.id].fim2} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], fim2: e.target.value } }))}
+                                    className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                </div>
+                              </td>
+                              <td className="py-1">
+                                <input type="number" value={bulkEscalas[s.id].total} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], total: e.target.value } }))}
+                                  className="w-12 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground text-center focus:ring-1 focus:ring-ring focus:outline-none" placeholder="h" />
+                              </td>
+                            </>
+                          ) : (
+                            <>
+                              <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio1 ? `${s.escala_inicio1}-${s.escala_fim1}` : "—"}</td>
+                              <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio2 ? `${s.escala_inicio2}-${s.escala_fim2}` : "—"}</td>
+                              <td className="py-2 font-mono font-bold text-foreground">{s.escala_total_horas ? `${s.escala_total_horas}h` : "—"}</td>
+                            </>
+                          )}
+                          <td className="py-2 font-mono text-primary">{s.salario > 0 ? formatCurrency(s.salario) : "—"}</td>
+                          <td className="py-2">
+                            <span className={cn("text-xs font-mono font-bold", faltaInfo.usadas >= 5 ? "text-destructive" : faltaInfo.usadas >= 3 ? "text-warning" : "text-muted-foreground")}>{faltaInfo.usadas}/5</span>
+                          </td>
+                          <td className="py-2">
+                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                              s.status_presenca === "presente" ? "bg-success/10 text-success" :
+                              s.status_presenca === "ferias" ? "bg-warning/10 text-warning" :
+                              "bg-destructive/10 text-destructive"
+                            }`}>{s.status_presenca}</span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
-                {filteredServidores.length > 50 && <p className="text-xs text-muted-foreground mt-2">Mostrando 50 de {filteredServidores.length}</p>}
               </div>
             </div>
           </div>
