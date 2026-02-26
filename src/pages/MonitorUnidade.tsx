@@ -147,7 +147,7 @@ function MonitorContent() {
   const emFerias = filteredServidores.filter(s => s.status_presenca === "ferias").length;
   const afastados = filteredServidores.filter(s => s.status_presenca === "afastado").length;
   const totalHoras = filteredServidores.reduce((sum, s) => sum + (s.escala_total_horas || 0), 0);
-  const totalFolha = filteredServidores.reduce((sum, s) => sum + ((s as any).salario || 0), 0);
+  const totalFolha = filteredServidores.reduce((sum, s) => sum + (s.salario || 0), 0);
 
   const addAtestado = async () => {
     if (!atestadoForm.servidor_id || !atestadoForm.data_inicio || !atestadoForm.data_fim) {
