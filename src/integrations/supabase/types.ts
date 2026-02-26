@@ -604,6 +604,73 @@ export type Database = {
           },
         ]
       }
+      transferencias: {
+        Row: {
+          created_at: string
+          diretoria_destino_id: string
+          diretoria_origem_id: string
+          id: string
+          observacao: string | null
+          respondido_at: string | null
+          respondido_por_user_id: string | null
+          resposta_observacao: string | null
+          servidor_id: string
+          solicitante_user_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          diretoria_destino_id: string
+          diretoria_origem_id: string
+          id?: string
+          observacao?: string | null
+          respondido_at?: string | null
+          respondido_por_user_id?: string | null
+          resposta_observacao?: string | null
+          servidor_id: string
+          solicitante_user_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          diretoria_destino_id?: string
+          diretoria_origem_id?: string
+          id?: string
+          observacao?: string | null
+          respondido_at?: string | null
+          respondido_por_user_id?: string | null
+          resposta_observacao?: string | null
+          servidor_id?: string
+          solicitante_user_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transferencias_diretoria_destino_id_fkey"
+            columns: ["diretoria_destino_id"]
+            isOneToOne: false
+            referencedRelation: "diretorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transferencias_diretoria_origem_id_fkey"
+            columns: ["diretoria_origem_id"]
+            isOneToOne: false
+            referencedRelation: "diretorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transferencias_servidor_id_fkey"
+            columns: ["servidor_id"]
+            isOneToOne: false
+            referencedRelation: "servidores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       unidades: {
         Row: {
           agrupamento_id: string | null
