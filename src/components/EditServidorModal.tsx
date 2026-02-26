@@ -196,6 +196,10 @@ export function EditServidorModal({
                   <option value="AGENTE POLITICO">Agente Político</option>
                 </select>
               </div>
+              <div>
+                <label className={labelClass}>Data de Admissão</label>
+                <input type="date" className={inputClass} value={form.data_admissao} onChange={(e) => set("data_admissao", e.target.value)} />
+              </div>
             </div>
           </section>
 
