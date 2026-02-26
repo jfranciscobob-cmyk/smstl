@@ -267,6 +267,47 @@ function EstruturaContent() {
                 </div>
               </div>
 
+              {/* Diretor section */}
+              {(() => {
+                const diretor = getDiretor(dir.id);
+                return (
+                  <div className="px-5 py-2 border-t border-border/30 bg-muted/10 flex items-center gap-3 flex-wrap">
+                    <Crown className="h-4 w-4 text-amber-500" />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Diretor(a):</span>
+                    {diretor ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-foreground">{diretor.nome}</span>
+                        <button onClick={() => removeRole(diretor.id, "diretor")} className="p-1 rounded text-muted-foreground hover:text-destructive" title="Remover diretor">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ) : pickingRole?.type === "diretor" && pickingRole.targetId === dir.id ? (
+                      <div className="flex-1 max-w-sm space-y-1">
+                        <input
+                          autoFocus
+                          value={roleSearch}
+                          onChange={e => setRoleSearch(e.target.value)}
+                          placeholder="Buscar servidor..."
+                          className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                        />
+                        <div className="max-h-32 overflow-y-auto bg-card rounded border border-border shadow-md">
+                          {filteredRoleResults.map(s => (
+                            <button key={s.id} onClick={() => assignRole(s.id, "diretor", dir.id)} className="w-full text-left px-2 py-1 text-xs hover:bg-primary/10 text-foreground">
+                              {s.nome} <span className="text-muted-foreground">({s.matricula})</span>
+                            </button>
+                          ))}
+                        </div>
+                        <button onClick={() => { setPickingRole(null); setRoleSearch(""); }} className="text-xs text-muted-foreground">Cancelar</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => setPickingRole({ type: "diretor", targetId: dir.id })} className="text-xs text-primary font-medium hover:text-primary/80 transition-colors">
+                        + Definir diretor(a)
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
+
               {isExpanded && (
                 <div className="px-5 pb-4 space-y-3 pt-3">
                   {/* Add Unidade */}
