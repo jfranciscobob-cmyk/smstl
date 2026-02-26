@@ -625,8 +625,9 @@ function EstruturaContent() {
                           }}
                           onDeleteSetor={deleteSetor}
                           onAssignServidor={assignServidorToSetor}
+                          onBulkAssignServidor={bulkAssignServidorToSetor}
                           onSetResponsavel={setResponsavelSetor}
-                          allServidores={servidores}
+                          contextServidores={servidores.filter(s => s.diretoria_id === dir.id)}
                         />
 
                         {/* Unidades list */}
