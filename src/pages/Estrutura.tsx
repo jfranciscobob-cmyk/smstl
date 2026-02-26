@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginForm } from "@/components/LoginForm";
 import { supabase } from "@/integrations/supabase/client";
-import type { DiretoriaDB, UnidadeDB, CoordenacaoDB, ServidorDB, SetorDB } from "@/hooks/useServidores";
+import type { DiretoriaDB, UnidadeDB, CoordenacaoDB, ServidorDB, SetorDB, FuncaoDB } from "@/hooks/useServidores";
 import {
-  Building2, Plus, Trash2, Edit2, ChevronDown, ChevronRight, ArrowLeft, Loader2, Shield, X, Check, Network, Users, UserPlus, Crown, Star, Briefcase
+  Building2, Plus, Trash2, Edit2, ChevronDown, ChevronRight, ArrowLeft, Loader2, Shield, X, Check, Network, Users, UserPlus, Crown, Star, Briefcase, Eye
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +12,7 @@ import { CreateServidorModal } from "@/components/CreateServidorModal";
 import { UnidadeServidores } from "@/components/UnidadeServidores";
 import { EditServidorModal } from "@/components/EditServidorModal";
 import { SetorList } from "@/components/SetorList";
+import { FuncaoList } from "@/components/FuncaoList";
 import { Checkbox } from "@/components/ui/checkbox";
 
 function EstruturaContent() {
@@ -21,6 +22,7 @@ function EstruturaContent() {
   const [coordenacoes, setCoordenacoes] = useState<CoordenacaoDB[]>([]);
   const [servidores, setServidores] = useState<ServidorDB[]>([]);
   const [setores, setSetores] = useState<SetorDB[]>([]);
+  const [funcoes, setFuncoes] = useState<FuncaoDB[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
@@ -51,14 +53,15 @@ function EstruturaContent() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [d, u, c, st] = await Promise.all([
+    const [d, u, c, st, fc] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenacoes").select("*").order("nome"),
       supabase.from("setores").select("*").order("nome"),
+      supabase.from("funcoes").select("*").order("nome"),
     ]);
     // Fetch all servidores with pagination (bypass 1000 limit)
-    const selectCols = "id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, setor_id, is_diretor, is_coordenador, is_secretario, is_diretor_geral";
+    const selectCols = "id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, setor_id, funcao_id, is_diretor, is_coordenador, is_secretario, is_diretor_geral";
     const PAGE = 1000;
     let offset = 0;
     let allServidores: any[] = [];
@@ -78,6 +81,7 @@ function EstruturaContent() {
     setUnidades((u.data ?? []) as UnidadeDB[]);
     setCoordenacoes((c.data ?? []) as CoordenacaoDB[]);
     setSetores((st.data ?? []) as SetorDB[]);
+    setFuncoes((fc.data ?? []) as FuncaoDB[]);
     setServidores(allServidores as ServidorDB[]);
     setLoading(false);
   }, []);
@@ -203,6 +207,7 @@ function EstruturaContent() {
   };
 
   const getSetoresByDiretoria = (diretoriaId: string | null) => setores.filter(s => s.diretoria_id === diretoriaId);
+  const getFuncoesByUnidade = (unidadeId: string) => funcoes.filter(f => f.unidade_id === unidadeId);
   const getServidoresBySetor = (setorId: string) => servidores.filter(s => (s as any).setor_id === setorId);
   const getResponsavel = (responsavelId: string | null) => responsavelId ? servidores.find(s => s.id === responsavelId) : null;
 
@@ -906,6 +911,34 @@ function EstruturaContent() {
                                       </div>
                                     );
                                   })()}
+                                </div>
+                              )}
+
+                              {/* Funções da unidade */}
+                              {uniExpanded && (
+                                <div className="px-4 pb-3 ml-6">
+                                  <FuncaoList
+                                    funcoes={getFuncoesByUnidade(uni.id)}
+                                    servidores={servidores}
+                                    unidadeId={uni.id}
+                                    onAddFuncao={async (nome, unidadeId) => {
+                                      const { error } = await supabase.from("funcoes").insert({ nome, unidade_id: unidadeId });
+                                      if (!error) loadData();
+                                      else toast({ title: "Erro", description: error.message, variant: "destructive" });
+                                    }}
+                                    onDeleteFuncao={async (id) => {
+                                      await supabase.from("servidores").update({ funcao_id: null } as any).eq("funcao_id", id);
+                                      await supabase.from("funcoes").delete().eq("id", id);
+                                      toast({ title: "Função removida" });
+                                      loadData();
+                                    }}
+                                    onAssignServidor={async (ids, funcaoId) => {
+                                      const { error } = await supabase.from("servidores").update({ funcao_id: funcaoId } as any).in("id", ids);
+                                      if (!error) { toast({ title: `${ids.length} servidor(es) vinculado(s)!` }); loadData(); }
+                                      else toast({ title: "Erro", description: error.message, variant: "destructive" });
+                                    }}
+                                    contextServidores={getServidoresByUnidade(uni.id)}
+                                  />
                                 </div>
                               )}
 

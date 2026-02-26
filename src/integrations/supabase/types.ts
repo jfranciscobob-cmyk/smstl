@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      atestados: {
+        Row: {
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          dias: number
+          id: string
+          observacao: string | null
+          servidor_id: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_fim: string
+          data_inicio: string
+          dias?: number
+          id?: string
+          observacao?: string | null
+          servidor_id: string
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          dias?: number
+          id?: string
+          observacao?: string | null
+          servidor_id?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atestados_servidor_id_fkey"
+            columns: ["servidor_id"]
+            isOneToOne: false
+            referencedRelation: "servidores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coordenacoes: {
         Row: {
           created_at: string
@@ -67,6 +111,38 @@ export type Database = {
         }
         Relationships: []
       }
+      funcoes: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          unidade_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          unidade_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          unidade_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "funcoes_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       servidores: {
         Row: {
           cargo: string
@@ -88,6 +164,7 @@ export type Database = {
           ferias_total_dias: number | null
           ferias_vencidas: number | null
           funcao_critica: boolean
+          funcao_id: string | null
           id: string
           is_coordenador: boolean
           is_diretor: boolean
@@ -124,6 +201,7 @@ export type Database = {
           ferias_total_dias?: number | null
           ferias_vencidas?: number | null
           funcao_critica?: boolean
+          funcao_id?: string | null
           id?: string
           is_coordenador?: boolean
           is_diretor?: boolean
@@ -160,6 +238,7 @@ export type Database = {
           ferias_total_dias?: number | null
           ferias_vencidas?: number | null
           funcao_critica?: boolean
+          funcao_id?: string | null
           id?: string
           is_coordenador?: boolean
           is_diretor?: boolean
@@ -189,6 +268,13 @@ export type Database = {
             columns: ["diretoria_id"]
             isOneToOne: false
             referencedRelation: "diretorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servidores_funcao_id_fkey"
+            columns: ["funcao_id"]
+            isOneToOne: false
+            referencedRelation: "funcoes"
             referencedColumns: ["id"]
           },
           {
