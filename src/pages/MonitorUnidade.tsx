@@ -433,7 +433,7 @@ function MonitorContent() {
                 {(() => {
                   const semDir = servidores.filter(s => !s.diretoria_id);
                   if (semDir.length === 0) return null;
-                  const folha = semDir.reduce((s, sv) => s + ((sv as any).salario || 0), 0);
+                  const folha = semDir.reduce((s, sv) => s + (sv.salario || 0), 0);
                   return (
                     <div className="rounded-xl border border-dashed border-warning/40 bg-warning/5 p-5">
                       <div className="flex items-center gap-3 mb-3">
