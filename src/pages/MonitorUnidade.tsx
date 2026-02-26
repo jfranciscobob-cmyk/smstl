@@ -6,19 +6,20 @@ import { Link, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft, Loader2, Users, Clock, AlertTriangle, Palmtree, FileText,
   CheckCircle, Building2, ChevronDown, ChevronRight, Plus, X, Calendar,
-  DollarSign, Eye, Shield, Ban, Pencil, Save, CalendarCheck, UserX, UserPlus
+  DollarSign, Eye, Shield, Ban, Pencil, Save, CalendarCheck, UserX, UserPlus, ArrowRightLeft
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO, isWithinInterval, addDays, isBefore, isAfter, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { EscalaSemanalEditor } from "@/components/EscalaSemanalEditor";
+import { TransferServidorModal } from "@/components/TransferServidorModal";
 
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 function MonitorContent() {
-  const { hasFinancialAccess } = useAuthSession();
+  const { hasFinancialAccess, user, isAdmin, isDiretor, servidorId, hasFullAccess } = useAuthSession();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const viewMode = searchParams.get("view") || "tudo"; // tudo | diretoria | unidade
@@ -76,6 +77,14 @@ function MonitorContent() {
 
   // Expanded diretorias
   const [expandedDirs, setExpandedDirs] = useState<Record<string, boolean>>({});
+
+  // Transfer modal
+  const [transferServidor, setTransferServidor] = useState<ServidorDB | null>(null);
+
+  // Determine user's diretoria
+  const userServidor = servidores.find(s => s.id === servidorId);
+  const userDiretoriaId = userServidor?.diretoria_id || null;
+  const canTransfer = isAdmin || (isDiretor && !!selectedDiretoriaId && (selectedDiretoriaId === userDiretoriaId || hasFullAccess));
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -1279,6 +1288,7 @@ function MonitorContent() {
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Salário</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">F.Abon.</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Status</th>
+                      {canTransfer && <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap w-8"></th>}
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap w-10">Sem.</th>
                       <th className="pb-2 font-semibold text-muted-foreground">F.Abon.</th>
                       <th className="pb-2 font-semibold text-muted-foreground">Status</th>
@@ -1350,6 +1360,17 @@ function MonitorContent() {
                                 <Calendar className="h-3 w-3" />
                               </button>
                             </td>
+                            {canTransfer && (
+                              <td className="py-2">
+                                <button
+                                  onClick={() => setTransferServidor(s)}
+                                  className="text-[10px] text-muted-foreground hover:text-primary transition-colors"
+                                  title="Transferir para outra diretoria"
+                                >
+                                  <ArrowRightLeft className="h-3.5 w-3.5" />
+                                </button>
+                              </td>
+                            )}
                           </tr>
                           {expandedSemanalId === s.id && (
                             <tr>
@@ -1372,6 +1393,16 @@ function MonitorContent() {
           </div>
         )}
       </main>
+
+      <TransferServidorModal
+        servidor={transferServidor}
+        open={!!transferServidor}
+        onClose={() => setTransferServidor(null)}
+        onSent={() => loadData()}
+        diretorias={diretorias}
+        currentDiretoriaId={selectedDiretoriaId || userDiretoriaId || ""}
+        userId={user?.id || ""}
+      />
     </div>
   );
 }
