@@ -112,6 +112,7 @@ export function CreateServidorModal({
       is_diretor: form.is_diretor,
       is_coordenador: form.is_coordenador,
       data_encerramento_contrato: form.data_encerramento_contrato || null,
+      tipo_escala: form.tipo_escala,
     });
 
     setSaving(false);
