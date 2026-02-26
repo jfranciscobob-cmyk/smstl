@@ -110,6 +110,7 @@ export default function AdminUsuarios() {
         nome: editForm.nome,
         role: editForm.role,
         password: editForm.password || undefined,
+        acesso_financeiro: editForm.acesso_financeiro,
       },
     });
 
