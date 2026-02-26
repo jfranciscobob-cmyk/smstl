@@ -1,6 +1,6 @@
 import type { ServidorDB } from "@/hooks/useServidores";
 import { StatusBadge } from "./StatusBadge";
-import { Clock, Briefcase, MapPin, Pencil } from "lucide-react";
+import { Clock, Briefcase, MapPin, Pencil, Link2 } from "lucide-react";
 
 interface ServidorRowProps {
   servidor: ServidorDB;
