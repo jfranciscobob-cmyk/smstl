@@ -298,10 +298,14 @@ function EstruturaContent() {
                                 <button onClick={() => setEditingId(null)} className="text-muted-foreground"><X className="h-3.5 w-3.5" /></button>
                               </div>
                             ) : (
-                              <div>
+                              <div className="flex items-center gap-2">
                                 <span className="text-sm font-bold text-foreground">{uni.sigla}</span>
-                                <span className="text-sm text-muted-foreground ml-2">— {uni.nome}</span>
-                                <span className="text-xs text-muted-foreground ml-2">({uniCoords.length} coord.)</span>
+                                <span className="text-sm text-muted-foreground">— {uni.nome}</span>
+                                <span className="text-xs text-muted-foreground">({uniCoords.length} coord.)</span>
+                                <span className="flex items-center gap-1 text-xs font-medium text-primary ml-2">
+                                  <Users className="h-3 w-3" />
+                                  {getServidoresByUnidade(uni.id).length} servidores
+                                </span>
                               </div>
                             )}
                           </button>
