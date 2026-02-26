@@ -26,6 +26,7 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [view, setView] = useState<"hierarchy" | "list">("hierarchy");
   const [editingServidor, setEditingServidor] = useState<ServidorDB | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
