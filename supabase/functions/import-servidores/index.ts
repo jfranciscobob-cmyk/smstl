@@ -81,6 +81,7 @@ serve(async (req) => {
       vinculo: mapVinculo(s.vinculo),
       status_presenca: "presente",
       escala_total_horas: s.carga_horaria > 0 ? Math.round(s.carga_horaria / 5) : null,
+      salario: s.salario,
     }));
 
     // Clear existing before import
