@@ -14,7 +14,7 @@ import { CreateServidorModal } from "@/components/CreateServidorModal";
 import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB, type CoordenacaoDB } from "@/hooks/useServidores";
 import {
   Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Search, Filter,
-  LogOut, Loader2, Network, UserPlus, TrendingUp, BarChart3, ClipboardList, ChevronRight, LayoutDashboard, Eye
+  LogOut, Loader2, Network, UserPlus, TrendingUp, BarChart3, ClipboardList, ChevronRight, LayoutDashboard, Eye, UserCheck
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -235,6 +235,16 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
                         <span className="flex items-center gap-3">
                           <Eye className="h-4 w-4 text-primary" />
                           Monitor por Unidade
+                        </span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                      </Link>
+                      <Link
+                        to="/acesso"
+                        className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors group"
+                      >
+                        <span className="flex items-center gap-3">
+                          <UserCheck className="h-4 w-4 text-primary" />
+                          Acesso Rápido (Diretores/Coordenadores)
                         </span>
                         <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                       </Link>
