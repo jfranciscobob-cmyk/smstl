@@ -100,6 +100,8 @@ export function EditServidorModal({
         is_diretor: servidor.is_diretor,
         is_coordenador: servidor.is_coordenador,
         is_coordenador_medico: (servidor as any).is_coordenador_medico || false,
+        vinculo2: (servidor as any).vinculo2 || "",
+        duplo_vinculo: (servidor as any).duplo_vinculo || false,
       });
     }
   }, [servidor]);
