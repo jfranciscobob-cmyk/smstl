@@ -1,5 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginForm } from "@/components/LoginForm";
 import { StatCard } from "@/components/StatCard";
@@ -12,60 +11,64 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 
 function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEmail?: string }) {
-  const queryClient = useQueryClient();
-
-  const { data: servidores = [], isLoading } = useQuery({
-    queryKey: ["servidores"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("servidores").select("*").order("nome");
-      if (error) throw error;
-      return data as ServidorDB[];
-    },
-  });
-
-  const { data: diretorias = [] } = useQuery({
-    queryKey: ["diretorias"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("diretorias").select("*").order("nome");
-      if (error) throw error;
-      return data as DiretoriaDB[];
-    },
-  });
-
-  const { data: unidades = [] } = useQuery({
-    queryKey: ["unidades"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("unidades").select("*").order("nome");
-      if (error) throw error;
-      return data as UnidadeDB[];
-    },
-  });
-
-  const { data: coordenacoes = [] } = useQuery({
-    queryKey: ["coordenacoes"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("coordenacoes").select("*").order("nome");
-      if (error) throw error;
-      return data as CoordenacaoDB[];
-    },
-  });
-
-  const stats = useMemo(() => computeStats(servidores), [servidores]);
+  const [servidores, setServidores] = useState<ServidorDB[]>([]);
+  const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
+  const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
+  const [coordenacoes, setCoordenacoes] = useState<CoordenacaoDB[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [view, setView] = useState<"hierarchy" | "list">("hierarchy");
 
-  // Realtime
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    setLoadError(null);
+
+    const [servidoresRes, diretoriasRes, unidadesRes, coordenacoesRes] = await Promise.all([
+      supabase.from("servidores").select("*").order("nome"),
+      supabase.from("diretorias").select("*").order("nome"),
+      supabase.from("unidades").select("*").order("nome"),
+      supabase.from("coordenacoes").select("*").order("nome"),
+    ]);
+
+    if (servidoresRes.error || diretoriasRes.error || unidadesRes.error || coordenacoesRes.error) {
+      setLoadError(
+        servidoresRes.error?.message ||
+        diretoriasRes.error?.message ||
+        unidadesRes.error?.message ||
+        coordenacoesRes.error?.message ||
+        "Erro ao carregar dados"
+      );
+      setIsLoading(false);
+      return;
+    }
+
+    setServidores((servidoresRes.data ?? []) as ServidorDB[]);
+    setDiretorias((diretoriasRes.data ?? []) as DiretoriaDB[]);
+    setUnidades((unidadesRes.data ?? []) as UnidadeDB[]);
+    setCoordenacoes((coordenacoesRes.data ?? []) as CoordenacaoDB[]);
+    setIsLoading(false);
+  }, []);
+
   useEffect(() => {
+    loadData();
+
     const channel = supabase
       .channel("servidores-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "servidores" }, () => {
-        queryClient.invalidateQueries({ queryKey: ["servidores"] });
-      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "servidores" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "diretorias" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "unidades" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "coordenacoes" }, loadData)
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [queryClient]);
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadData]);
+
+  const stats = useMemo(() => computeStats(servidores), [servidores]);
 
   const filteredServidores = servidores.filter((s) => {
     const matchSearch = s.nome.toLowerCase().includes(search.toLowerCase()) ||
@@ -116,7 +119,13 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
           <StatCard title="Funções Críticas" value={stats.funcoesCriticas} icon={<Shield className="h-5 w-5" />} variant="info" subtitle="Cobertura necessária" />
         </div>
 
-        {servidores.length === 0 && !isLoading && (
+        {loadError && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            {loadError}
+          </div>
+        )}
+
+        {servidores.length === 0 && !isLoading && !loadError && (
           <div className="glass-card rounded-xl p-12 text-center">
             <Users className="mx-auto h-12 w-12 text-muted-foreground/40" />
             <h3 className="mt-4 text-lg font-semibold text-foreground">Nenhum servidor cadastrado</h3>
