@@ -848,7 +848,14 @@ function MonitorContent() {
                                 <td className="py-2 font-mono font-bold text-foreground">{s.escala_total_horas ? `${s.escala_total_horas}h` : "—"}</td>
                               </>
                             )}
-                            <td className="py-2 font-mono text-primary">{s.salario > 0 ? formatCurrency(s.salario) : "—"}</td>
+                            <td className="py-2">
+                              <span className={cn("inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold whitespace-nowrap",
+                                s.tipo_escala?.includes("plantao") ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300" : "bg-muted text-muted-foreground"
+                              )}>
+                                {s.tipo_escala === "plantao_12x36" ? "12×36" : s.tipo_escala === "plantao_24x72" ? "24×72" : s.tipo_escala === "plantao_12x60" ? "12×60" : s.tipo_escala === "variavel" ? "Var." : "Fixa"}
+                              </span>
+                            </td>
+                            <td className="py-2 font-mono text-primary whitespace-nowrap">{s.salario > 0 ? formatCurrency(s.salario) : "—"}</td>
                             <td className="py-2">
                               <span className={cn("text-xs font-mono font-bold", faltaInfo.usadas >= 5 ? "text-destructive" : faltaInfo.usadas >= 3 ? "text-warning" : "text-muted-foreground")}>{faltaInfo.usadas}/5</span>
                             </td>
