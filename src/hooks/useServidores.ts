@@ -36,6 +36,7 @@ export interface ServidorDB {
   created_at: string;
   updated_at: string;
   setor_id: string | null;
+  salario: number;
 }
 
 export interface DiretoriaDB {
