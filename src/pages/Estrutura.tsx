@@ -2,15 +2,16 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginForm } from "@/components/LoginForm";
 import { supabase } from "@/integrations/supabase/client";
-import type { DiretoriaDB, UnidadeDB, CoordenacaoDB, ServidorDB } from "@/hooks/useServidores";
+import type { DiretoriaDB, UnidadeDB, CoordenacaoDB, ServidorDB, SetorDB } from "@/hooks/useServidores";
 import {
-  Building2, Plus, Trash2, Edit2, ChevronDown, ChevronRight, ArrowLeft, Loader2, Shield, X, Check, Network, Users, UserPlus, Crown, Star
+  Building2, Plus, Trash2, Edit2, ChevronDown, ChevronRight, ArrowLeft, Loader2, Shield, X, Check, Network, Users, UserPlus, Crown, Star, Briefcase
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { CreateServidorModal } from "@/components/CreateServidorModal";
 import { UnidadeServidores } from "@/components/UnidadeServidores";
 import { EditServidorModal } from "@/components/EditServidorModal";
+import { SetorList } from "@/components/SetorList";
 
 function EstruturaContent() {
   const { toast } = useToast();
@@ -18,6 +19,7 @@ function EstruturaContent() {
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
   const [coordenacoes, setCoordenacoes] = useState<CoordenacaoDB[]>([]);
   const [servidores, setServidores] = useState<ServidorDB[]>([]);
+  const [setores, setSetores] = useState<SetorDB[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
@@ -35,16 +37,20 @@ function EstruturaContent() {
   const [editingServidor, setEditingServidor] = useState<ServidorDB | null>(null);
   const [assigningSecretaria, setAssigningSecretaria] = useState(false);
   const [secAssignSearch, setSecAssignSearch] = useState("");
+  const [newSetor, setNewSetor] = useState<{ nome: string; cargo_gestao: string; diretoria_id: string | null } | null>(null);
+  const [assigningSetor, setAssigningSetor] = useState<{ setor_id: string } | null>(null);
+  const [setorAssignSearch, setSetorAssignSearch] = useState("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [d, u, c] = await Promise.all([
+    const [d, u, c, st] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenacoes").select("*").order("nome"),
+      supabase.from("setores").select("*").order("nome"),
     ]);
     // Fetch all servidores with pagination (bypass 1000 limit)
-    const selectCols = "id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, is_diretor, is_coordenador, is_secretario, is_diretor_geral";
+    const selectCols = "id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, setor_id, is_diretor, is_coordenador, is_secretario, is_diretor_geral";
     const PAGE = 1000;
     let offset = 0;
     let allServidores: any[] = [];
@@ -63,6 +69,7 @@ function EstruturaContent() {
     setDiretorias((d.data ?? []) as DiretoriaDB[]);
     setUnidades((u.data ?? []) as UnidadeDB[]);
     setCoordenacoes((c.data ?? []) as CoordenacaoDB[]);
+    setSetores((st.data ?? []) as SetorDB[]);
     setServidores(allServidores as ServidorDB[]);
     setLoading(false);
   }, []);
@@ -136,6 +143,52 @@ function EstruturaContent() {
     loadData();
   };
 
+  // CRUD Setores
+  const addSetor = async () => {
+    if (!newSetor || !newSetor.nome.trim()) return;
+    const { error } = await supabase.from("setores").insert({
+      nome: newSetor.nome.trim(),
+      cargo_gestao: newSetor.cargo_gestao.trim() || null,
+      diretoria_id: newSetor.diretoria_id,
+    });
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    setNewSetor(null);
+    toast({ title: "Setor/Função criado!" });
+    loadData();
+  };
+
+  const deleteSetor = async (id: string) => {
+    // Unlink servidores first
+    await supabase.from("servidores").update({ setor_id: null }).eq("setor_id", id);
+    await supabase.from("setores").delete().eq("id", id);
+    toast({ title: "Setor removido" });
+    loadData();
+  };
+
+  const assignServidorToSetor = async (servidorId: string, setorId: string, diretoriaId: string | null) => {
+    const updateData: any = { setor_id: setorId };
+    if (diretoriaId) updateData.diretoria_id = diretoriaId;
+    const { error } = await supabase.from("servidores").update(updateData).eq("id", servidorId);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Servidor vinculado ao setor!" });
+    setAssigningSetor(null);
+    setSetorAssignSearch("");
+    loadData();
+  };
+
+  const setResponsavelSetor = async (setorId: string, servidorId: string) => {
+    const { error } = await supabase.from("setores").update({ responsavel_id: servidorId }).eq("id", setorId);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Responsável definido!" });
+    setPickingRole(null);
+    setRoleSearch("");
+    loadData();
+  };
+
+  const getSetoresByDiretoria = (diretoriaId: string | null) => setores.filter(s => s.diretoria_id === diretoriaId);
+  const getServidoresBySetor = (setorId: string) => servidores.filter(s => (s as any).setor_id === setorId);
+  const getResponsavel = (responsavelId: string | null) => responsavelId ? servidores.find(s => s.id === responsavelId) : null;
+
   const unassignedServidores = servidores.filter(s => !s.unidade_id);
   const secretariaServidores = servidores.filter(s => !s.diretoria_id && !s.unidade_id);
   const getServidoresByUnidade = (unidadeId: string) => servidores.filter(s => s.unidade_id === unidadeId);
@@ -156,6 +209,10 @@ function EstruturaContent() {
 
   const filteredRoleResults = roleSearch.length >= 2
     ? servidores.filter(s => s.nome.toLowerCase().includes(roleSearch.toLowerCase()) || s.matricula.includes(roleSearch)).slice(0, 8)
+    : servidores.slice(0, 8);
+
+  const filteredSetorAssign = setorAssignSearch.length >= 2
+    ? servidores.filter(s => s.nome.toLowerCase().includes(setorAssignSearch.toLowerCase()) || s.matricula.includes(setorAssignSearch)).slice(0, 8)
     : servidores.slice(0, 8);
 
   const assignRole = async (servidorId: string, type: "diretor" | "coordenador" | "secretario" | "diretor_geral", diretoriaId?: string, unidadeId?: string, coordId?: string) => {
@@ -399,6 +456,24 @@ function EstruturaContent() {
                 onEditServidor={setEditingServidor}
                 defaultExpanded={secretariaServidores.length <= 30}
               />
+
+              {/* Setores da Secretaria */}
+              <div className="mt-4">
+                <SetorList
+                  setores={getSetoresByDiretoria(null)}
+                  servidores={servidores}
+                  diretoriaId={null}
+                  onAddSetor={(nome, cargo, dirId) => {
+                    supabase.from("setores").insert({ nome, cargo_gestao: cargo || null, diretoria_id: dirId }).then(({ error }) => {
+                      if (!error) loadData();
+                    });
+                  }}
+                  onDeleteSetor={deleteSetor}
+                  onAssignServidor={assignServidorToSetor}
+                  onSetResponsavel={setResponsavelSetor}
+                  allServidores={servidores}
+                />
+              </div>
             </div>
           )}
 
@@ -536,6 +611,22 @@ function EstruturaContent() {
                             <Plus className="h-4 w-4" /> Adicionar unidade
                           </button>
                         )}
+
+                        {/* Setores da Diretoria */}
+                        <SetorList
+                          setores={getSetoresByDiretoria(dir.id)}
+                          servidores={servidores}
+                          diretoriaId={dir.id}
+                          onAddSetor={(nome, cargo, dirId) => {
+                            supabase.from("setores").insert({ nome, cargo_gestao: cargo || null, diretoria_id: dirId }).then(({ error }) => {
+                              if (!error) loadData();
+                            });
+                          }}
+                          onDeleteSetor={deleteSetor}
+                          onAssignServidor={assignServidorToSetor}
+                          onSetResponsavel={setResponsavelSetor}
+                          allServidores={servidores}
+                        />
 
                         {/* Unidades list */}
                         {dirUnidades.map(uni => {

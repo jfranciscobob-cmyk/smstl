@@ -98,6 +98,7 @@ export type Database = {
           nome: string
           observacao: string | null
           setor: string
+          setor_id: string | null
           status_presenca: string
           unidade_id: string | null
           updated_at: string
@@ -133,6 +134,7 @@ export type Database = {
           nome: string
           observacao?: string | null
           setor?: string
+          setor_id?: string | null
           status_presenca?: string
           unidade_id?: string | null
           updated_at?: string
@@ -168,6 +170,7 @@ export type Database = {
           nome?: string
           observacao?: string | null
           setor?: string
+          setor_id?: string | null
           status_presenca?: string
           unidade_id?: string | null
           updated_at?: string
@@ -189,10 +192,62 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "servidores_setor_id_fkey"
+            columns: ["setor_id"]
+            isOneToOne: false
+            referencedRelation: "setores"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "servidores_unidade_id_fkey"
             columns: ["unidade_id"]
             isOneToOne: false
             referencedRelation: "unidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      setores: {
+        Row: {
+          cargo_gestao: string | null
+          created_at: string
+          diretoria_id: string | null
+          id: string
+          nome: string
+          responsavel_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          cargo_gestao?: string | null
+          created_at?: string
+          diretoria_id?: string | null
+          id?: string
+          nome: string
+          responsavel_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cargo_gestao?: string | null
+          created_at?: string
+          diretoria_id?: string | null
+          id?: string
+          nome?: string
+          responsavel_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "setores_diretoria_id_fkey"
+            columns: ["diretoria_id"]
+            isOneToOne: false
+            referencedRelation: "diretorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "setores_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "servidores"
             referencedColumns: ["id"]
           },
         ]

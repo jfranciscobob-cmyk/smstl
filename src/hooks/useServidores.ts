@@ -35,6 +35,7 @@ export interface ServidorDB {
   is_diretor_geral: boolean;
   created_at: string;
   updated_at: string;
+  setor_id: string | null;
 }
 
 export interface DiretoriaDB {
@@ -57,6 +58,16 @@ export interface CoordenacaoDB {
   id: string;
   nome: string;
   unidade_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SetorDB {
+  id: string;
+  nome: string;
+  diretoria_id: string | null;
+  cargo_gestao: string | null;
+  responsavel_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -149,8 +160,8 @@ export function computeStats(servidores: ServidorDB[]) {
   const afastados = servidores.filter((s) => s.status_presenca === "afastado").length;
   const ausentes = servidores.filter((s) => s.status_presenca === "ausente").length;
   const funcoesCriticas = servidores.filter((s) => s.funcao_critica).length;
-  const concursados = servidores.filter((s) => s.vinculo.includes("CONCURSADO")).length;
-  const contratados = servidores.filter((s) => s.vinculo.includes("CONTRATO")).length;
+  const concursados = servidores.filter((s) => (s.vinculo || "").includes("CONCURSADO")).length;
+  const contratados = servidores.filter((s) => (s.vinculo || "").includes("CONTRATO")).length;
 
   return { total, presentes, ferias, afastados, ausentes, funcoesCriticas, concursados, contratados };
 }
