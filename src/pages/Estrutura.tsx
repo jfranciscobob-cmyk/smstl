@@ -176,6 +176,15 @@ function EstruturaContent() {
     loadData();
   };
 
+  const bulkAssignServidorToSetor = async (servidorIds: string[], setorId: string, diretoriaId: string | null) => {
+    const updateData: any = { setor_id: setorId };
+    if (diretoriaId) updateData.diretoria_id = diretoriaId;
+    const { error } = await supabase.from("servidores").update(updateData).in("id", servidorIds);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: `${servidorIds.length} servidor(es) vinculado(s) ao setor!` });
+    loadData();
+  };
+
   const setResponsavelSetor = async (setorId: string, servidorId: string) => {
     const { error } = await supabase.from("setores").update({ responsavel_id: servidorId }).eq("id", setorId);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
