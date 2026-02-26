@@ -8,9 +8,10 @@ interface UnidadeSectionProps {
   unidade: UnidadeDB;
   coordenacoes: CoordenacaoDB[];
   servidores: ServidorDB[];
+  onEditServidor?: (servidor: ServidorDB) => void;
 }
 
-export function UnidadeSection({ unidade, coordenacoes, servidores }: UnidadeSectionProps) {
+export function UnidadeSection({ unidade, coordenacoes, servidores, onEditServidor }: UnidadeSectionProps) {
   const [expanded, setExpanded] = useState(true);
   const totalServidores = servidores.length;
   const presentes = servidores.filter((s) => s.status_presenca === "presente").length;
@@ -49,13 +50,12 @@ export function UnidadeSection({ unidade, coordenacoes, servidores }: UnidadeSec
               </div>
               <div className="divide-y divide-border/30 px-1">
                 {coordServidores.map((servidor) => (
-                  <ServidorRow key={servidor.id} servidor={servidor} />
+                  <ServidorRow key={servidor.id} servidor={servidor} onEdit={onEditServidor} />
                 ))}
               </div>
             </div>
           );
         })}
-        {/* Servidores sem coordenação nesta unidade */}
         {servidores.filter((s) => !s.coordenacao_id).length > 0 && (
           <div className="border-t border-border/50">
             <div className="bg-muted/30 px-5 py-2">
@@ -66,7 +66,7 @@ export function UnidadeSection({ unidade, coordenacoes, servidores }: UnidadeSec
             </div>
             <div className="divide-y divide-border/30 px-1">
               {servidores.filter((s) => !s.coordenacao_id).map((servidor) => (
-                <ServidorRow key={servidor.id} servidor={servidor} />
+                <ServidorRow key={servidor.id} servidor={servidor} onEdit={onEditServidor} />
               ))}
             </div>
           </div>
