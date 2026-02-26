@@ -4,7 +4,8 @@ import type { DiretoriaDB, UnidadeDB, CoordenacaoDB } from "@/hooks/useServidore
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle
 } from "@/components/ui/dialog";
-import { Save, Loader2, UserPlus } from "lucide-react";
+import { Save, Loader2, UserPlus, AlertTriangle } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 
 interface CreateServidorModalProps {
@@ -45,6 +46,7 @@ const initialForm = {
   ferias_total_dias: "",
   ferias_vencidas: "",
   observacao: "",
+  data_encerramento_contrato: "",
   is_diretor: false,
   is_coordenador: false,
 };
@@ -108,6 +110,7 @@ export function CreateServidorModal({
       observacao: form.observacao || null,
       is_diretor: form.is_diretor,
       is_coordenador: form.is_coordenador,
+      data_encerramento_contrato: form.data_encerramento_contrato || null,
     });
 
     setSaving(false);
@@ -166,7 +169,22 @@ export function CreateServidorModal({
                   <option value="AGENTE POLITICO">Agente Político</option>
                 </select>
               </div>
+              {form.vinculo === "CONTRATO TEMPORARIO" && (
+                <div>
+                  <label className={labelClass}>Data Encerramento Contrato</label>
+                  <input type="date" className={inputClass} value={form.data_encerramento_contrato} onChange={e => set("data_encerramento_contrato", e.target.value)} />
+                </div>
+              )}
             </div>
+            {form.vinculo === "CONTRATO TEMPORARIO" && !form.data_encerramento_contrato && (
+              <Alert variant="destructive" className="mt-3">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Atenção</AlertTitle>
+                <AlertDescription>
+                  Contrato temporário requer data de encerramento para monitoramento.
+                </AlertDescription>
+              </Alert>
+            )}
           </section>
 
           {/* Lotação */}

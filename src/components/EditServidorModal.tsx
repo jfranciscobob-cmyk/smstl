@@ -4,7 +4,8 @@ import type { ServidorDB, DiretoriaDB, UnidadeDB, CoordenacaoDB } from "@/hooks/
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle
 } from "@/components/ui/dialog";
-import { X, Save, Loader2 } from "lucide-react";
+import { X, Save, Loader2, AlertTriangle } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 
 interface EditServidorModalProps {
@@ -56,6 +57,7 @@ export function EditServidorModal({
     ferias_vencidas: "" as string,
     observacao: "",
     data_admissao: "",
+    data_encerramento_contrato: "",
     is_diretor: false,
     is_coordenador: false,
   });
@@ -89,6 +91,7 @@ export function EditServidorModal({
         ferias_vencidas: servidor.ferias_vencidas?.toString() || "",
         observacao: servidor.observacao || "",
         data_admissao: servidor.data_admissao || "",
+        data_encerramento_contrato: (servidor as any).data_encerramento_contrato || "",
         is_diretor: servidor.is_diretor,
         is_coordenador: servidor.is_coordenador,
       });
@@ -135,6 +138,7 @@ export function EditServidorModal({
       is_diretor: form.is_diretor,
       is_coordenador: form.is_coordenador,
       data_admissao: form.data_admissao || null,
+      data_encerramento_contrato: form.data_encerramento_contrato || null,
     };
 
     const { error } = await supabase
@@ -200,7 +204,22 @@ export function EditServidorModal({
                 <label className={labelClass}>Data de Admissão</label>
                 <input type="date" className={inputClass} value={form.data_admissao} onChange={(e) => set("data_admissao", e.target.value)} />
               </div>
+              {form.vinculo === "CONTRATO TEMPORARIO" && (
+                <div>
+                  <label className={labelClass}>Data Encerramento Contrato</label>
+                  <input type="date" className={inputClass} value={form.data_encerramento_contrato} onChange={(e) => set("data_encerramento_contrato", e.target.value)} />
+                </div>
+              )}
             </div>
+            {form.vinculo === "CONTRATO TEMPORARIO" && !form.data_encerramento_contrato && (
+              <Alert variant="destructive" className="mt-3">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Atenção</AlertTitle>
+                <AlertDescription>
+                  Este servidor possui contrato temporário. Informe a data de encerramento do contrato para monitoramento.
+                </AlertDescription>
+              </Alert>
+            )}
           </section>
 
           {/* Lotação */}

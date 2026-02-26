@@ -256,6 +256,7 @@ export type Database = {
           coordenacao_id: string | null
           created_at: string
           data_admissao: string | null
+          data_encerramento_contrato: string | null
           diretoria_id: string | null
           email: string | null
           escala_fim1: string | null
@@ -296,6 +297,7 @@ export type Database = {
           coordenacao_id?: string | null
           created_at?: string
           data_admissao?: string | null
+          data_encerramento_contrato?: string | null
           diretoria_id?: string | null
           email?: string | null
           escala_fim1?: string | null
@@ -336,6 +338,7 @@ export type Database = {
           coordenacao_id?: string | null
           created_at?: string
           data_admissao?: string | null
+          data_encerramento_contrato?: string | null
           diretoria_id?: string | null
           email?: string | null
           escala_fim1?: string | null
