@@ -74,12 +74,13 @@ function MonitorContent() {
       if (data.length < PAGE) break;
       offset += PAGE;
     }
-    const [d, u, f, a, fa] = await Promise.all([
+    const [d, u, f, a, fa, af] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("funcoes").select("*").order("nome"),
       supabase.from("atestados").select("*").order("data_inicio", { ascending: false }),
       supabase.from("faltas_abonadas").select("*").order("data", { ascending: false }),
+      supabase.from("afastamentos").select("*").order("data_inicio", { ascending: false }),
     ]);
     setServidores(allSrv as ServidorDB[]);
     setDiretorias((d.data ?? []) as DiretoriaDB[]);
@@ -87,6 +88,7 @@ function MonitorContent() {
     setFuncoes((f.data ?? []) as FuncaoDB[]);
     setAtestados((a.data ?? []) as AtestadoDB[]);
     setFaltasAbonadas((fa.data ?? []) as FaltaAbonadaDB[]);
+    setAfastamentos((af.data ?? []) as AfastamentoDB[]);
     setLoading(false);
   }, []);
 
