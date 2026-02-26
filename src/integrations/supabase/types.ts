@@ -14,7 +14,218 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      coordenacoes: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          unidade_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          unidade_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          unidade_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coordenacoes_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diretorias: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      servidores: {
+        Row: {
+          cargo: string
+          cobertura_prevista: string
+          coordenacao_id: string | null
+          created_at: string
+          diretoria_id: string | null
+          escala_fim1: string | null
+          escala_fim2: string | null
+          escala_inicio1: string | null
+          escala_inicio2: string | null
+          escala_total_horas: number | null
+          ferias_ano_referencia: number | null
+          ferias_periodo1_fim: string | null
+          ferias_periodo1_inicio: string | null
+          ferias_periodo2_fim: string | null
+          ferias_periodo2_inicio: string | null
+          ferias_status_gerencial: string | null
+          ferias_total_dias: number | null
+          ferias_vencidas: number | null
+          funcao_critica: boolean
+          id: string
+          is_coordenador: boolean
+          is_diretor: boolean
+          local_trabalho: string
+          matricula: string
+          nome: string
+          observacao: string | null
+          setor: string
+          status_presenca: string
+          unidade_id: string | null
+          updated_at: string
+          vinculo: string
+        }
+        Insert: {
+          cargo: string
+          cobertura_prevista?: string
+          coordenacao_id?: string | null
+          created_at?: string
+          diretoria_id?: string | null
+          escala_fim1?: string | null
+          escala_fim2?: string | null
+          escala_inicio1?: string | null
+          escala_inicio2?: string | null
+          escala_total_horas?: number | null
+          ferias_ano_referencia?: number | null
+          ferias_periodo1_fim?: string | null
+          ferias_periodo1_inicio?: string | null
+          ferias_periodo2_fim?: string | null
+          ferias_periodo2_inicio?: string | null
+          ferias_status_gerencial?: string | null
+          ferias_total_dias?: number | null
+          ferias_vencidas?: number | null
+          funcao_critica?: boolean
+          id?: string
+          is_coordenador?: boolean
+          is_diretor?: boolean
+          local_trabalho?: string
+          matricula: string
+          nome: string
+          observacao?: string | null
+          setor?: string
+          status_presenca?: string
+          unidade_id?: string | null
+          updated_at?: string
+          vinculo?: string
+        }
+        Update: {
+          cargo?: string
+          cobertura_prevista?: string
+          coordenacao_id?: string | null
+          created_at?: string
+          diretoria_id?: string | null
+          escala_fim1?: string | null
+          escala_fim2?: string | null
+          escala_inicio1?: string | null
+          escala_inicio2?: string | null
+          escala_total_horas?: number | null
+          ferias_ano_referencia?: number | null
+          ferias_periodo1_fim?: string | null
+          ferias_periodo1_inicio?: string | null
+          ferias_periodo2_fim?: string | null
+          ferias_periodo2_inicio?: string | null
+          ferias_status_gerencial?: string | null
+          ferias_total_dias?: number | null
+          ferias_vencidas?: number | null
+          funcao_critica?: boolean
+          id?: string
+          is_coordenador?: boolean
+          is_diretor?: boolean
+          local_trabalho?: string
+          matricula?: string
+          nome?: string
+          observacao?: string | null
+          setor?: string
+          status_presenca?: string
+          unidade_id?: string | null
+          updated_at?: string
+          vinculo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "servidores_coordenacao_id_fkey"
+            columns: ["coordenacao_id"]
+            isOneToOne: false
+            referencedRelation: "coordenacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servidores_diretoria_id_fkey"
+            columns: ["diretoria_id"]
+            isOneToOne: false
+            referencedRelation: "diretorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servidores_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      unidades: {
+        Row: {
+          created_at: string
+          diretoria_id: string
+          id: string
+          nome: string
+          sigla: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          diretoria_id: string
+          id?: string
+          nome: string
+          sigla: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          diretoria_id?: string
+          id?: string
+          nome?: string
+          sigla?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unidades_diretoria_id_fkey"
+            columns: ["diretoria_id"]
+            isOneToOne: false
+            referencedRelation: "diretorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
