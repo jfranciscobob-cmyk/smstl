@@ -37,7 +37,7 @@ function EstruturaContent() {
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenacoes").select("*").order("nome"),
-      supabase.from("servidores").select("id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, is_diretor, is_coordenador, is_secretario").order("nome").limit(5000),
+      supabase.from("servidores").select("id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, is_diretor, is_coordenador, is_secretario, is_diretor_geral").order("nome").limit(5000),
     ]);
     setDiretorias((d.data ?? []) as DiretoriaDB[]);
     setUnidades((u.data ?? []) as UnidadeDB[]);
