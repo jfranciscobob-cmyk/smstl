@@ -586,7 +586,7 @@ function MonitorContent() {
                         <span className="text-success"><CheckCircle className="h-3 w-3 inline mr-1" />{dirPresentes}</span>
                         <span>{dirUnidades.length} unid.</span>
                       </div>
-                      {dirFolha > 0 && (
+                      {hasFinancialAccess && dirFolha > 0 && (
                         <p className="mt-2 text-xs font-mono font-bold text-primary">{formatCurrency(dirFolha)}</p>
                       )}
                     </button>
