@@ -47,6 +47,7 @@ const initialForm = {
   ferias_vencidas: "",
   observacao: "",
   data_encerramento_contrato: "",
+  tipo_escala: "fixa",
   is_diretor: false,
   is_coordenador: false,
 };
