@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { ServidorDB, DiretoriaDB, UnidadeDB, FuncaoDB, AtestadoDB, FaltaAbonadaDB } from "@/hooks/useServidores";
+import type { ServidorDB, DiretoriaDB, UnidadeDB, FuncaoDB, AtestadoDB, FaltaAbonadaDB, AfastamentoDB } from "@/hooks/useServidores";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft, Loader2, Users, Clock, AlertTriangle, Palmtree, FileText,
   CheckCircle, Building2, ChevronDown, ChevronRight, Plus, X, Calendar,
-  DollarSign, Eye, Shield, Ban, Pencil, Save, CalendarCheck
+  DollarSign, Eye, Shield, Ban, Pencil, Save, CalendarCheck, UserX
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO, isWithinInterval, addDays, isBefore, isAfter, differenceInDays } from "date-fns";
@@ -29,6 +29,7 @@ function MonitorContent() {
   const [funcoes, setFuncoes] = useState<FuncaoDB[]>([]);
   const [atestados, setAtestados] = useState<AtestadoDB[]>([]);
   const [faltasAbonadas, setFaltasAbonadas] = useState<FaltaAbonadaDB[]>([]);
+  const [afastamentos, setAfastamentos] = useState<AfastamentoDB[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Atestado form
@@ -40,6 +41,17 @@ function MonitorContent() {
   const [showFaltaForm, setShowFaltaForm] = useState(false);
   const [faltaForm, setFaltaForm] = useState({ servidor_id: "", data: "", observacao: "" });
   const [faltaSearch, setFaltaSearch] = useState("");
+
+  // Afastamento form
+  const MOTIVOS_AFASTAMENTO = [
+    "Licença Maternidade", "Licença Paternidade", "Licença Sem Vencimento",
+    "Licença Prêmio", "Licença para Tratamento de Saúde", "Suspensão Disciplinar",
+    "Cessão", "Curso/Capacitação", "Licença por Interesse Particular",
+    "Licença Nojo (Falecimento)", "Licença Casamento", "Outro"
+  ];
+  const [showAfastamentoForm, setShowAfastamentoForm] = useState(false);
+  const [afastamentoForm, setAfastamentoForm] = useState({ servidor_id: "", motivo: "Licença para Tratamento de Saúde", data_inicio: "", data_fim: "", observacao: "" });
+  const [afastamentoSearch, setAfastamentoSearch] = useState("");
 
   // Bulk edit escalas
   const [showBulkEscala, setShowBulkEscala] = useState(false);
@@ -62,12 +74,13 @@ function MonitorContent() {
       if (data.length < PAGE) break;
       offset += PAGE;
     }
-    const [d, u, f, a, fa] = await Promise.all([
+    const [d, u, f, a, fa, af] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("funcoes").select("*").order("nome"),
       supabase.from("atestados").select("*").order("data_inicio", { ascending: false }),
       supabase.from("faltas_abonadas").select("*").order("data", { ascending: false }),
+      supabase.from("afastamentos").select("*").order("data_inicio", { ascending: false }),
     ]);
     setServidores(allSrv as ServidorDB[]);
     setDiretorias((d.data ?? []) as DiretoriaDB[]);
@@ -75,6 +88,7 @@ function MonitorContent() {
     setFuncoes((f.data ?? []) as FuncaoDB[]);
     setAtestados((a.data ?? []) as AtestadoDB[]);
     setFaltasAbonadas((fa.data ?? []) as FaltaAbonadaDB[]);
+    setAfastamentos((af.data ?? []) as AfastamentoDB[]);
     setLoading(false);
   }, []);
 
@@ -207,6 +221,54 @@ function MonitorContent() {
   const filteredAtestadoServidores = atestadoSearch.length >= 2
     ? filteredServidores.filter(s => s.nome.toLowerCase().includes(atestadoSearch.toLowerCase())).slice(0, 10)
     : filteredServidores.slice(0, 10);
+
+  const filteredAfastamentoServidores = afastamentoSearch.length >= 2
+    ? filteredServidores.filter(s => s.nome.toLowerCase().includes(afastamentoSearch.toLowerCase())).slice(0, 10)
+    : filteredServidores.slice(0, 10);
+
+  // Active afastamentos
+  const activeAfastamentos = useMemo(() => {
+    const srvIds = new Set(filteredServidores.map(s => s.id));
+    return afastamentos.filter(a => {
+      if (!srvIds.has(a.servidor_id)) return false;
+      try {
+        const inicio = parseISO(a.data_inicio);
+        if (a.data_fim) {
+          return isWithinInterval(today, { start: inicio, end: parseISO(a.data_fim) });
+        }
+        return !isAfter(inicio, today); // sem data fim = ainda ativo
+      } catch { return false; }
+    });
+  }, [afastamentos, filteredServidores]);
+
+  const addAfastamento = async () => {
+    if (!afastamentoForm.servidor_id || !afastamentoForm.data_inicio || !afastamentoForm.motivo) {
+      toast({ title: "Preencha servidor, motivo e data de início", variant: "destructive" }); return;
+    }
+    const { error } = await supabase.from("afastamentos").insert({
+      servidor_id: afastamentoForm.servidor_id,
+      motivo: afastamentoForm.motivo,
+      data_inicio: afastamentoForm.data_inicio,
+      data_fim: afastamentoForm.data_fim || null,
+      observacao: afastamentoForm.observacao || null,
+    });
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    // Also update servidor status to afastado
+    await supabase.from("servidores").update({ status_presenca: "afastado" }).eq("id", afastamentoForm.servidor_id);
+    toast({ title: "Afastamento registrado!" });
+    setShowAfastamentoForm(false);
+    setAfastamentoForm({ servidor_id: "", motivo: "Licença para Tratamento de Saúde", data_inicio: "", data_fim: "", observacao: "" });
+    setAfastamentoSearch("");
+    loadData();
+  };
+
+  const finalizarAfastamento = async (afastamentoId: string, servidorId: string) => {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    await supabase.from("afastamentos").update({ data_fim: todayStr }).eq("id", afastamentoId);
+    await supabase.from("servidores").update({ status_presenca: "presente" }).eq("id", servidorId);
+    toast({ title: "Afastamento finalizado, servidor marcado como presente!" });
+    loadData();
+  };
 
   // Bulk escala save
   const initBulkEscalas = () => {
@@ -712,6 +774,82 @@ function MonitorContent() {
                     <div key={s.id} className="flex items-center justify-between rounded-lg px-3 py-1.5 bg-muted/20">
                       <span className="text-xs text-foreground">{s.nome}</span>
                       <span className={cn("text-xs font-mono font-bold", info.usadas >= 5 ? "text-destructive" : info.usadas >= 3 ? "text-warning" : "text-primary")}>{info.usadas}/5</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Afastamentos */}
+            <div className="rounded-xl border border-orange-500/30 bg-card p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-orange-600 dark:text-orange-400 flex items-center gap-2">
+                  <UserX className="h-3.5 w-3.5" /> Afastamentos Ativos ({activeAfastamentos.length})
+                </h3>
+                <button onClick={() => setShowAfastamentoForm(true)} className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80">
+                  <Plus className="h-3.5 w-3.5" /> Registrar
+                </button>
+              </div>
+              {showAfastamentoForm && (
+                <div className="mb-3 space-y-2 rounded-lg border border-border bg-muted/20 p-3">
+                  <div className="space-y-1">
+                    <input value={afastamentoSearch} onChange={e => setAfastamentoSearch(e.target.value)} placeholder="Buscar servidor..."
+                      className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                    {!afastamentoForm.servidor_id && (
+                      <div className="max-h-28 overflow-y-auto bg-card rounded border border-border shadow-md">
+                        {filteredAfastamentoServidores.map(s => (
+                          <button key={s.id} onClick={() => { setAfastamentoForm(f => ({ ...f, servidor_id: s.id })); setAfastamentoSearch(s.nome); }}
+                            className="w-full text-left px-2 py-1 text-xs hover:bg-primary/10 text-foreground">{s.nome} <span className="text-muted-foreground">({s.cargo})</span></button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div><label className="text-[10px] text-muted-foreground">Motivo</label>
+                    <select value={afastamentoForm.motivo} onChange={e => setAfastamentoForm(f => ({ ...f, motivo: e.target.value }))}
+                      className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground focus:ring-1 focus:ring-ring focus:outline-none">
+                      {MOTIVOS_AFASTAMENTO.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div><label className="text-[10px] text-muted-foreground">Data Início</label>
+                      <input type="date" value={afastamentoForm.data_inicio} onChange={e => setAfastamentoForm(f => ({ ...f, data_inicio: e.target.value }))}
+                        className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground focus:ring-1 focus:ring-ring focus:outline-none" /></div>
+                    <div><label className="text-[10px] text-muted-foreground">Previsão Retorno (opcional)</label>
+                      <input type="date" value={afastamentoForm.data_fim} onChange={e => setAfastamentoForm(f => ({ ...f, data_fim: e.target.value }))}
+                        className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground focus:ring-1 focus:ring-ring focus:outline-none" /></div>
+                  </div>
+                  <input value={afastamentoForm.observacao} onChange={e => setAfastamentoForm(f => ({ ...f, observacao: e.target.value }))}
+                    placeholder="Observação (opcional)" className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                  <div className="flex gap-2">
+                    <button onClick={addAfastamento} className="h-7 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90">Salvar</button>
+                    <button onClick={() => { setShowAfastamentoForm(false); setAfastamentoSearch(""); setAfastamentoForm({ servidor_id: "", motivo: "Licença para Tratamento de Saúde", data_inicio: "", data_fim: "", observacao: "" }); }}
+                      className="text-xs text-muted-foreground">Cancelar</button>
+                  </div>
+                </div>
+              )}
+              <div className="space-y-1 max-h-64 overflow-y-auto">
+                {activeAfastamentos.length === 0 && <p className="text-xs text-muted-foreground italic">Nenhum afastamento ativo.</p>}
+                {activeAfastamentos.map(a => {
+                  const diasAfastado = differenceInDays(today, parseISO(a.data_inicio));
+                  return (
+                    <div key={a.id} className="flex items-center justify-between rounded-lg px-3 py-2 bg-orange-500/5 border border-orange-500/10">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{getServidorNome(a.servidor_id)}</p>
+                        <p className="text-[10px] text-muted-foreground">{a.motivo}{a.observacao ? ` · ${a.observacao}` : ""}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-right">
+                          <span className="text-xs font-mono text-orange-600 dark:text-orange-400">{diasAfastado} dia(s)</span>
+                          <p className="text-[10px] text-muted-foreground">
+                            {a.data_fim ? `Retorno: ${format(parseISO(a.data_fim), "dd/MM/yyyy")}` : "Sem previsão"}
+                          </p>
+                        </div>
+                        <button onClick={() => finalizarAfastamento(a.id, a.servidor_id)}
+                          title="Finalizar afastamento"
+                          className="h-6 px-2 rounded text-[10px] font-medium bg-success/10 text-success hover:bg-success/20">
+                          Retornou
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
