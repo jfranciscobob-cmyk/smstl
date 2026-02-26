@@ -90,6 +90,42 @@ export type Database = {
           },
         ]
       }
+      coordenadores_unidades: {
+        Row: {
+          created_at: string
+          id: string
+          servidor_id: string
+          unidade_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          servidor_id: string
+          unidade_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          servidor_id?: string
+          unidade_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coordenadores_unidades_servidor_id_fkey"
+            columns: ["servidor_id"]
+            isOneToOne: false
+            referencedRelation: "servidores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coordenadores_unidades_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diretorias: {
         Row: {
           created_at: string
