@@ -60,17 +60,19 @@ function MonitorContent() {
       if (data.length < PAGE) break;
       offset += PAGE;
     }
-    const [d, u, f, a] = await Promise.all([
+    const [d, u, f, a, fa] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("funcoes").select("*").order("nome"),
       supabase.from("atestados").select("*").order("data_inicio", { ascending: false }),
+      supabase.from("faltas_abonadas").select("*").order("data", { ascending: false }),
     ]);
     setServidores(allSrv as ServidorDB[]);
     setDiretorias((d.data ?? []) as DiretoriaDB[]);
     setUnidades((u.data ?? []) as UnidadeDB[]);
     setFuncoes((f.data ?? []) as FuncaoDB[]);
     setAtestados((a.data ?? []) as AtestadoDB[]);
+    setFaltasAbonadas((fa.data ?? []) as FaltaAbonadaDB[]);
     setLoading(false);
   }, []);
 
