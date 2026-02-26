@@ -1,8 +1,9 @@
 import { useState } from "react";
 import type { SetorDB, ServidorDB } from "@/hooks/useServidores";
 import {
-  Briefcase, Plus, Trash2, ChevronDown, ChevronRight, Users, Crown, X
+  Briefcase, Plus, Trash2, ChevronDown, ChevronRight, Users, Crown, X, Check
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface SetorListProps {
   setores: SetorDB[];
@@ -11,8 +12,10 @@ interface SetorListProps {
   onAddSetor: (nome: string, cargoGestao: string, diretoriaId: string | null) => void;
   onDeleteSetor: (id: string) => void;
   onAssignServidor: (servidorId: string, setorId: string, diretoriaId: string | null) => void;
+  onBulkAssignServidor?: (servidorIds: string[], setorId: string, diretoriaId: string | null) => void;
   onSetResponsavel: (setorId: string, servidorId: string) => void;
-  allServidores: ServidorDB[];
+  /** Servidores scoped to this context (diretoria or secretaria) */
+  contextServidores: ServidorDB[];
 }
 
 export function SetorList({
@@ -22,8 +25,9 @@ export function SetorList({
   onAddSetor,
   onDeleteSetor,
   onAssignServidor,
+  onBulkAssignServidor,
   onSetResponsavel,
-  allServidores,
+  contextServidores,
 }: SetorListProps) {
   const [showForm, setShowForm] = useState(false);
   const [nome, setNome] = useState("");
@@ -31,24 +35,47 @@ export function SetorList({
   const [expandedSetores, setExpandedSetores] = useState<Record<string, boolean>>({});
   const [assigningSetorId, setAssigningSetorId] = useState<string | null>(null);
   const [assignSearch, setAssignSearch] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [pickingResponsavel, setPickingResponsavel] = useState<string | null>(null);
   const [respSearch, setRespSearch] = useState("");
 
   const toggleExpand = (id: string) => setExpandedSetores(prev => ({ ...prev, [id]: !prev[id] }));
 
   const getServidoresInSetor = (setorId: string) =>
-    servidores.filter(s => (s as any).setor_id === setorId);
+    servidores.filter(s => s.setor_id === setorId);
 
   const getResponsavel = (responsavelId: string | null) =>
-    responsavelId ? allServidores.find(s => s.id === responsavelId) : null;
+    responsavelId ? servidores.find(s => s.id === responsavelId) || contextServidores.find(s => s.id === responsavelId) : null;
 
+  // Show only context servidores (belonging to this diretoria/secretaria), filtered by search
+  const availableForAssign = contextServidores.filter(s => !s.setor_id || assigningSetorId === null);
   const filteredAssign = assignSearch.length >= 2
-    ? allServidores.filter(s => s.nome.toLowerCase().includes(assignSearch.toLowerCase()) || s.matricula.includes(assignSearch)).slice(0, 8)
-    : allServidores.slice(0, 8);
+    ? availableForAssign.filter(s => s.nome.toLowerCase().includes(assignSearch.toLowerCase()) || s.matricula.includes(assignSearch)).slice(0, 30)
+    : availableForAssign.slice(0, 30);
 
   const filteredResp = respSearch.length >= 2
-    ? allServidores.filter(s => s.nome.toLowerCase().includes(respSearch.toLowerCase()) || s.matricula.includes(respSearch)).slice(0, 8)
-    : allServidores.slice(0, 8);
+    ? contextServidores.filter(s => s.nome.toLowerCase().includes(respSearch.toLowerCase()) || s.matricula.includes(respSearch)).slice(0, 8)
+    : contextServidores.slice(0, 8);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkAssign = (setorId: string) => {
+    if (selectedIds.size === 0) return;
+    if (onBulkAssignServidor) {
+      onBulkAssignServidor(Array.from(selectedIds), setorId, diretoriaId);
+    } else {
+      selectedIds.forEach(id => onAssignServidor(id, setorId, diretoriaId));
+    }
+    setSelectedIds(new Set());
+    setAssigningSetorId(null);
+    setAssignSearch("");
+  };
 
   const handleAdd = () => {
     if (!nome.trim()) return;
@@ -118,8 +145,8 @@ export function SetorList({
               </button>
               <div className="flex items-center gap-1">
                 <button
-                  onClick={() => setAssigningSetorId(setor.id)}
-                  className="p-1.5 rounded text-primary hover:bg-primary/10 transition-colors" title="Vincular servidor"
+                  onClick={() => { setAssigningSetorId(setor.id); setSelectedIds(new Set()); }}
+                  className="p-1.5 rounded text-primary hover:bg-primary/10 transition-colors" title="Vincular servidores"
                 >
                   <Users className="h-3.5 w-3.5" />
                 </button>
@@ -161,9 +188,9 @@ export function SetorList({
               )}
             </div>
 
-            {/* Assign dropdown */}
+            {/* Multi-select assign dropdown */}
             {assigningSetorId === setor.id && (
-              <div className="px-3 py-2 border-t border-border/20 space-y-1">
+              <div className="px-3 py-2 border-t border-border/20 space-y-2">
                 <input
                   autoFocus
                   value={assignSearch}
@@ -171,15 +198,32 @@ export function SetorList({
                   placeholder="Buscar servidor..."
                   className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-ring focus:outline-none"
                 />
-                <div className="max-h-32 overflow-y-auto bg-card rounded border border-border shadow-md">
+                <div className="max-h-48 overflow-y-auto bg-card rounded border border-border shadow-md">
                   {filteredAssign.map(s => (
-                    <button key={s.id} onClick={() => onAssignServidor(s.id, setor.id, diretoriaId)} className="w-full text-left px-2 py-1 text-xs hover:bg-primary/10 text-foreground">
+                    <label key={s.id} className="flex items-center gap-2 w-full px-2 py-1.5 text-xs hover:bg-primary/10 text-foreground cursor-pointer">
+                      <Checkbox
+                        checked={selectedIds.has(s.id)}
+                        onCheckedChange={() => toggleSelect(s.id)}
+                      />
                       <span className="font-medium">{s.nome}</span>
-                      <span className="text-muted-foreground ml-1">({s.cargo})</span>
-                    </button>
+                      <span className="text-muted-foreground">({s.cargo})</span>
+                    </label>
                   ))}
+                  {filteredAssign.length === 0 && (
+                    <p className="text-[10px] text-muted-foreground py-2 px-2">Nenhum servidor encontrado neste contexto.</p>
+                  )}
                 </div>
-                <button onClick={() => { setAssigningSetorId(null); setAssignSearch(""); }} className="text-[10px] text-muted-foreground">Cancelar</button>
+                <div className="flex items-center gap-2">
+                  {selectedIds.size > 0 && (
+                    <button
+                      onClick={() => handleBulkAssign(setor.id)}
+                      className="flex items-center gap-1 h-7 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
+                    >
+                      <Check className="h-3 w-3" /> Vincular {selectedIds.size} servidor(es)
+                    </button>
+                  )}
+                  <button onClick={() => { setAssigningSetorId(null); setAssignSearch(""); setSelectedIds(new Set()); }} className="text-[10px] text-muted-foreground">Cancelar</button>
+                </div>
               </div>
             )}
 
