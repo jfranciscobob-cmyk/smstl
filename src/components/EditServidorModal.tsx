@@ -204,7 +204,22 @@ export function EditServidorModal({
                 <label className={labelClass}>Data de Admissão</label>
                 <input type="date" className={inputClass} value={form.data_admissao} onChange={(e) => set("data_admissao", e.target.value)} />
               </div>
+              {form.vinculo === "CONTRATO TEMPORARIO" && (
+                <div>
+                  <label className={labelClass}>Data Encerramento Contrato</label>
+                  <input type="date" className={inputClass} value={form.data_encerramento_contrato} onChange={(e) => set("data_encerramento_contrato", e.target.value)} />
+                </div>
+              )}
             </div>
+            {form.vinculo === "CONTRATO TEMPORARIO" && !form.data_encerramento_contrato && (
+              <Alert variant="destructive" className="mt-3">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Atenção</AlertTitle>
+                <AlertDescription>
+                  Este servidor possui contrato temporário. Informe a data de encerramento do contrato para monitoramento.
+                </AlertDescription>
+              </Alert>
+            )}
           </section>
 
           {/* Lotação */}

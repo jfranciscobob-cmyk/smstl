@@ -169,7 +169,22 @@ export function CreateServidorModal({
                   <option value="AGENTE POLITICO">Agente Político</option>
                 </select>
               </div>
+              {form.vinculo === "CONTRATO TEMPORARIO" && (
+                <div>
+                  <label className={labelClass}>Data Encerramento Contrato</label>
+                  <input type="date" className={inputClass} value={form.data_encerramento_contrato} onChange={e => set("data_encerramento_contrato", e.target.value)} />
+                </div>
+              )}
             </div>
+            {form.vinculo === "CONTRATO TEMPORARIO" && !form.data_encerramento_contrato && (
+              <Alert variant="destructive" className="mt-3">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Atenção</AlertTitle>
+                <AlertDescription>
+                  Contrato temporário requer data de encerramento para monitoramento.
+                </AlertDescription>
+              </Alert>
+            )}
           </section>
 
           {/* Lotação */}

@@ -38,6 +38,7 @@ export interface ServidorDB {
   setor_id: string | null;
   salario: number;
   data_admissao: string | null;
+  data_encerramento_contrato: string | null;
 }
 
 export interface FaltaAbonadaDB {
