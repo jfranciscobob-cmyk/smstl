@@ -240,7 +240,7 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
                 </div>
                 <div className="divide-y divide-border/30 px-1">
                   {filteredServidores.map((servidor) => (
-                    <ServidorRow key={servidor.id} servidor={servidor} />
+                    <ServidorRow key={servidor.id} servidor={servidor} onEdit={setEditingServidor} />
                   ))}
                 </div>
               </div>
