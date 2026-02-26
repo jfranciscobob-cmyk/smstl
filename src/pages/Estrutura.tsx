@@ -121,6 +121,7 @@ function EstruturaContent() {
   };
 
   const unassignedServidores = servidores.filter(s => !s.unidade_id);
+  const secretariaServidores = servidores.filter(s => !s.diretoria_id && !s.unidade_id);
   const getServidoresByUnidade = (unidadeId: string) => servidores.filter(s => s.unidade_id === unidadeId);
   const getServidoresByCoord = (coordId: string) => servidores.filter(s => s.coordenacao_id === coordId);
   const getDiretor = (diretoriaId: string) => servidores.find(s => s.diretoria_id === diretoriaId && s.is_diretor);
@@ -132,6 +133,10 @@ function EstruturaContent() {
   const filteredAssignResults = assignSearch.length >= 2
     ? servidores.filter(s => s.nome.toLowerCase().includes(assignSearch.toLowerCase()) || s.matricula.includes(assignSearch)).slice(0, 8)
     : unassignedServidores.slice(0, 8);
+
+  const filteredSecAssign = secAssignSearch.length >= 2
+    ? servidores.filter(s => s.nome.toLowerCase().includes(secAssignSearch.toLowerCase()) || s.matricula.includes(secAssignSearch)).slice(0, 8)
+    : servidores.filter(s => !s.diretoria_id).slice(0, 8);
 
   const filteredRoleResults = roleSearch.length >= 2
     ? servidores.filter(s => s.nome.toLowerCase().includes(roleSearch.toLowerCase()) || s.matricula.includes(roleSearch)).slice(0, 8)
