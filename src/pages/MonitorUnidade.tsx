@@ -24,6 +24,7 @@ function MonitorContent() {
   const viewMode = searchParams.get("view") || "tudo"; // tudo | diretoria | unidade
   const selectedDiretoriaId = searchParams.get("diretoria") || "";
   const selectedUnidadeId = searchParams.get("unidade") || "";
+  const activeFilter = searchParams.get("filter") || ""; // presentes | ferias | afastados | ausentes | concursados | contratados | duplo_vinculo
 
   const [servidores, setServidores] = useState<ServidorDB[]>([]);
   const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
