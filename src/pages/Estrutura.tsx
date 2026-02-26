@@ -459,7 +459,7 @@ function EstruturaContent() {
 
               {/* Setores da Secretaria */}
               <div className="mt-4">
-                <SetorList
+              <SetorList
                   setores={getSetoresByDiretoria(null)}
                   servidores={servidores}
                   diretoriaId={null}
@@ -470,8 +470,9 @@ function EstruturaContent() {
                   }}
                   onDeleteSetor={deleteSetor}
                   onAssignServidor={assignServidorToSetor}
+                  onBulkAssignServidor={bulkAssignServidorToSetor}
                   onSetResponsavel={setResponsavelSetor}
-                  allServidores={servidores}
+                  contextServidores={secretariaServidores}
                 />
               </div>
             </div>
