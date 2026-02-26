@@ -1,0 +1,1 @@
+ALTER TABLE public.servidores ADD COLUMN is_secretario boolean NOT NULL DEFAULT false;
