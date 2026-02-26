@@ -14,7 +14,7 @@ import { CreateServidorModal } from "@/components/CreateServidorModal";
 import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB, type CoordenacaoDB } from "@/hooks/useServidores";
 import {
   Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Search, Filter,
-  LogOut, Loader2, Network, UserPlus, TrendingUp, BarChart3, ClipboardList, ChevronRight, LayoutDashboard, Eye
+  LogOut, Loader2, Network, UserPlus, TrendingUp, BarChart3, ClipboardList, ChevronRight, LayoutDashboard, Eye, UserCheck
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
