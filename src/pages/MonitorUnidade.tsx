@@ -651,6 +651,64 @@ function MonitorContent() {
                 ))}
               </div>
             </div>
+
+            {/* Alocar Servidores em Massa - Diretoria */}
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <UserPlus className="h-3.5 w-3.5" /> Alocar Servidores nesta Diretoria
+                </h3>
+                <button onClick={() => { setShowBulkAlloc(!showBulkAlloc); setAllocSelectedIds(new Set()); setAllocSearch(""); }}
+                  className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80">
+                  {showBulkAlloc ? <X className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+                  {showBulkAlloc ? "Fechar" : "Alocar em Massa"}
+                </button>
+              </div>
+              {showBulkAlloc && (
+                <div className="space-y-3">
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <label className="text-[10px] text-muted-foreground">Buscar servidor</label>
+                      <input value={allocSearch} onChange={e => setAllocSearch(e.target.value)} placeholder="Digite o nome..."
+                        className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-muted-foreground">Unidade (opcional)</label>
+                      <select value={allocTargetUnidade} onChange={e => setAllocTargetUnidade(e.target.value)}
+                        className="h-7 rounded border border-input bg-card px-2 text-xs text-foreground focus:ring-1 focus:ring-ring focus:outline-none">
+                        <option value="">Só diretoria</option>
+                        {unidades.filter(u => u.diretoria_id === selectedDiretoriaId).map(u => (
+                          <option key={u.id} value={u.id}>{u.sigla} — {u.nome}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                    <span className="font-bold text-primary">{allocSelectedIds.size} selecionado(s)</span>
+                    <button onClick={() => setAllocSelectedIds(new Set(allocAvailableServidores.map(s => s.id)))} className="text-primary hover:underline">Selecionar todos</button>
+                    <button onClick={() => setAllocSelectedIds(new Set())} className="text-muted-foreground hover:underline">Limpar</button>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto rounded border border-border bg-muted/10">
+                    {allocAvailableServidores.map(s => (
+                      <label key={s.id} className="flex items-center gap-2 px-3 py-1.5 hover:bg-primary/5 cursor-pointer border-b border-border/10 last:border-0">
+                        <input type="checkbox" checked={allocSelectedIds.has(s.id)}
+                          onChange={() => setAllocSelectedIds(prev => { const n = new Set(prev); n.has(s.id) ? n.delete(s.id) : n.add(s.id); return n; })}
+                          className="h-3.5 w-3.5 rounded border-input" />
+                        <span className="text-xs text-foreground">{s.nome}</span>
+                        <span className="text-[10px] text-muted-foreground ml-auto">{s.cargo}</span>
+                        {s.diretoria_id && <span className="text-[9px] bg-muted px-1 rounded text-muted-foreground">{diretorias.find(d => d.id === s.diretoria_id)?.nome?.slice(0, 15) || "Outra dir."}</span>}
+                      </label>
+                    ))}
+                    {allocAvailableServidores.length === 0 && <p className="text-xs text-muted-foreground p-3 italic">Nenhum servidor encontrado.</p>}
+                  </div>
+                  <button onClick={bulkAllocate} disabled={savingAlloc || allocSelectedIds.size === 0}
+                    className="flex items-center gap-1 h-8 px-4 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50">
+                    {savingAlloc ? <Loader2 className="h-3 w-3 animate-spin" /> : <UserPlus className="h-3 w-3" />}
+                    Alocar {allocSelectedIds.size} servidor(es)
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
