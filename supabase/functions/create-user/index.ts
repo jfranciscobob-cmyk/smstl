@@ -18,22 +18,27 @@ serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Verify calling user is admin or diretor
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Não autorizado");
+    // Check if any users exist (for initial setup)
+    const { count } = await supabase.from("profiles").select("id", { count: "exact", head: true });
+    const isInitialSetup = (count ?? 0) === 0;
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user: callingUser }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !callingUser) throw new Error("Não autorizado");
+    if (!isInitialSetup) {
+      // Verify calling user is admin or diretor
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader) throw new Error("Não autorizado");
 
-    // Check if calling user has admin or diretor role
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", callingUser.id);
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user: callingUser }, error: authError } = await supabase.auth.getUser(token);
+      if (authError || !callingUser) throw new Error("Não autorizado");
 
-    const hasPermission = roles?.some(r => r.role === "admin" || r.role === "diretor");
-    if (!hasPermission) throw new Error("Sem permissão para criar usuários");
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", callingUser.id);
+
+      const hasPermission = roles?.some(r => r.role === "admin" || r.role === "diretor");
+      if (!hasPermission) throw new Error("Sem permissão para criar usuários");
+    }
 
     const { email, password, nome, servidor_id, role } = await req.json();
 
