@@ -421,6 +421,7 @@ function MonitorContent() {
 
   // Payroll card for a group of servidores
   const PayrollCard = ({ servs, label }: { servs: ServidorDB[]; label: string }) => {
+    if (!hasFinancialAccess) return null;
     const folha = servs.reduce((sum, s) => sum + (s.salario || 0), 0);
     const count = servs.length;
     return (
