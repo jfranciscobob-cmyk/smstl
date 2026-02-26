@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Save, Loader2, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -22,9 +22,25 @@ interface Props {
   servidorId: string;
   servidorNome: string;
   defaultEscala?: { inicio1: string; fim1: string; inicio2: string; fim2: string; total: number | null };
+  onTotalChange?: (totalSemanal: number) => void;
 }
 
-export function EscalaSemanalEditor({ servidorId, servidorNome, defaultEscala }: Props) {
+function calcHoursFromTimes(entrada1: string, saida1: string, entrada2: string, saida2: string): number {
+  const toMin = (t: string): number | null => {
+    if (!t) return null;
+    const [h, m] = t.split(":").map(Number);
+    if (isNaN(h) || isNaN(m)) return null;
+    return h * 60 + m;
+  };
+  let total = 0;
+  const e1 = toMin(entrada1), s1 = toMin(saida1);
+  if (e1 !== null && s1 !== null && s1 > e1) total += (s1 - e1) / 60;
+  const e2 = toMin(entrada2), s2 = toMin(saida2);
+  if (e2 !== null && s2 !== null && s2 > e2) total += (s2 - e2) / 60;
+  return Math.round(total * 100) / 100;
+}
+
+export function EscalaSemanalEditor({ servidorId, servidorNome, defaultEscala, onTotalChange }: Props) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -67,9 +83,30 @@ export function EscalaSemanalEditor({ servidorId, servidorNome, defaultEscala }:
     })();
   }, [servidorId]);
 
-  const setDay = (dia: number, key: string, value: string) => {
-    setEscalas(prev => ({ ...prev, [dia]: { ...prev[dia], [key]: value } }));
-  };
+  // Compute weekly total
+  const weeklyTotal = Object.values(escalas).reduce((sum, day) => sum + (parseFloat(day.total) || 0), 0);
+
+  // Notify parent of total changes
+  useEffect(() => {
+    if (!loading && onTotalChange) {
+      onTotalChange(weeklyTotal);
+    }
+  }, [weeklyTotal, loading]);
+
+  const setDay = useCallback((dia: number, key: string, value: string) => {
+    setEscalas(prev => {
+      const updated = { ...prev, [dia]: { ...prev[dia], [key]: value } };
+      // Auto-calc hours when time fields change
+      if (["entrada1", "saida1", "entrada2", "saida2"].includes(key)) {
+        const day = updated[dia];
+        const calc = calcHoursFromTimes(day.entrada1, day.saida1, day.entrada2, day.saida2);
+        if (calc > 0) {
+          updated[dia] = { ...updated[dia], total: calc.toString() };
+        }
+      }
+      return updated;
+    });
+  }, []);
 
   const copyToAll = (fromDia: number) => {
     const source = escalas[fromDia];
@@ -102,6 +139,11 @@ export function EscalaSemanalEditor({ servidorId, servidorNome, defaultEscala }:
         }, { onConflict: "servidor_id,dia_semana" });
       if (error) errors++;
     }
+
+    // Also update servidores.escala_total_horas with the weekly total
+    const totalSemanal = Object.values(escalas).reduce((s, d) => s + (parseFloat(d.total) || 0), 0);
+    await supabase.from("servidores").update({ escala_total_horas: Math.round(totalSemanal) }).eq("id", servidorId);
+
     setSaving(false);
     if (errors > 0) {
       toast({ title: "Alguns dias falharam ao salvar", variant: "destructive" });
@@ -121,14 +163,19 @@ export function EscalaSemanalEditor({ servidorId, servidorNome, defaultEscala }:
           <Calendar className="h-3.5 w-3.5 text-primary" />
           Escala Semanal — {servidorNome}
         </h4>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-1 h-6 px-2 rounded bg-primary text-primary-foreground text-[10px] font-medium hover:bg-primary/90 disabled:opacity-50"
-        >
-          {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
-          Salvar
-        </button>
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
+            Total: {weeklyTotal.toFixed(1)}h/sem
+          </span>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-1 h-6 px-2 rounded bg-primary text-primary-foreground text-[10px] font-medium hover:bg-primary/90 disabled:opacity-50"
+          >
+            {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+            Salvar
+          </button>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
@@ -150,6 +197,7 @@ export function EscalaSemanalEditor({ servidorId, servidorNome, defaultEscala }:
               const esc = escalas[i];
               if (!esc) return null;
               const isWeekend = i >= 5;
+              const dayHours = parseFloat(esc.total) || 0;
               return (
                 <tr key={i} className={cn("border-b border-border/20", isWeekend && "bg-muted/30")}>
                   <td className="py-1 font-bold text-foreground">{nome}</td>
@@ -157,7 +205,11 @@ export function EscalaSemanalEditor({ servidorId, servidorNome, defaultEscala }:
                   <td className="py-1"><input type="time" className={inputClass} value={esc.saida1} onChange={e => setDay(i, "saida1", e.target.value)} /></td>
                   <td className="py-1"><input type="time" className={inputClass} value={esc.entrada2} onChange={e => setDay(i, "entrada2", e.target.value)} /></td>
                   <td className="py-1"><input type="time" className={inputClass} value={esc.saida2} onChange={e => setDay(i, "saida2", e.target.value)} /></td>
-                  <td className="py-1"><input type="number" className={cn(inputClass, "w-10")} value={esc.total} onChange={e => setDay(i, "total", e.target.value)} /></td>
+                  <td className="py-1">
+                    <span className={cn("inline-block w-10 text-center font-bold", dayHours > 0 ? "text-primary" : "text-muted-foreground")}>
+                      {dayHours > 0 ? `${dayHours}h` : "—"}
+                    </span>
+                  </td>
                   <td className="py-1"><input className={cn(inputClass, "w-20 text-left")} value={esc.obs} onChange={e => setDay(i, "obs", e.target.value)} placeholder="Obs" /></td>
                   <td className="py-1">
                     <button onClick={() => copyToAll(i)} title={`Copiar ${nome} para todos`} className="text-[9px] text-primary hover:text-primary/80 font-medium">
@@ -168,6 +220,13 @@ export function EscalaSemanalEditor({ servidorId, servidorNome, defaultEscala }:
               );
             })}
           </tbody>
+          <tfoot>
+            <tr className="border-t border-border">
+              <td colSpan={5} className="py-1.5 text-right font-bold text-foreground text-[11px]">Total Semanal:</td>
+              <td className="py-1.5 text-center font-bold text-primary text-[11px]">{weeklyTotal.toFixed(1)}h</td>
+              <td colSpan={2}></td>
+            </tr>
+          </tfoot>
         </table>
       </div>
     </div>
