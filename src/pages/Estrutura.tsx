@@ -37,7 +37,7 @@ function EstruturaContent() {
   const [createServidorTarget, setCreateServidorTarget] = useState<{ diretoria_id?: string; unidade_id?: string; coordenacao_id?: string } | null>(null);
   const [assigningTo, setAssigningTo] = useState<{ type: "unidade" | "coordenacao"; id: string; diretoria_id: string } | null>(null);
   const [assignSearch, setAssignSearch] = useState("");
-  const [pickingRole, setPickingRole] = useState<{ type: "diretor" | "coordenador" | "secretario" | "diretor_geral"; targetId: string; diretoriaId?: string; unidadeId?: string } | null>(null);
+  const [pickingRole, setPickingRole] = useState<{ type: "diretor" | "coordenador" | "coordenador_medico" | "secretario" | "diretor_geral"; targetId: string; diretoriaId?: string; unidadeId?: string } | null>(null);
   const [roleSearch, setRoleSearch] = useState("");
   const [editingServidor, setEditingServidor] = useState<ServidorDB | null>(null);
   const [assigningSecretaria, setAssigningSecretaria] = useState(false);
