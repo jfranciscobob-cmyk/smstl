@@ -273,20 +273,20 @@ function EstruturaContent() {
     loadData();
   };
 
-  const removeRole = async (servidorId: string, type: "diretor" | "coordenador" | "secretario" | "diretor_geral", unidadeId?: string) => {
+  const removeRole = async (servidorId: string, type: "diretor" | "coordenador" | "coordenador_medico" | "secretario" | "diretor_geral", unidadeId?: string) => {
     if (type === "coordenador" && unidadeId) {
-      // Remove from junction table for this specific unidade
       await supabase.from("coordenadores_unidades").delete().eq("servidor_id", servidorId).eq("unidade_id", unidadeId);
-      // Check if still coordinator of any other unidade
       const { data: remaining } = await supabase.from("coordenadores_unidades").select("id").eq("servidor_id", servidorId);
       if (!remaining || remaining.length === 0) {
         await supabase.from("servidores").update({ is_coordenador: false }).eq("id", servidorId);
       }
+    } else if (type === "coordenador_medico") {
+      await supabase.from("servidores").update({ is_coordenador_medico: false }).eq("id", servidorId);
     } else {
       const updateData = type === "diretor" ? { is_diretor: false } : type === "diretor_geral" ? { is_diretor_geral: false } : { is_secretario: false };
       await supabase.from("servidores").update(updateData).eq("id", servidorId);
     }
-    const labels: Record<string, string> = { diretor: "Diretor removido", coordenador: "Coordenador removido", secretario: "Secretário removido", diretor_geral: "Diretor Geral removido" };
+    const labels: Record<string, string> = { diretor: "Diretor removido", coordenador: "Coordenador removido", coordenador_medico: "Coord. Médico removido", secretario: "Secretário removido", diretor_geral: "Diretor Geral removido" };
     toast({ title: labels[type] });
     loadData();
   };
