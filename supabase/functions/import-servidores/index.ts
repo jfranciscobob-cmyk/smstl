@@ -23,7 +23,7 @@ serve(async (req) => {
     }
 
     const lines = csvData.split("\n").filter((l: string) => l.trim().length > 0);
-    const dataLines = lines.slice(1); // Skip header
+    const dataLines = lines.slice(1);
 
     // Parse CSV and deduplicate by name
     const servidoresMap = new Map<string, {
@@ -45,14 +45,11 @@ serve(async (req) => {
       const dataAdmissao = (parts[6] || "").trim();
       const cargaHoraria = parseInt(parts[7] || "0", 10) || 0;
       const salarioRaw = (parts[8] || "").trim().replace(/[^\d.,]/g, "");
-      // Brazilian format: 5.470,00 → remove dots (thousands sep), then replace comma with dot
       const salario = parseFloat(salarioRaw.replace(/\./g, "").replace(",", ".")) || 0;
 
       if (!nome) continue;
 
       if (servidoresMap.has(nome)) {
-        // Same person may appear multiple times (multiple payroll entries)
-        // Sum the salary and keep the highest carga_horaria
         const existing = servidoresMap.get(nome)!;
         existing.salario += salario;
         if (cargaHoraria > existing.carga_horaria) existing.carga_horaria = cargaHoraria;
@@ -68,7 +65,7 @@ serve(async (req) => {
       return v;
     }
 
-    // ═══ FETCH ALL EXISTING SERVIDORES ═══
+    // Fetch all existing servidores
     const PAGE = 1000;
     let offset = 0;
     let existingAll: any[] = [];
@@ -85,9 +82,8 @@ serve(async (req) => {
       offset += PAGE;
     }
 
-    // Build a map of existing servidores by normalized name
     const normalizeName = (n: string) => n.trim().toUpperCase();
-    const existingByName = new Map<string, string>(); // name -> id
+    const existingByName = new Map<string, string>();
     for (const e of existingAll) {
       existingByName.set(normalizeName(e.nome), e.id);
     }
@@ -100,7 +96,6 @@ serve(async (req) => {
       const key = normalizeName(s.nome);
       csvNames.add(key);
 
-      // Parse data_admissao from DD/MM/YYYY to YYYY-MM-DD
       let dataAdmissaoISO: string | null = null;
       if (s.data_admissao) {
         const parts = s.data_admissao.split("/");
@@ -121,13 +116,8 @@ serve(async (req) => {
 
       const existingId = existingByName.get(key);
       if (existingId) {
-        // UPDATE existing — only update CSV-sourced fields, NEVER touch:
-        // diretoria_id, unidade_id, coordenacao_id, setor_id, funcao_id,
-        // is_diretor, is_coordenador, is_secretario, is_diretor_geral,
-        // status_presenca, observacao, funcao_critica, cobertura_prevista, etc.
         toUpdate.push({ id: existingId, data: updateFields });
       } else {
-        // INSERT new
         toInsert.push({
           nome: s.nome,
           matricula: "",
@@ -145,7 +135,7 @@ serve(async (req) => {
       }
     }
 
-    // ═══ DETECT REMOVED SERVIDORES (in DB but not in CSV) ═══
+    // Detect removed servidores
     const removedNames: string[] = [];
     const removedIds: string[] = [];
     for (const [name, id] of existingByName.entries()) {
@@ -155,39 +145,42 @@ serve(async (req) => {
       }
     }
 
-    // Mark removed servidores with an observation instead of deleting
-    // We set status to "ausente" and add a note, but NEVER delete
+    const errors: string[] = [];
     const markedDate = new Date().toISOString().slice(0, 10);
-    for (const id of removedIds) {
-      await supabase.from("servidores").update({
+
+    // Mark removed in batch (chunks of 50 ids)
+    for (let i = 0; i < removedIds.length; i += 50) {
+      const batch = removedIds.slice(i, i + 50);
+      const { error } = await supabase.from("servidores").update({
         status_presenca: "ausente",
         observacao: `[IMPORTAÇÃO ${markedDate}] Servidor não consta na planilha atualizada.`,
-      }).eq("id", id);
+      }).in("id", batch);
+      if (error) errors.push(`Mark removed batch: ${error.message}`);
     }
 
-    // ═══ UPDATE EXISTING ═══
+    // Update existing in parallel batches of 10
     let updated = 0;
-    let errors: string[] = [];
-    for (const item of toUpdate) {
-      const { error } = await supabase.from("servidores").update(item.data).eq("id", item.id);
-      if (error) {
-        errors.push(`Update ${item.id}: ${error.message}`);
-      } else {
-        updated++;
+    const updateBatchSize = 10;
+    for (let i = 0; i < toUpdate.length; i += updateBatchSize) {
+      const batch = toUpdate.slice(i, i + updateBatchSize);
+      const results = await Promise.all(
+        batch.map(item =>
+          supabase.from("servidores").update(item.data).eq("id", item.id)
+        )
+      );
+      for (const r of results) {
+        if (r.error) errors.push(`Update: ${r.error.message}`);
+        else updated++;
       }
     }
 
-    // ═══ INSERT NEW ═══
+    // Insert new in batches
     let inserted = 0;
-    const batchSize = 50;
-    for (let i = 0; i < toInsert.length; i += batchSize) {
-      const batch = toInsert.slice(i, i + batchSize);
+    for (let i = 0; i < toInsert.length; i += 50) {
+      const batch = toInsert.slice(i, i + 50);
       const { error } = await supabase.from("servidores").insert(batch);
-      if (error) {
-        errors.push(`Insert batch ${Math.floor(i / batchSize) + 1}: ${error.message}`);
-      } else {
-        inserted += batch.length;
-      }
+      if (error) errors.push(`Insert batch: ${error.message}`);
+      else inserted += batch.length;
     }
 
     return new Response(
@@ -197,7 +190,7 @@ serve(async (req) => {
         inserted,
         updated,
         removed: removedNames.length,
-        removed_names: removedNames.slice(0, 50), // Show up to 50 removed names
+        removed_names: removedNames.slice(0, 50),
         errors,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
