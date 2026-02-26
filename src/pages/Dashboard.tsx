@@ -14,6 +14,7 @@ import { useQueryClient } from "@tanstack/react-query";
 const Dashboard = () => {
   const { session, loading: authLoading, signOut, user } = useAuth();
   const { data: servidores = [], isLoading } = useServidores();
+  const stats = computeStats(servidores);
   const { data: diretorias = [] } = useDiretorias();
   const { data: unidades = [] } = useUnidades();
   const { data: coordenacoes = [] } = useCoordenacoes();
