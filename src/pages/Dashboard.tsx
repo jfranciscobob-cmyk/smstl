@@ -519,9 +519,11 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                             <span className={`inline-block rounded-md px-2 py-0.5 text-xs font-bold font-mono ${cobColor}`}>{cob}%</span>
                           </td>
                           <td className="text-center px-3 py-3 font-mono text-muted-foreground">{du}</td>
+                          {hasFinancialAccess && (
                           <td className="text-right px-5 py-3 font-mono text-xs text-muted-foreground">
                             {df.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                           </td>
+                          )}
                         </tr>
                       );
                     })}
