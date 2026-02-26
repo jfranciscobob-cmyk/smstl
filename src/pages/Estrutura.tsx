@@ -224,6 +224,8 @@ function EstruturaContent() {
   const getServidoresByUnidade = (unidadeId: string) => servidores.filter(s => s.unidade_id === unidadeId);
   const getServidoresByCoord = (coordId: string) => servidores.filter(s => s.coordenacao_id === coordId);
   const getDiretor = (diretoriaId: string) => servidores.find(s => s.diretoria_id === diretoriaId && s.is_diretor);
+  const getAgrupamentosByDiretoria = (diretoriaId: string) => agrupamentos.filter(a => a.diretoria_id === diretoriaId);
+  const getCoordMedicoByUnidade = (unidadeId: string) => servidores.filter(s => (s as any).is_coordenador_medico && s.unidade_id === unidadeId);
 
   // Coordenador now uses junction table - supports multiple coordinators per unidade
   const getCoordenadorByUnidade = (unidadeId: string): ServidorDB[] => {
@@ -231,7 +233,36 @@ function EstruturaContent() {
     return cuEntries.map(cu => servidores.find(s => s.id === cu.servidor_id)).filter(Boolean) as ServidorDB[];
   };
 
-  const getSecretario = () => servidores.find(s => s.is_secretario);
+  // Agrupamento CRUD
+  const addAgrupamento = async (nome: string, diretoriaId: string) => {
+    const { error } = await supabase.from("agrupamentos").insert({ nome, diretoria_id: diretoriaId });
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Agrupamento criado!" });
+    setNewAgrupamento(null);
+    loadData();
+  };
+
+  const deleteAgrupamento = async (id: string) => {
+    // Unlink unidades first
+    await supabase.from("unidades").update({ agrupamento_id: null } as any).eq("agrupamento_id", id);
+    await supabase.from("agrupamentos").delete().eq("id", id);
+    toast({ title: "Agrupamento removido" });
+    loadData();
+  };
+
+  const setAgrupamentoCoord = async (agrupamentoId: string, servidorId: string) => {
+    await supabase.from("agrupamentos").update({ coordenador_id: servidorId }).eq("id", agrupamentoId);
+    toast({ title: "Coordenador de agrupamento definido!" });
+    setPickingAgrupCoord(null);
+    setAgrupCoordSearch("");
+    loadData();
+  };
+
+  const assignUnidadeToAgrupamento = async (unidadeId: string, agrupamentoId: string | null) => {
+    await supabase.from("unidades").update({ agrupamento_id: agrupamentoId } as any).eq("id", unidadeId);
+    toast({ title: agrupamentoId ? "Unidade vinculada ao agrupamento!" : "Unidade desvinculada do agrupamento!" });
+    loadData();
+  };
   const getDiretorGeral = () => servidores.find(s => (s as any).is_diretor_geral);
 
   const filteredAssignResults = assignSearch.length >= 2
