@@ -292,74 +292,74 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                     </h2>
                     <p className="text-[11px] text-primary-foreground/40">Três Lagoas · Painel Executivo</p>
                   </div>
-                  <div className="flex items-center gap-5 sm:gap-8">
-                    <div className="text-center">
-                      <p className="text-2xl sm:text-3xl font-extrabold font-mono">{stats.total}</p>
-                      <p className="text-[10px] text-primary-foreground/50 font-medium">Servidores</p>
+                    <div className="flex items-center gap-5 sm:gap-8">
+                      <Link to="/monitor" className="text-center hover:opacity-80 transition-opacity">
+                        <p className="text-2xl sm:text-3xl font-extrabold font-mono">{stats.total}</p>
+                        <p className="text-[10px] text-primary-foreground/50 font-medium">Servidores</p>
+                      </Link>
+                      <Link to="/monitor?filter=presentes" className="text-center hover:opacity-80 transition-opacity">
+                        <p className="text-2xl sm:text-3xl font-extrabold font-mono text-success">{coberturaGeral}%</p>
+                        <p className="text-[10px] text-primary-foreground/50 font-medium">Cobertura</p>
+                      </Link>
+                      <Link to="/estrutura" className="text-center hover:opacity-80 transition-opacity">
+                        <p className="text-2xl sm:text-3xl font-extrabold font-mono">{alocados}<span className="text-base text-primary-foreground/40">/{stats.total}</span></p>
+                        <p className="text-[10px] text-primary-foreground/50 font-medium">Alocados</p>
+                      </Link>
+                      <Link to="/monitor" className="text-center hover:opacity-80 transition-opacity">
+                        <p className="text-2xl sm:text-3xl font-extrabold font-mono">{diretorias.length}</p>
+                        <p className="text-[10px] text-primary-foreground/50 font-medium">Diretorias</p>
+                      </Link>
+                      {hasFinancialAccess && (
+                        <div className="text-center hidden sm:block">
+                          <p className="text-2xl sm:text-3xl font-extrabold font-mono">
+                            {folhaTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                          </p>
+                          <p className="text-[10px] text-primary-foreground/50 font-medium">Folha Mensal</p>
+                        </div>
+                      )}
                     </div>
-                    <div className="text-center">
-                      <p className="text-2xl sm:text-3xl font-extrabold font-mono text-success">{coberturaGeral}%</p>
-                      <p className="text-[10px] text-primary-foreground/50 font-medium">Cobertura</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl sm:text-3xl font-extrabold font-mono">{alocados}<span className="text-base text-primary-foreground/40">/{stats.total}</span></p>
-                      <p className="text-[10px] text-primary-foreground/50 font-medium">Alocados</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl sm:text-3xl font-extrabold font-mono">{diretorias.length}</p>
-                      <p className="text-[10px] text-primary-foreground/50 font-medium">Diretorias</p>
-                    </div>
-                    {hasFinancialAccess && (
-                      <div className="text-center hidden sm:block">
-                        <p className="text-2xl sm:text-3xl font-extrabold font-mono">
-                          {folhaTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                        </p>
-                        <p className="text-[10px] text-primary-foreground/50 font-medium">Folha Mensal</p>
-                      </div>
-                    )}
-                  </div>
                 </div>
               </div>
             </div>
 
             {/* ═══ Indicadores rápidos ═══ */}
             <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-9 gap-2">
-              <div className="rounded-xl border border-success/30 bg-success/5 p-3 text-center">
+              <Link to="/monitor?filter=presentes" className="rounded-xl border border-success/30 bg-success/5 p-3 text-center transition-all hover:shadow-md hover:-translate-y-0.5">
                 <p className="text-lg font-extrabold font-mono text-success">{stats.presentes}</p>
                 <p className="text-[9px] font-semibold text-success/70 uppercase tracking-wider">Presentes</p>
-              </div>
-              <div className="rounded-xl border border-warning/30 bg-warning/5 p-3 text-center">
+              </Link>
+              <Link to="/monitor?filter=ferias" className="rounded-xl border border-warning/30 bg-warning/5 p-3 text-center transition-all hover:shadow-md hover:-translate-y-0.5">
                 <p className="text-lg font-extrabold font-mono text-warning">{stats.ferias}</p>
                 <p className="text-[9px] font-semibold text-warning/70 uppercase tracking-wider">Férias</p>
-              </div>
-              <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-center">
+              </Link>
+              <Link to="/monitor?filter=afastados" className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-center transition-all hover:shadow-md hover:-translate-y-0.5">
                 <p className="text-lg font-extrabold font-mono text-destructive">{stats.afastados}</p>
                 <p className="text-[9px] font-semibold text-destructive/70 uppercase tracking-wider">Afastados</p>
-              </div>
-              <div className="rounded-xl border border-border bg-card p-3 text-center">
+              </Link>
+              <Link to="/monitor?filter=ausentes" className="rounded-xl border border-border bg-card p-3 text-center transition-all hover:shadow-md hover:-translate-y-0.5">
                 <p className="text-lg font-extrabold font-mono text-muted-foreground">{stats.ausentes}</p>
                 <p className="text-[9px] font-semibold text-muted-foreground/70 uppercase tracking-wider">Ausentes</p>
-              </div>
-              <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-center">
+              </Link>
+              <Link to="/monitor?filter=concursados" className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-center transition-all hover:shadow-md hover:-translate-y-0.5">
                 <p className="text-lg font-extrabold font-mono text-primary">{stats.concursados}</p>
                 <p className="text-[9px] font-semibold text-primary/70 uppercase tracking-wider">Concursados</p>
-              </div>
-              <div className="rounded-xl border border-info/30 bg-info/5 p-3 text-center">
+              </Link>
+              <Link to="/monitor?filter=contratados" className="rounded-xl border border-info/30 bg-info/5 p-3 text-center transition-all hover:shadow-md hover:-translate-y-0.5">
                 <p className="text-lg font-extrabold font-mono text-info">{stats.contratados}</p>
                 <p className="text-[9px] font-semibold text-info/70 uppercase tracking-wider">Contratados</p>
-              </div>
-              <div className="rounded-xl border border-border bg-card p-3 text-center">
+              </Link>
+              <Link to="/monitor" className="rounded-xl border border-border bg-card p-3 text-center transition-all hover:shadow-md hover:-translate-y-0.5">
                 <p className="text-lg font-extrabold font-mono text-foreground">{unidades.length}</p>
                 <p className="text-[9px] font-semibold text-muted-foreground/70 uppercase tracking-wider">Unidades</p>
-              </div>
-              <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-center" title={`${alocados} alocados em diretorias / ${stats.total - alocados} sem diretoria`}>
+              </Link>
+              <Link to="/estrutura" className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-center transition-all hover:shadow-md hover:-translate-y-0.5" title={`${alocados} alocados em diretorias / ${stats.total - alocados} sem diretoria`}>
                 <p className="text-lg font-extrabold font-mono text-primary">{alocados}</p>
                 <p className="text-[9px] font-semibold text-primary/70 uppercase tracking-wider">Alocados</p>
-              </div>
-              <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-center" title="Servidores com dois vínculos">
+              </Link>
+              <Link to="/monitor?filter=duplo_vinculo" className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-center transition-all hover:shadow-md hover:-translate-y-0.5" title="Servidores com dois vínculos">
                 <p className="text-lg font-extrabold font-mono text-amber-600 dark:text-amber-400">{servidores.filter(s => s.duplo_vinculo).length}</p>
                 <p className="text-[9px] font-semibold text-amber-600/70 dark:text-amber-400/70 uppercase tracking-wider">Duplo Vínculo</p>
-              </div>
+              </Link>
             </div>
 
             {/* ═══ DIRETORIAS — FOCO PRINCIPAL ═══ */}

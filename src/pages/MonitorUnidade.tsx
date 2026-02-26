@@ -24,6 +24,7 @@ function MonitorContent() {
   const viewMode = searchParams.get("view") || "tudo"; // tudo | diretoria | unidade
   const selectedDiretoriaId = searchParams.get("diretoria") || "";
   const selectedUnidadeId = searchParams.get("unidade") || "";
+  const activeFilter = searchParams.get("filter") || ""; // presentes | ferias | afastados | ausentes | concursados | contratados | duplo_vinculo
 
   const [servidores, setServidores] = useState<ServidorDB[]>([]);
   const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
@@ -112,10 +113,20 @@ function MonitorContent() {
 
   // Filter servidores based on view
   const filteredServidores = useMemo(() => {
-    if (selectedUnidadeId) return servidores.filter(s => s.unidade_id === selectedUnidadeId);
-    if (selectedDiretoriaId) return servidores.filter(s => s.diretoria_id === selectedDiretoriaId);
-    return servidores;
-  }, [servidores, selectedUnidadeId, selectedDiretoriaId]);
+    let result = servidores;
+    if (selectedUnidadeId) result = result.filter(s => s.unidade_id === selectedUnidadeId);
+    else if (selectedDiretoriaId) result = result.filter(s => s.diretoria_id === selectedDiretoriaId);
+
+    if (activeFilter === "presentes") result = result.filter(s => s.status_presenca === "presente");
+    else if (activeFilter === "ferias") result = result.filter(s => s.status_presenca === "ferias");
+    else if (activeFilter === "afastados") result = result.filter(s => s.status_presenca === "afastado");
+    else if (activeFilter === "ausentes") result = result.filter(s => s.status_presenca === "ausente");
+    else if (activeFilter === "concursados") result = result.filter(s => (s.vinculo || "").includes("CONCURSADO"));
+    else if (activeFilter === "contratados") result = result.filter(s => (s.vinculo || "").includes("CONTRATO"));
+    else if (activeFilter === "duplo_vinculo") result = result.filter(s => s.duplo_vinculo);
+
+    return result;
+  }, [servidores, selectedUnidadeId, selectedDiretoriaId, activeFilter]);
 
   // Time helpers
   const currentHour = today.getHours();
@@ -521,6 +532,22 @@ function MonitorContent() {
             </>
           )}
         </div>
+
+        {/* Active filter banner */}
+        {activeFilter && (
+          <div className="flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5">
+            <span className="text-xs font-semibold text-primary">
+              Filtro ativo: <span className="uppercase">{activeFilter.replace("_", " ")}</span>
+            </span>
+            <span className="text-xs text-muted-foreground">({filteredServidores.length} servidores)</span>
+            <button
+              onClick={() => { const p = new URLSearchParams(searchParams); p.delete("filter"); setSearchParams(p); }}
+              className="ml-auto flex items-center gap-1 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors"
+            >
+              <X className="h-3 w-3" /> Limpar filtro
+            </button>
+          </div>
+        )}
 
         {/* ═══ VISÃO GERAL ═══ */}
         {viewMode === "tudo" && !selectedDiretoriaId && (
