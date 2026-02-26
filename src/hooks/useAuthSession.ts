@@ -70,9 +70,11 @@ export function useAuthSession(): AuthSession {
 
         if (profileResult.status === "fulfilled") {
           setServidorId(profileResult.value.data?.servidor_id ?? null);
+          setAcessoFinanceiro(profileResult.value.data?.acesso_financeiro ?? false);
         } else {
           console.error("[useAuthSession/profile] error:", profileResult.reason);
           setServidorId(null);
+          setAcessoFinanceiro(false);
         }
       } catch (err) {
         console.error("[useAuthSession] error:", err);
