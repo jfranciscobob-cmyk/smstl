@@ -33,6 +33,7 @@ serve(async (req) => {
       vinculo: string;
       carga_horaria: number;
       data_admissao: string;
+      salario: number;
     }>();
 
     for (const line of dataLines) {
@@ -44,17 +45,18 @@ serve(async (req) => {
       const cargo = (parts[5] || "").trim();
       const dataAdmissao = (parts[6] || "").trim();
       const cargaHoraria = parseInt(parts[7] || "0", 10) || 0;
+      // Salário pode estar na coluna 8 ou 9 dependendo do layout
+      const salarioRaw = (parts[8] || "").trim().replace(/[^\d.,]/g, "").replace(",", ".");
+      const salario = parseFloat(salarioRaw) || 0;
 
       if (!nome) continue;
 
-      // Keep first occurrence or the one with higher carga horaria
       if (!servidoresMap.has(nome)) {
         servidoresMap.set(nome, {
-          nome,
-          cargo,
-          vinculo,
+          nome, cargo, vinculo,
           carga_horaria: cargaHoraria,
           data_admissao: dataAdmissao,
+          salario,
         });
       }
     }
