@@ -431,139 +431,46 @@ function EstruturaContent() {
 
                         {uniExpanded && (
                           <div className="px-4 pb-3 pt-2 space-y-2 ml-6">
-                            {uniCoords.map(coord => {
-                              const coordServs = getServidoresByCoord(coord.id);
+                            {/* Coordenador picker - same pattern as diretor */}
+                            {(() => {
+                              const coordenador = getCoordenadorByUnidade(uni.id);
                               return (
-                              <div key={coord.id} className="rounded bg-muted/20">
-                                <div className="flex items-center justify-between py-1.5 px-3">
-                                {editingId === coord.id ? (
-                                  <div className="flex items-center gap-2">
-                                    <input
-                                      autoFocus
-                                      value={editingValue}
-                                      onChange={e => setEditingValue(e.target.value)}
-                                      onKeyDown={e => e.key === "Enter" && saveRename("coordenacoes", coord.id)}
-                                      className="h-7 rounded border border-input bg-card px-2 text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none"
-                                    />
-                                    <button onClick={() => saveRename("coordenacoes", coord.id)} className="text-primary"><Check className="h-3.5 w-3.5" /></button>
-                                    <button onClick={() => setEditingId(null)} className="text-muted-foreground"><X className="h-3.5 w-3.5" /></button>
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm text-foreground">{coord.nome}</span>
-                                    <span className="text-xs text-muted-foreground">({coordServs.length})</span>
-                                  </div>
-                                )}
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    onClick={() => setAssigningTo({ type: "coordenacao", id: coord.id, diretoria_id: dir.id })}
-                                    className="p-1 rounded text-primary hover:bg-primary/10 transition-colors" title="Vincular servidor"
-                                  >
-                                    <UserPlus className="h-3.5 w-3.5" />
-                                  </button>
-                                  <button onClick={() => { setEditingId(coord.id); setEditingValue(coord.nome); }} className="p-1 rounded text-muted-foreground hover:text-foreground">
-                                    <Edit2 className="h-3 w-3" />
-                                  </button>
-                                  <button onClick={() => deleteCoord(coord.id)} className="p-1 rounded text-muted-foreground hover:text-destructive">
-                                    <Trash2 className="h-3 w-3" />
-                                  </button>
-                                </div>
-                                </div>
-                                {/* Coordenador picker */}
-                                {(() => {
-                                  const coordenador = getCoordenador(coord.id);
-                                  return (
-                                    <div className="px-3 py-1.5 flex items-center gap-2 flex-wrap border-t border-border/20">
-                                      <Star className="h-3 w-3 text-amber-500" />
-                                      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Coordenador(a):</span>
-                                      {coordenador ? (
-                                        <div className="flex items-center gap-1">
-                                          <span className="text-xs font-medium text-foreground">{coordenador.nome}</span>
-                                          <button onClick={() => removeRole(coordenador.id, "coordenador")} className="p-0.5 rounded text-muted-foreground hover:text-destructive"><X className="h-2.5 w-2.5" /></button>
-                                        </div>
-                                      ) : pickingRole?.type === "coordenador" && pickingRole.targetId === coord.id ? (
-                                        <div className="flex-1 max-w-xs space-y-1">
-                                          <input autoFocus value={roleSearch} onChange={e => setRoleSearch(e.target.value)} placeholder="Buscar..." className="w-full h-6 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none" />
-                                          <div className="max-h-28 overflow-y-auto bg-card rounded border border-border shadow-md">
-                                            {filteredRoleResults.map(s => (
-                                              <button key={s.id} onClick={() => assignRole(s.id, "coordenador", dir.id, uni.id, coord.id)} className="w-full text-left px-2 py-1 text-xs hover:bg-primary/10 text-foreground">
-                                                {s.nome} <span className="text-muted-foreground">({s.matricula})</span>
-                                              </button>
-                                            ))}
-                                          </div>
-                                          <button onClick={() => { setPickingRole(null); setRoleSearch(""); }} className="text-[10px] text-muted-foreground">Cancelar</button>
-                                        </div>
-                                      ) : (
-                                        <button onClick={() => setPickingRole({ type: "coordenador", targetId: coord.id, diretoriaId: dir.id, unidadeId: uni.id })} className="text-[10px] text-primary font-medium hover:text-primary/80">
-                                          + Definir
-                                        </button>
-                                      )}
+                                <div className="flex items-center gap-2 flex-wrap py-1.5">
+                                  <Star className="h-3.5 w-3.5 text-amber-500" />
+                                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Coordenador(a):</span>
+                                  {coordenador ? (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm font-medium text-foreground">{coordenador.nome}</span>
+                                      <button onClick={() => removeRole(coordenador.id, "coordenador")} className="p-1 rounded text-muted-foreground hover:text-destructive" title="Remover coordenador">
+                                        <X className="h-3 w-3" />
+                                      </button>
                                     </div>
-                                  );
-                                })()}
-                                {/* Assign dropdown for this coord */}
-                                {assigningTo?.type === "coordenacao" && assigningTo.id === coord.id && (
-                                  <div className="px-3 pb-2 space-y-2">
-                                    <input
-                                      autoFocus
-                                      value={assignSearch}
-                                      onChange={e => setAssignSearch(e.target.value)}
-                                      placeholder="Buscar servidor por nome ou matrícula..."
-                                      className="w-full h-8 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
-                                    />
-                                    <div className="max-h-40 overflow-y-auto space-y-1">
-                                      {filteredAssignResults.map(s => (
-                                        <button
-                                          key={s.id}
-                                          onClick={() => assignServidor(s.id, assigningTo.diretoria_id, uni.id, coord.id)}
-                                          className="w-full text-left px-2 py-1.5 rounded text-xs hover:bg-primary/10 transition-colors text-foreground"
-                                        >
-                                          <span className="font-medium">{s.nome}</span>
-                                          <span className="text-muted-foreground ml-2">({s.matricula})</span>
-                                        </button>
-                                      ))}
-                                      {filteredAssignResults.length === 0 && (
-                                        <p className="text-xs text-muted-foreground py-1 px-2">Nenhum servidor encontrado</p>
-                                      )}
-                                    </div>
-                                    <button onClick={() => { setAssigningTo(null); setAssignSearch(""); }} className="text-xs text-muted-foreground hover:text-foreground">Cancelar</button>
-                                  </div>
-                                )}
-                                {/* List servidores in coord */}
-                                {coordServs.length > 0 && (
-                                  <div className="px-3 pb-2">
-                                    {coordServs.map(s => (
-                                      <div key={s.id} className="text-xs text-muted-foreground py-0.5 pl-2 border-l-2 border-primary/20">
-                                        {s.nome} <span className="text-muted-foreground/60">— {s.cargo}</span>
+                                  ) : pickingRole?.type === "coordenador" && pickingRole.targetId === uni.id ? (
+                                    <div className="flex-1 max-w-sm space-y-1">
+                                      <input
+                                        autoFocus
+                                        value={roleSearch}
+                                        onChange={e => setRoleSearch(e.target.value)}
+                                        placeholder="Buscar servidor..."
+                                        className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                                      />
+                                      <div className="max-h-32 overflow-y-auto bg-card rounded border border-border shadow-md">
+                                        {filteredRoleResults.map(s => (
+                                          <button key={s.id} onClick={() => assignRole(s.id, "coordenador", dir.id, uni.id)} className="w-full text-left px-2 py-1 text-xs hover:bg-primary/10 text-foreground">
+                                            {s.nome} <span className="text-muted-foreground">({s.matricula})</span>
+                                          </button>
+                                        ))}
                                       </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
+                                      <button onClick={() => { setPickingRole(null); setRoleSearch(""); }} className="text-xs text-muted-foreground">Cancelar</button>
+                                    </div>
+                                  ) : (
+                                    <button onClick={() => setPickingRole({ type: "coordenador", targetId: uni.id, diretoriaId: dir.id, unidadeId: uni.id })} className="text-xs text-primary font-medium hover:text-primary/80 transition-colors">
+                                      + Definir coordenador(a)
+                                    </button>
+                                  )}
+                                </div>
                               );
-                            })}
-
-                            {newCoord?.unidade_id === uni.id ? (
-                              <div className="flex items-center gap-2">
-                                <input
-                                  autoFocus
-                                  value={newCoord.nome}
-                                  onChange={e => setNewCoord({ ...newCoord, nome: e.target.value })}
-                                  onKeyDown={e => e.key === "Enter" && addCoord()}
-                                  placeholder="Nome da coordenação..."
-                                  className="flex-1 h-8 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
-                                />
-                                <button onClick={addCoord} className="text-primary"><Check className="h-4 w-4" /></button>
-                                <button onClick={() => setNewCoord(null)} className="text-muted-foreground"><X className="h-4 w-4" /></button>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => setNewCoord({ nome: "", unidade_id: uni.id })}
-                                className="flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
-                              >
-                                <Plus className="h-3.5 w-3.5" /> Coordenação
-                              </button>
-                            )}
+                            })()}
                           </div>
                         )}
                       </div>
