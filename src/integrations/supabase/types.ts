@@ -394,6 +394,7 @@ export type Database = {
           data_admissao: string | null
           data_encerramento_contrato: string | null
           diretoria_id: string | null
+          duplo_vinculo: boolean
           email: string | null
           escala_fim1: string | null
           escala_fim2: string | null
@@ -428,6 +429,7 @@ export type Database = {
           unidade_id: string | null
           updated_at: string
           vinculo: string
+          vinculo2: string | null
         }
         Insert: {
           cargo: string
@@ -437,6 +439,7 @@ export type Database = {
           data_admissao?: string | null
           data_encerramento_contrato?: string | null
           diretoria_id?: string | null
+          duplo_vinculo?: boolean
           email?: string | null
           escala_fim1?: string | null
           escala_fim2?: string | null
@@ -471,6 +474,7 @@ export type Database = {
           unidade_id?: string | null
           updated_at?: string
           vinculo?: string
+          vinculo2?: string | null
         }
         Update: {
           cargo?: string
@@ -480,6 +484,7 @@ export type Database = {
           data_admissao?: string | null
           data_encerramento_contrato?: string | null
           diretoria_id?: string | null
+          duplo_vinculo?: boolean
           email?: string | null
           escala_fim1?: string | null
           escala_fim2?: string | null
@@ -514,6 +519,7 @@ export type Database = {
           unidade_id?: string | null
           updated_at?: string
           vinculo?: string
+          vinculo2?: string | null
         }
         Relationships: [
           {
