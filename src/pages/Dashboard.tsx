@@ -241,6 +241,60 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
                     </div>
                   </div>
 
+                  {/* Redistribuição */}
+                  <div className="rounded-xl border border-border bg-card p-5">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Redistribuição</h3>
+                    {(() => {
+                      const alocados = servidores.filter(s => s.diretoria_id || s.unidade_id).length;
+                      const naoAlocados = servidores.length - alocados;
+                      const pct = servidores.length > 0 ? Math.round((alocados / servidores.length) * 100) : 0;
+                      return (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Alocados</span>
+                            <span className="font-mono font-bold text-foreground">{alocados.toLocaleString("pt-BR")} ({pct}%)</span>
+                          </div>
+                          <div className="h-3 w-full rounded-full bg-muted overflow-hidden">
+                            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>Não alocados: {naoAlocados.toLocaleString("pt-BR")}</span>
+                            <span>Total: {servidores.length.toLocaleString("pt-BR")}</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Cards por Diretoria */}
+                  <div className="rounded-xl border border-border bg-card p-5">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Por Diretoria</h3>
+                    <div className="space-y-2">
+                      {diretorias.map(dir => {
+                        const count = servidores.filter(s => s.diretoria_id === dir.id).length;
+                        const pct = servidores.length > 0 ? Math.round((count / servidores.length) * 100) : 0;
+                        return (
+                          <div key={dir.id} className="flex items-center justify-between rounded-lg bg-muted/30 px-3 py-2">
+                            <span className="text-xs font-medium text-foreground truncate">{dir.nome}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-mono font-bold text-foreground">{count}</span>
+                              <span className="text-[10px] text-muted-foreground">{pct}%</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {(() => {
+                        const semDir = servidores.filter(s => !s.diretoria_id).length;
+                        return semDir > 0 ? (
+                          <div className="flex items-center justify-between rounded-lg bg-warning/10 px-3 py-2 border border-warning/20">
+                            <span className="text-xs font-medium text-foreground">Sem diretoria</span>
+                            <span className="text-xs font-mono font-bold text-warning">{semDir}</span>
+                          </div>
+                        ) : null;
+                      })()}
+                    </div>
+                  </div>
+
                   {/* Resumo */}
                   <div className="rounded-xl border border-border bg-card p-5">
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Resumo</h3>
