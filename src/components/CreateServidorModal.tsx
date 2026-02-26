@@ -253,6 +253,18 @@ export function CreateServidorModal({
           {/* Escala */}
           <section>
             <h3 className="text-sm font-semibold text-foreground mb-3 border-b border-border pb-1">Escala de Trabalho</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className={labelClass}>Tipo de Escala</label>
+                <select className={selectClass} value={form.tipo_escala} onChange={e => set("tipo_escala", e.target.value)}>
+                  <option value="fixa">Fixa (horário comercial)</option>
+                  <option value="plantao_12x36">Plantão 12x36</option>
+                  <option value="plantao_24x72">Plantão 24x72</option>
+                  <option value="plantao_12x60">Plantão 12x60</option>
+                  <option value="variavel">Variável (por dia)</option>
+                </select>
+              </div>
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div><label className={labelClass}>Entrada 1</label><input type="time" className={inputClass} value={form.escala_inicio1} onChange={e => set("escala_inicio1", e.target.value)} /></div>
               <div><label className={labelClass}>Saída 1</label><input type="time" className={inputClass} value={form.escala_fim1} onChange={e => set("escala_fim1", e.target.value)} /></div>
