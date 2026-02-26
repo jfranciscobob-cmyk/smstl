@@ -302,6 +302,10 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                       <p className="text-[10px] text-primary-foreground/50 font-medium">Cobertura</p>
                     </div>
                     <div className="text-center">
+                      <p className="text-2xl sm:text-3xl font-extrabold font-mono">{alocados}<span className="text-base text-primary-foreground/40">/{stats.total}</span></p>
+                      <p className="text-[10px] text-primary-foreground/50 font-medium">Alocados</p>
+                    </div>
+                    <div className="text-center">
                       <p className="text-2xl sm:text-3xl font-extrabold font-mono">{diretorias.length}</p>
                       <p className="text-[10px] text-primary-foreground/50 font-medium">Diretorias</p>
                     </div>
@@ -348,9 +352,9 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                 <p className="text-lg font-extrabold font-mono text-foreground">{unidades.length}</p>
                 <p className="text-[9px] font-semibold text-muted-foreground/70 uppercase tracking-wider">Unidades</p>
               </div>
-              <div className="rounded-xl border border-border bg-card p-3 text-center">
-                <p className="text-lg font-extrabold font-mono text-foreground">{pctAlocados}%</p>
-                <p className="text-[9px] font-semibold text-muted-foreground/70 uppercase tracking-wider">Alocados</p>
+              <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-center" title={`${alocados} alocados em diretorias / ${stats.total - alocados} sem diretoria`}>
+                <p className="text-lg font-extrabold font-mono text-primary">{alocados}</p>
+                <p className="text-[9px] font-semibold text-primary/70 uppercase tracking-wider">Alocados</p>
               </div>
             </div>
 
