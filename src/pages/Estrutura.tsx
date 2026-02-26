@@ -25,6 +25,9 @@ function EstruturaContent() {
   const [newCoord, setNewCoord] = useState<{ nome: string; unidade_id: string } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
+  const [createServidorTarget, setCreateServidorTarget] = useState<{ diretoria_id?: string; unidade_id?: string; coordenacao_id?: string } | null>(null);
+  const [assigningTo, setAssigningTo] = useState<{ type: "unidade" | "coordenacao"; id: string; diretoria_id: string } | null>(null);
+  const [assignSearch, setAssignSearch] = useState("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
