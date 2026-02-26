@@ -229,6 +229,7 @@ export function HierarchyMonitor({ servidores, diretorias, unidades, coordenacoe
   const diretorGeral = servidores.find(s => (s as any).is_diretor_geral);
   const semDiretoria = servidores.filter(s => !s.diretoria_id);
   const semDirStats = getStats(semDiretoria);
+  const alocados = servidores.filter(s => s.diretoria_id).length;
 
   return (
     <div className="space-y-4">
@@ -261,21 +262,37 @@ export function HierarchyMonitor({ servidores, diretorias, unidades, coordenacoe
 
             <div className="flex items-center gap-6">
               <div className="text-right">
-                <p className="text-2xl font-extrabold font-mono text-foreground">{globalStats.total.toLocaleString("pt-BR")}</p>
-                <p className="text-xs text-muted-foreground">servidores</p>
+                <p className="text-2xl font-extrabold font-mono text-foreground">{semDiretoria.length.toLocaleString("pt-BR")}</p>
+                <p className="text-xs text-muted-foreground">no gabinete</p>
               </div>
-              <CoverageIndicator presentes={globalStats.presentes} total={globalStats.total} />
+              <div className="text-right">
+                <p className="text-lg font-bold font-mono text-muted-foreground">{globalStats.total.toLocaleString("pt-BR")}</p>
+                <p className="text-[10px] text-muted-foreground">total geral</p>
+              </div>
+              <CoverageIndicator presentes={semDirStats.presentes} total={semDirStats.total} />
             </div>
           </div>
 
-          <div className="mt-4 space-y-2">
-            <StatusBar {...globalStats} />
+          {/* Progress bar: alocados vs não alocados */}
+          <div className="mt-4 space-y-1">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Distribuídos em diretorias: <span className="font-mono font-bold text-foreground">{alocados.toLocaleString("pt-BR")}</span></span>
+              <span>Aguardando alocação: <span className="font-mono font-bold text-warning">{semDiretoria.length.toLocaleString("pt-BR")}</span></span>
+            </div>
+            <div className="flex h-3 w-full rounded-full overflow-hidden bg-muted">
+              <div className="bg-primary transition-all" style={{ width: `${globalStats.total > 0 ? (alocados / globalStats.total) * 100 : 0}%` }} />
+              <div className="bg-warning/60 transition-all" style={{ width: `${globalStats.total > 0 ? (semDiretoria.length / globalStats.total) * 100 : 0}%` }} />
+            </div>
+          </div>
+
+          <div className="mt-3 space-y-2">
+            <StatusBar {...semDirStats} />
             <div className="flex items-center justify-between">
-              <StatusCounts {...globalStats} />
-              {globalStats.funcoesCriticas > 0 && (
+              <StatusCounts {...semDirStats} />
+              {semDirStats.funcoesCriticas > 0 && (
                 <span className="flex items-center gap-1.5 rounded-md bg-destructive/10 px-2.5 py-1.5 text-xs font-semibold text-destructive">
                   <AlertTriangle className="h-3.5 w-3.5" />
-                  {globalStats.funcoesCriticas} função(ões) crítica(s) descoberta(s)
+                  {semDirStats.funcoesCriticas} função(ões) crítica(s) descoberta(s)
                 </span>
               )}
             </div>
