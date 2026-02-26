@@ -757,7 +757,7 @@ function MonitorContent() {
                     {unidadeFuncoes.map(f => {
                       const fServs = filteredServidores.filter(s => (s as any).funcao_id === f.id);
                       const fPresentes = fServs.filter(s => s.status_presenca === "presente").length;
-                      const fFolha = fServs.reduce((sum, s) => sum + ((s as any).salario || 0), 0);
+                      const fFolha = fServs.reduce((sum, s) => sum + (s.salario || 0), 0);
                       return (
                         <div key={f.id} className="rounded-lg border border-border/50 p-3">
                           <h4 className="text-sm font-bold text-foreground mb-2">{f.nome}</h4>
