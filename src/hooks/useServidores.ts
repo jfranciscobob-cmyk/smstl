@@ -61,24 +61,24 @@ export interface CoordenacaoDB {
   updated_at: string;
 }
 
-// Fetch all rows bypassing the 1000-row default limit
-async function fetchAll<T>(table: string, orderCol = "nome", selectCols = "*"): Promise<T[]> {
+// Fetch all rows from servidores bypassing the 1000-row default limit
+async function fetchAllServidores(selectCols = "*"): Promise<ServidorDB[]> {
   const PAGE = 1000;
   let offset = 0;
-  let allRows: T[] = [];
+  let allRows: any[] = [];
   while (true) {
     const { data, error } = await supabase
-      .from(table)
+      .from("servidores")
       .select(selectCols)
-      .order(orderCol)
+      .order("nome")
       .range(offset, offset + PAGE - 1);
     if (error) throw error;
     if (!data || data.length === 0) break;
-    allRows = allRows.concat(data as T[]);
+    allRows = allRows.concat(data);
     if (data.length < PAGE) break;
     offset += PAGE;
   }
-  return allRows;
+  return allRows as ServidorDB[];
 }
 
 // Queries
@@ -86,7 +86,9 @@ export function useDiretorias() {
   return useQuery({
     queryKey: ["diretorias"],
     queryFn: async () => {
-      return fetchAll<DiretoriaDB>("diretorias");
+      const { data, error } = await supabase.from("diretorias").select("*").order("nome");
+      if (error) throw error;
+      return data as DiretoriaDB[];
     },
   });
 }
@@ -95,7 +97,9 @@ export function useUnidades() {
   return useQuery({
     queryKey: ["unidades"],
     queryFn: async () => {
-      return fetchAll<UnidadeDB>("unidades");
+      const { data, error } = await supabase.from("unidades").select("*").order("nome");
+      if (error) throw error;
+      return data as UnidadeDB[];
     },
   });
 }
@@ -104,7 +108,9 @@ export function useCoordenacoes() {
   return useQuery({
     queryKey: ["coordenacoes"],
     queryFn: async () => {
-      return fetchAll<CoordenacaoDB>("coordenacoes");
+      const { data, error } = await supabase.from("coordenacoes").select("*").order("nome");
+      if (error) throw error;
+      return data as CoordenacaoDB[];
     },
   });
 }
@@ -113,7 +119,7 @@ export function useServidores() {
   return useQuery({
     queryKey: ["servidores"],
     queryFn: async () => {
-      return fetchAll<ServidorDB>("servidores");
+      return fetchAllServidores();
     },
   });
 }
