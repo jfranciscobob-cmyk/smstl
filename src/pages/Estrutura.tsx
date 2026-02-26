@@ -4,7 +4,7 @@ import { LoginForm } from "@/components/LoginForm";
 import { supabase } from "@/integrations/supabase/client";
 import type { DiretoriaDB, UnidadeDB, CoordenacaoDB, ServidorDB } from "@/hooks/useServidores";
 import {
-  Building2, Plus, Trash2, Edit2, ChevronDown, ChevronRight, ArrowLeft, Loader2, Shield, X, Check, Network, Users, UserPlus
+  Building2, Plus, Trash2, Edit2, ChevronDown, ChevronRight, ArrowLeft, Loader2, Shield, X, Check, Network, Users, UserPlus, Crown, Star
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +28,8 @@ function EstruturaContent() {
   const [createServidorTarget, setCreateServidorTarget] = useState<{ diretoria_id?: string; unidade_id?: string; coordenacao_id?: string } | null>(null);
   const [assigningTo, setAssigningTo] = useState<{ type: "unidade" | "coordenacao"; id: string; diretoria_id: string } | null>(null);
   const [assignSearch, setAssignSearch] = useState("");
+  const [pickingRole, setPickingRole] = useState<{ type: "diretor" | "coordenador"; targetId: string; diretoriaId?: string; unidadeId?: string } | null>(null);
+  const [roleSearch, setRoleSearch] = useState("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -116,10 +118,35 @@ function EstruturaContent() {
   const unassignedServidores = servidores.filter(s => !s.unidade_id);
   const getServidoresByUnidade = (unidadeId: string) => servidores.filter(s => s.unidade_id === unidadeId);
   const getServidoresByCoord = (coordId: string) => servidores.filter(s => s.coordenacao_id === coordId);
+  const getDiretor = (diretoriaId: string) => servidores.find(s => s.diretoria_id === diretoriaId && s.is_diretor);
+  const getCoordenador = (coordId: string) => servidores.find(s => s.coordenacao_id === coordId && s.is_coordenador);
 
   const filteredAssignResults = assignSearch.length >= 2
     ? servidores.filter(s => s.nome.toLowerCase().includes(assignSearch.toLowerCase()) || s.matricula.includes(assignSearch)).slice(0, 8)
     : unassignedServidores.slice(0, 8);
+
+  const filteredRoleResults = roleSearch.length >= 2
+    ? servidores.filter(s => s.nome.toLowerCase().includes(roleSearch.toLowerCase()) || s.matricula.includes(roleSearch)).slice(0, 8)
+    : servidores.slice(0, 8);
+
+  const assignRole = async (servidorId: string, type: "diretor" | "coordenador", diretoriaId?: string, unidadeId?: string, coordId?: string) => {
+    const updateData: any = type === "diretor"
+      ? { is_diretor: true, diretoria_id: diretoriaId }
+      : { is_coordenador: true, coordenacao_id: coordId, unidade_id: unidadeId, diretoria_id: diretoriaId };
+    const { error } = await supabase.from("servidores").update(updateData).eq("id", servidorId);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: type === "diretor" ? "Diretor(a) definido!" : "Coordenador(a) definido!" });
+    setPickingRole(null);
+    setRoleSearch("");
+    loadData();
+  };
+
+  const removeRole = async (servidorId: string, type: "diretor" | "coordenador") => {
+    const updateData = type === "diretor" ? { is_diretor: false } : { is_coordenador: false };
+    await supabase.from("servidores").update(updateData).eq("id", servidorId);
+    toast({ title: type === "diretor" ? "Diretor removido" : "Coordenador removido" });
+    loadData();
+  };
 
   const deleteCoord = async (id: string) => {
     await supabase.from("coordenacoes").delete().eq("id", id);
@@ -239,6 +266,47 @@ function EstruturaContent() {
                   </button>
                 </div>
               </div>
+
+              {/* Diretor section */}
+              {(() => {
+                const diretor = getDiretor(dir.id);
+                return (
+                  <div className="px-5 py-2 border-t border-border/30 bg-muted/10 flex items-center gap-3 flex-wrap">
+                    <Crown className="h-4 w-4 text-amber-500" />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Diretor(a):</span>
+                    {diretor ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-foreground">{diretor.nome}</span>
+                        <button onClick={() => removeRole(diretor.id, "diretor")} className="p-1 rounded text-muted-foreground hover:text-destructive" title="Remover diretor">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ) : pickingRole?.type === "diretor" && pickingRole.targetId === dir.id ? (
+                      <div className="flex-1 max-w-sm space-y-1">
+                        <input
+                          autoFocus
+                          value={roleSearch}
+                          onChange={e => setRoleSearch(e.target.value)}
+                          placeholder="Buscar servidor..."
+                          className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                        />
+                        <div className="max-h-32 overflow-y-auto bg-card rounded border border-border shadow-md">
+                          {filteredRoleResults.map(s => (
+                            <button key={s.id} onClick={() => assignRole(s.id, "diretor", dir.id)} className="w-full text-left px-2 py-1 text-xs hover:bg-primary/10 text-foreground">
+                              {s.nome} <span className="text-muted-foreground">({s.matricula})</span>
+                            </button>
+                          ))}
+                        </div>
+                        <button onClick={() => { setPickingRole(null); setRoleSearch(""); }} className="text-xs text-muted-foreground">Cancelar</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => setPickingRole({ type: "diretor", targetId: dir.id })} className="text-xs text-primary font-medium hover:text-primary/80 transition-colors">
+                        + Definir diretor(a)
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
 
               {isExpanded && (
                 <div className="px-5 pb-4 space-y-3 pt-3">
@@ -400,6 +468,38 @@ function EstruturaContent() {
                                   </button>
                                 </div>
                                 </div>
+                                {/* Coordenador picker */}
+                                {(() => {
+                                  const coordenador = getCoordenador(coord.id);
+                                  return (
+                                    <div className="px-3 py-1.5 flex items-center gap-2 flex-wrap border-t border-border/20">
+                                      <Star className="h-3 w-3 text-amber-500" />
+                                      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Coordenador(a):</span>
+                                      {coordenador ? (
+                                        <div className="flex items-center gap-1">
+                                          <span className="text-xs font-medium text-foreground">{coordenador.nome}</span>
+                                          <button onClick={() => removeRole(coordenador.id, "coordenador")} className="p-0.5 rounded text-muted-foreground hover:text-destructive"><X className="h-2.5 w-2.5" /></button>
+                                        </div>
+                                      ) : pickingRole?.type === "coordenador" && pickingRole.targetId === coord.id ? (
+                                        <div className="flex-1 max-w-xs space-y-1">
+                                          <input autoFocus value={roleSearch} onChange={e => setRoleSearch(e.target.value)} placeholder="Buscar..." className="w-full h-6 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none" />
+                                          <div className="max-h-28 overflow-y-auto bg-card rounded border border-border shadow-md">
+                                            {filteredRoleResults.map(s => (
+                                              <button key={s.id} onClick={() => assignRole(s.id, "coordenador", dir.id, uni.id, coord.id)} className="w-full text-left px-2 py-1 text-xs hover:bg-primary/10 text-foreground">
+                                                {s.nome} <span className="text-muted-foreground">({s.matricula})</span>
+                                              </button>
+                                            ))}
+                                          </div>
+                                          <button onClick={() => { setPickingRole(null); setRoleSearch(""); }} className="text-[10px] text-muted-foreground">Cancelar</button>
+                                        </div>
+                                      ) : (
+                                        <button onClick={() => setPickingRole({ type: "coordenador", targetId: coord.id, diretoriaId: dir.id, unidadeId: uni.id })} className="text-[10px] text-primary font-medium hover:text-primary/80">
+                                          + Definir
+                                        </button>
+                                      )}
+                                    </div>
+                                  );
+                                })()}
                                 {/* Assign dropdown for this coord */}
                                 {assigningTo?.type === "coordenacao" && assigningTo.id === coord.id && (
                                   <div className="px-3 pb-2 space-y-2">
