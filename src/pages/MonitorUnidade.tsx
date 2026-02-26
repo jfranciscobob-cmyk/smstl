@@ -163,7 +163,6 @@ function MonitorContent() {
   const PayrollCard = ({ servs, label }: { servs: ServidorDB[]; label: string }) => {
     const folha = servs.reduce((sum, s) => sum + ((s as any).salario || 0), 0);
     const count = servs.length;
-    const media = count > 0 ? folha / count : 0;
     return (
       <div className="rounded-xl border border-border bg-card p-4">
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
@@ -172,7 +171,6 @@ function MonitorContent() {
         <p className="text-xl font-bold text-foreground font-mono">{formatCurrency(folha)}</p>
         <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
           <span>{count} servidores</span>
-          <span>Média: {formatCurrency(media)}</span>
         </div>
       </div>
     );
