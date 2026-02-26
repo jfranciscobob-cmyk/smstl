@@ -119,11 +119,12 @@ export function useAuthSession(): AuthSession {
   const isDiretor = roles.some((r) => r.role === "diretor");
   const isCoordenador = roles.some((r) => r.role === "coordenador");
   const hasFullAccess = isAdmin || isDiretor;
+  const hasFinancialAccess = isAdmin || acessoFinanceiro;
 
   const signOut = async () => {
     await supabase.auth.signOut();
   };
 
-  return { user, roles, servidorId, loading, isAdmin, isDiretor, isCoordenador, hasFullAccess, signOut };
+  return { user, roles, servidorId, loading, isAdmin, isDiretor, isCoordenador, hasFullAccess, hasFinancialAccess, signOut };
 }
 

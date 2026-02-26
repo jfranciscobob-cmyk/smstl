@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN acesso_financeiro boolean NOT NULL DEFAULT false;
