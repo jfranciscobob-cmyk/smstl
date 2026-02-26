@@ -354,6 +354,49 @@ function MonitorContent() {
     loadData();
   };
 
+  // Bulk allocation: alocar servidores a diretoria + unidade
+  const bulkAllocate = async () => {
+    if (allocSelectedIds.size === 0) {
+      toast({ title: "Selecione pelo menos um servidor", variant: "destructive" }); return;
+    }
+    setSavingAlloc(true);
+    const ids = Array.from(allocSelectedIds);
+    const updateData: any = { diretoria_id: selectedDiretoriaId || null };
+    if (allocTargetUnidade) updateData.unidade_id = allocTargetUnidade;
+    if (selectedUnidadeId) {
+      updateData.unidade_id = selectedUnidadeId;
+      updateData.diretoria_id = selectedDiretoriaId;
+    }
+    // Batch update in chunks of 50
+    let count = 0;
+    for (let i = 0; i < ids.length; i += 50) {
+      const batch = ids.slice(i, i + 50);
+      const { error } = await supabase.from("servidores").update(updateData).in("id", batch);
+      if (!error) count += batch.length;
+    }
+    setSavingAlloc(false);
+    toast({ title: `${count} servidor(es) alocado(s)!` });
+    setShowBulkAlloc(false);
+    setAllocSelectedIds(new Set());
+    setAllocSearch("");
+    setAllocTargetUnidade("");
+    loadData();
+  };
+
+  // Servidores available for allocation (not yet in this diretoria/unidade)
+  const allocAvailableServidores = useMemo(() => {
+    let pool = servidores;
+    if (selectedUnidadeId) {
+      pool = servidores.filter(s => s.unidade_id !== selectedUnidadeId);
+    } else if (selectedDiretoriaId) {
+      pool = servidores.filter(s => s.diretoria_id !== selectedDiretoriaId);
+    }
+    if (allocSearch.length >= 2) {
+      pool = pool.filter(s => s.nome.toLowerCase().includes(allocSearch.toLowerCase()));
+    }
+    return pool.slice(0, 50);
+  }, [servidores, selectedDiretoriaId, selectedUnidadeId, allocSearch]);
+
 
   const contractAlerts = useMemo(() => {
     return filteredServidores.filter(s => {
