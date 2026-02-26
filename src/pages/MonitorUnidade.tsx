@@ -803,6 +803,9 @@ function MonitorContent() {
                       <th className="pb-2 font-semibold text-muted-foreground">Salário</th>
                       <th className="pb-2 font-semibold text-muted-foreground">F.Abon.</th>
                       <th className="pb-2 font-semibold text-muted-foreground">Status</th>
+                      <th className="pb-2 font-semibold text-muted-foreground w-10">Sem.</th>
+                      <th className="pb-2 font-semibold text-muted-foreground">F.Abon.</th>
+                      <th className="pb-2 font-semibold text-muted-foreground">Status</th>
                     </tr>
                   </thead>
                   <tbody>
