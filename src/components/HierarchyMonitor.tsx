@@ -78,11 +78,13 @@ function getStats(servidores: ServidorDB[]) {
   return { total, presentes, ferias, afastados, ausentes, funcoesCriticas };
 }
 
-function UnidadeCard({ unidade, servidores, coordenacoes, coordenadores }: {
+function UnidadeCard({ unidade, servidores, coordenacoes, coordenadores, coordenadoresUnidades, allUnidades }: {
   unidade: UnidadeDB;
   servidores: ServidorDB[];
   coordenacoes: CoordenacaoDB[];
   coordenadores: ServidorDB[];
+  coordenadoresUnidades: CoordenadorUnidadeDB[];
+  allUnidades: UnidadeDB[];
 }) {
   const stats = getStats(servidores);
 
