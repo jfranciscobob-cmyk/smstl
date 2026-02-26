@@ -279,6 +279,10 @@ export function EditServidorModal({
                 <input type="checkbox" checked={form.is_coordenador} onChange={(e) => set("is_coordenador", e.target.checked)} className="rounded border-input" />
                 Coordenador(a)
               </label>
+              <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                <input type="checkbox" checked={form.is_coordenador_medico} onChange={(e) => set("is_coordenador_medico", e.target.checked)} className="rounded border-input" />
+                Coordenador(a) Médico(a)
+              </label>
             </div>
           </section>
 
