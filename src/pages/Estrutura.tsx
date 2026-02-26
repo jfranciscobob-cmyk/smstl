@@ -474,6 +474,18 @@ function EstruturaContent() {
           );
         })}
       </main>
+
+      <CreateServidorModal
+        open={!!createServidorTarget}
+        onClose={() => setCreateServidorTarget(null)}
+        onSaved={loadData}
+        diretorias={diretorias}
+        unidades={unidades}
+        coordenacoes={coordenacoes}
+        defaultDiretoriaId={createServidorTarget?.diretoria_id}
+        defaultUnidadeId={createServidorTarget?.unidade_id}
+        defaultCoordenacaoId={createServidorTarget?.coordenacao_id}
+      />
     </div>
   );
 }
