@@ -41,6 +41,8 @@ export interface ServidorDB {
   data_admissao: string | null;
   data_encerramento_contrato: string | null;
   tipo_escala: string;
+  vinculo2: string | null;
+  duplo_vinculo: boolean;
 }
 
 export interface AgrupamentoDB {

@@ -210,6 +210,19 @@ export function EditServidorModal({
                   <option value="AGENTE POLITICO">Agente Político</option>
                 </select>
               </div>
+              {form.duplo_vinculo && (
+                <div>
+                  <label className={labelClass}>Vínculo 2 <span className="text-amber-500 font-semibold">⚡ DUPLO VÍNCULO</span></label>
+                  <select className={selectClass} value={form.vinculo2} onChange={(e) => set("vinculo2", e.target.value)}>
+                    <option value="">Selecione</option>
+                    <option value="CONCURSADO (EFETIVO)">Concursado (Efetivo)</option>
+                    <option value="CONTRATO TEMPORARIO">Contrato Temporário</option>
+                    <option value="COMISSIONADO">Comissionado</option>
+                    <option value="CLT">CLT</option>
+                    <option value="AGENTE POLITICO">Agente Político</option>
+                  </select>
+                </div>
+              )}
               <div>
                 <label className={labelClass}>Data de Admissão</label>
                 <input type="date" className={inputClass} value={form.data_admissao} onChange={(e) => set("data_admissao", e.target.value)} />

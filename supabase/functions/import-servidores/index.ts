@@ -140,6 +140,8 @@ serve(async (req) => {
           funcao_critica: false,
           cobertura_prevista: "PARCIAL",
           vinculo: mapVinculo(s.vinculo),
+          vinculo2: s.vinculo2 ? mapVinculo(s.vinculo2) : null,
+          duplo_vinculo: s.duplo_vinculo,
           status_presenca: "presente",
           escala_total_horas: s.carga_horaria > 0 ? Math.round(s.carga_horaria / 5) : null,
           salario: s.salario,

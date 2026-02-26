@@ -46,10 +46,16 @@ export function ServidorRow({ servidor, onEdit }: ServidorRowProps) {
         </div>
       )}
 
-      <div className="hidden text-right lg:block">
+      <div className="hidden text-right lg:block space-y-1">
         <span className="inline-flex rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
           {servidor.vinculo.length > 25 ? servidor.vinculo.substring(0, 22) + "..." : servidor.vinculo}
         </span>
+        {servidor.duplo_vinculo && (
+          <span className="flex items-center justify-end gap-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400">
+            <Link2 className="h-3 w-3" />
+            DUPLO VÍNCULO
+          </span>
+        )}
       </div>
 
       {servidor.observacao && (
