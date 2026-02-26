@@ -299,12 +299,14 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                     <p className="text-3xl sm:text-4xl font-extrabold font-mono text-success">{coberturaGeral}%</p>
                     <p className="text-[11px] text-primary-foreground/50 font-medium mt-0.5">Cobertura Presencial</p>
                   </div>
+                  {hasFinancialAccess && (
                   <div>
                     <p className="text-3xl sm:text-4xl font-extrabold font-mono">
                       {folhaTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                     </p>
                     <p className="text-[11px] text-primary-foreground/50 font-medium mt-0.5">Folha Mensal Estimada</p>
                   </div>
+                  )}
                   <div>
                     <p className="text-3xl sm:text-4xl font-extrabold font-mono">{diretorias.length}</p>
                     <p className="text-[11px] text-primary-foreground/50 font-medium mt-0.5">Diretorias</p>
