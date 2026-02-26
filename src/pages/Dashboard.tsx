@@ -101,6 +101,13 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
                 <div className="flex h-2 w-2 rounded-full bg-status-present animate-pulse" />
                 <span className="text-xs font-medium text-muted-foreground">Tempo real</span>
               </div>
+              <Link
+                to="/estrutura"
+                className="flex h-8 items-center gap-1.5 rounded-lg bg-primary/10 px-3 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+              >
+                <Network className="h-3.5 w-3.5" />
+                Estrutura
+              </Link>
               <span className="text-xs text-muted-foreground hidden sm:block">{userEmail}</span>
               <button
                 onClick={signOut}
