@@ -9,6 +9,7 @@ interface ProfileRow {
   email: string;
   nome: string | null;
   servidor_id: string | null;
+  acesso_financeiro: boolean;
   created_at: string;
 }
 
