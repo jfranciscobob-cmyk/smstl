@@ -212,6 +212,7 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
                             unidade={unidade}
                             coordenacoes={coordenacoes.filter((c) => c.unidade_id === unidade.id)}
                             servidores={filteredServidores.filter((s) => s.unidade_id === unidade.id)}
+                            onEditServidor={setEditingServidor}
                           />
                         ))}
                       </div>
