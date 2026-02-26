@@ -95,9 +95,7 @@ export function useUnidades() {
   return useQuery({
     queryKey: ["unidades"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("unidades").select("*").order("nome");
-      if (error) throw error;
-      return data as UnidadeDB[];
+      return fetchAll<UnidadeDB>("unidades");
     },
   });
 }
