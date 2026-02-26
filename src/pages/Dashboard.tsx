@@ -356,6 +356,10 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                 <p className="text-lg font-extrabold font-mono text-primary">{alocados}</p>
                 <p className="text-[9px] font-semibold text-primary/70 uppercase tracking-wider">Alocados</p>
               </div>
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-center" title="Servidores com dois vínculos">
+                <p className="text-lg font-extrabold font-mono text-amber-600 dark:text-amber-400">{servidores.filter(s => s.duplo_vinculo).length}</p>
+                <p className="text-[9px] font-semibold text-amber-600/70 dark:text-amber-400/70 uppercase tracking-wider">Duplo Vínculo</p>
+              </div>
             </div>
 
             {/* ═══ DIRETORIAS — FOCO PRINCIPAL ═══ */}
