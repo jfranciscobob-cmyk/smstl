@@ -36,6 +36,9 @@ function EstruturaContent() {
   const [editingServidor, setEditingServidor] = useState<ServidorDB | null>(null);
   const [assigningSecretaria, setAssigningSecretaria] = useState(false);
   const [secAssignSearch, setSecAssignSearch] = useState("");
+  const [newSetor, setNewSetor] = useState<{ nome: string; cargo_gestao: string; diretoria_id: string | null } | null>(null);
+  const [assigningSetor, setAssigningSetor] = useState<{ setor_id: string } | null>(null);
+  const [setorAssignSearch, setSetorAssignSearch] = useState("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
