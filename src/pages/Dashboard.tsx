@@ -325,7 +325,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
             </div>
 
             {/* ═══ Indicadores rápidos ═══ */}
-            <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-9 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-9 gap-2">
               <Link to="/monitor?filter=presentes" className="rounded-xl border border-success/30 bg-success/5 p-3 text-center transition-all hover:shadow-md hover:-translate-y-0.5">
                 <p className="text-lg font-extrabold font-mono text-success">{stats.presentes}</p>
                 <p className="text-[9px] font-semibold text-success/70 uppercase tracking-wider">Presentes</p>
