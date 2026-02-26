@@ -72,6 +72,26 @@ export interface SetorDB {
   updated_at: string;
 }
 
+export interface FuncaoDB {
+  id: string;
+  nome: string;
+  unidade_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AtestadoDB {
+  id: string;
+  servidor_id: string;
+  tipo: string;
+  data_inicio: string;
+  data_fim: string;
+  dias: number;
+  observacao: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // Fetch all rows from servidores bypassing the 1000-row default limit
 async function fetchAllServidores(selectCols = "*"): Promise<ServidorDB[]> {
   const PAGE = 1000;
