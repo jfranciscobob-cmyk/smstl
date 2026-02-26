@@ -68,6 +68,7 @@ function EstruturaContent() {
     setDiretorias((d.data ?? []) as DiretoriaDB[]);
     setUnidades((u.data ?? []) as UnidadeDB[]);
     setCoordenacoes((c.data ?? []) as CoordenacaoDB[]);
+    setSetores((st.data ?? []) as SetorDB[]);
     setServidores(allServidores as ServidorDB[]);
     setLoading(false);
   }, []);
