@@ -78,6 +78,14 @@ function MonitorContent() {
   // Expanded diretorias
   const [expandedDirs, setExpandedDirs] = useState<Record<string, boolean>>({});
 
+  // Transfer modal
+  const [transferServidor, setTransferServidor] = useState<ServidorDB | null>(null);
+
+  // Determine user's diretoria
+  const userServidor = servidores.find(s => s.id === servidorId);
+  const userDiretoriaId = userServidor?.diretoria_id || null;
+  const canTransfer = isAdmin || (isDiretor && !!selectedDiretoriaId && (selectedDiretoriaId === userDiretoriaId || hasFullAccess));
+
   const loadData = useCallback(async () => {
     setLoading(true);
     const PAGE = 1000;
