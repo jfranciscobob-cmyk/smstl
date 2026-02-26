@@ -110,6 +110,7 @@ export function CreateServidorModal({
       observacao: form.observacao || null,
       is_diretor: form.is_diretor,
       is_coordenador: form.is_coordenador,
+      data_encerramento_contrato: form.data_encerramento_contrato || null,
     });
 
     setSaving(false);
