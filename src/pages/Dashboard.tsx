@@ -309,15 +309,15 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                         <p className="text-2xl sm:text-3xl font-extrabold font-mono">{diretorias.length}</p>
                         <p className="text-[10px] text-primary-foreground/50 font-medium">Diretorias</p>
                       </Link>
-                    {hasFinancialAccess && (
-                      <div className="text-center hidden sm:block">
-                        <p className="text-2xl sm:text-3xl font-extrabold font-mono">
-                          {folhaTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                        </p>
-                        <p className="text-[10px] text-primary-foreground/50 font-medium">Folha Mensal</p>
-                      </div>
-                    )}
-                  </div>
+                      {hasFinancialAccess && (
+                        <div className="text-center hidden sm:block">
+                          <p className="text-2xl sm:text-3xl font-extrabold font-mono">
+                            {folhaTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                          </p>
+                          <p className="text-[10px] text-primary-foreground/50 font-medium">Folha Mensal</p>
+                        </div>
+                      )}
+                    </div>
                 </div>
               </div>
             </div>
