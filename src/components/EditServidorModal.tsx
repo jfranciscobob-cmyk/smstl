@@ -55,6 +55,7 @@ export function EditServidorModal({
     ferias_total_dias: "" as string,
     ferias_vencidas: "" as string,
     observacao: "",
+    data_admissao: "",
     is_diretor: false,
     is_coordenador: false,
   });
