@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginForm } from "@/components/LoginForm";
 import { supabase } from "@/integrations/supabase/client";
-import type { DiretoriaDB, UnidadeDB, CoordenacaoDB } from "@/hooks/useServidores";
+import type { DiretoriaDB, UnidadeDB, CoordenacaoDB, ServidorDB } from "@/hooks/useServidores";
 import {
-  Building2, Plus, Trash2, Edit2, ChevronDown, ChevronRight, ArrowLeft, Loader2, Shield, X, Check, Network
+  Building2, Plus, Trash2, Edit2, ChevronDown, ChevronRight, ArrowLeft, Loader2, Shield, X, Check, Network, Users, UserPlus
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { CreateServidorModal } from "@/components/CreateServidorModal";
 
 function EstruturaContent() {
   const { toast } = useToast();
