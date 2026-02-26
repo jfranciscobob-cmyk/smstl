@@ -727,22 +727,49 @@ function EstruturaContent() {
                                     placeholder="Buscar servidor por nome ou matrícula..."
                                     className="w-full h-8 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
                                   />
-                                  <div className="max-h-40 overflow-y-auto space-y-1">
+                                  <div className="max-h-48 overflow-y-auto bg-card rounded border border-border shadow-md">
                                     {filteredAssignResults.map(s => (
-                                      <button
+                                      <label
                                         key={s.id}
-                                        onClick={() => assignServidor(s.id, assigningTo.diretoria_id, uni.id)}
-                                        className="w-full text-left px-2 py-1.5 rounded text-xs hover:bg-primary/10 transition-colors text-foreground"
+                                        className="flex items-center gap-2 w-full px-2 py-1.5 text-xs hover:bg-primary/10 text-foreground cursor-pointer"
                                       >
+                                        <Checkbox
+                                          checked={assignSelectedIds.has(s.id)}
+                                          onCheckedChange={() => {
+                                            setAssignSelectedIds(prev => {
+                                              const next = new Set(prev);
+                                              if (next.has(s.id)) next.delete(s.id); else next.add(s.id);
+                                              return next;
+                                            });
+                                          }}
+                                        />
                                         <span className="font-medium">{s.nome}</span>
-                                        <span className="text-muted-foreground ml-2">({s.matricula})</span>
-                                      </button>
+                                        <span className="text-muted-foreground">({s.matricula})</span>
+                                      </label>
                                     ))}
                                     {filteredAssignResults.length === 0 && (
                                       <p className="text-xs text-muted-foreground py-1 px-2">Nenhum servidor encontrado</p>
                                     )}
                                   </div>
-                                  <button onClick={() => { setAssigningTo(null); setAssignSearch(""); }} className="text-xs text-muted-foreground hover:text-foreground">Cancelar</button>
+                                  <div className="flex items-center gap-2">
+                                    {assignSelectedIds.size > 0 && (
+                                      <button
+                                        onClick={async () => {
+                                          const updateData = { diretoria_id: assigningTo.diretoria_id, unidade_id: uni.id };
+                                          await supabase.from("servidores").update(updateData).in("id", Array.from(assignSelectedIds));
+                                          toast({ title: `${assignSelectedIds.size} servidor(es) vinculado(s)!` });
+                                          setAssigningTo(null);
+                                          setAssignSearch("");
+                                          setAssignSelectedIds(new Set());
+                                          loadData();
+                                        }}
+                                        className="flex items-center gap-1 h-7 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
+                                      >
+                                        <Check className="h-3 w-3" /> Vincular {assignSelectedIds.size} servidor(es)
+                                      </button>
+                                    )}
+                                    <button onClick={() => { setAssigningTo(null); setAssignSearch(""); setAssignSelectedIds(new Set()); }} className="text-xs text-muted-foreground hover:text-foreground">Cancelar</button>
+                                  </div>
                                 </div>
                               )}
 
