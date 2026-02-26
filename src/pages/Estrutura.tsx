@@ -340,6 +340,7 @@ function EstruturaContent() {
               </span>
               <span className="text-xs text-warning font-mono font-bold">{secretariaServidores.length} pendentes</span>
             </div>
+          </div>
 
           {/* Secretário picker */}
           {(() => {
