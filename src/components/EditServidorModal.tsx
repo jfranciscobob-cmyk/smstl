@@ -91,6 +91,7 @@ export function EditServidorModal({
         ferias_vencidas: servidor.ferias_vencidas?.toString() || "",
         observacao: servidor.observacao || "",
         data_admissao: servidor.data_admissao || "",
+        data_encerramento_contrato: (servidor as any).data_encerramento_contrato || "",
         is_diretor: servidor.is_diretor,
         is_coordenador: servidor.is_coordenador,
       });
