@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { ImportCSVButton } from "@/components/ImportCSVButton";
 import { LoginForm } from "@/components/LoginForm";
 import { StatCard } from "@/components/StatCard";
 import { ServidorRow } from "@/components/ServidorRow";
@@ -129,9 +130,12 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
           <div className="glass-card rounded-xl p-12 text-center">
             <Users className="mx-auto h-12 w-12 text-muted-foreground/40" />
             <h3 className="mt-4 text-lg font-semibold text-foreground">Nenhum servidor cadastrado</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              O banco de dados está pronto. Comece cadastrando as diretorias, unidades, coordenações e servidores.
+            <p className="mt-2 text-sm text-muted-foreground mb-6">
+              O banco de dados está pronto. Importe os servidores do CSV para começar.
             </p>
+            <div className="flex justify-center">
+              <ImportCSVButton onComplete={loadData} />
+            </div>
           </div>
         )}
 
