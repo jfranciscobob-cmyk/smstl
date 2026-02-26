@@ -273,142 +273,226 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
 
         {servidores.length > 0 && !isLoading && (
           <>
-            {/* ═══ Executive Hero Banner ═══ */}
-            <div className="rounded-2xl gradient-hero p-6 sm:p-8 text-primary-foreground relative overflow-hidden">
+            {/* ═══ Compact Hero Banner ═══ */}
+            <div className="rounded-2xl gradient-hero p-5 sm:p-6 text-primary-foreground relative overflow-hidden">
               <div className="absolute inset-0 opacity-5" style={{
                 backgroundImage: "radial-gradient(circle at 20% 50%, hsl(174 62% 40%), transparent 50%), radial-gradient(circle at 80% 20%, hsl(210 75% 50%), transparent 50%)"
               }} />
               <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-1">
-                  <Activity className="h-4 w-4 text-primary-foreground/60" />
-                  <span className="text-[11px] font-semibold text-primary-foreground/60 uppercase tracking-widest">
-                    Painel Executivo — {new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
-                  </span>
-                </div>
-                <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight mb-1">
-                  Secretaria Municipal de Saúde
-                </h2>
-                <p className="text-xs text-primary-foreground/50">Três Lagoas · Visão Geral da Força de Trabalho</p>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+                <div className="flex items-center justify-between flex-wrap gap-3">
                   <div>
-                    <p className="text-3xl sm:text-4xl font-extrabold font-mono">{stats.total}</p>
-                    <p className="text-[11px] text-primary-foreground/50 font-medium mt-0.5">Total de Servidores</p>
-                  </div>
-                  <div>
-                    <p className="text-3xl sm:text-4xl font-extrabold font-mono text-success">{coberturaGeral}%</p>
-                    <p className="text-[11px] text-primary-foreground/50 font-medium mt-0.5">Cobertura Presencial</p>
-                  </div>
-                  {hasFinancialAccess && (
-                  <div>
-                    <p className="text-3xl sm:text-4xl font-extrabold font-mono">
-                      {folhaTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                    </p>
-                    <p className="text-[11px] text-primary-foreground/50 font-medium mt-0.5">Folha Mensal Estimada</p>
-                  </div>
-                  )}
-                  <div>
-                    <p className="text-3xl sm:text-4xl font-extrabold font-mono">{diretorias.length}</p>
-                    <p className="text-[11px] text-primary-foreground/50 font-medium mt-0.5">Diretorias</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* ═══ KPI Cards Row ═══ */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              <KpiCard
-                label="Presentes"
-                value={stats.presentes.toLocaleString("pt-BR")}
-                icon={<CheckCircle className="h-5 w-5 text-success" />}
-                color="bg-success/10"
-                subtitle={`${coberturaGeral}% do total`}
-              />
-              <KpiCard
-                label="Férias"
-                value={stats.ferias.toString()}
-                icon={<Palmtree className="h-5 w-5 text-warning" />}
-                color="bg-warning/10"
-              />
-              <KpiCard
-                label="Afastados"
-                value={stats.afastados.toString()}
-                icon={<AlertTriangle className="h-5 w-5 text-destructive" />}
-                color="bg-destructive/10"
-              />
-              <KpiCard
-                label="Concursados"
-                value={stats.concursados.toLocaleString("pt-BR")}
-                icon={<Shield className="h-5 w-5 text-primary" />}
-                color="bg-primary/10"
-                subtitle={`${stats.total > 0 ? Math.round((stats.concursados / stats.total) * 100) : 0}%`}
-              />
-              <KpiCard
-                label="Contratados"
-                value={stats.contratados.toLocaleString("pt-BR")}
-                icon={<Briefcase className="h-5 w-5 text-info" />}
-                color="bg-info/10"
-              />
-              <KpiCard
-                label="Unidades"
-                value={unidades.length.toString()}
-                icon={<MapPin className="h-5 w-5 text-primary" />}
-                color="bg-accent"
-                href="/monitor"
-              />
-            </div>
-
-            {/* ═══ Charts Row ═══ */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Status Donut */}
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Situação dos Servidores</h3>
-                <DonutChart data={statusData} colors={statusColors} total={stats.total} centerLabel="servidores" />
-                <div className="flex flex-wrap justify-center gap-3 mt-3">
-                  {statusData.map((d, i) => (
-                    <span key={d.name} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: statusColors[i] }} />
-                      {d.name}: <span className="font-mono font-bold text-foreground">{d.value}</span>
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Vínculo Donut */}
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Distribuição por Vínculo</h3>
-                <DonutChart data={vinculoData} colors={vinculoColors} total={stats.total} centerLabel="vínculos" />
-                <div className="space-y-1.5 mt-3">
-                  {vinculoData.map((d, i) => (
-                    <div key={d.name} className="flex items-center justify-between text-[11px]">
-                      <span className="flex items-center gap-1.5 text-muted-foreground truncate max-w-[180px]">
-                        <span className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: vinculoColors[i % vinculoColors.length] }} />
-                        {d.name}
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <Activity className="h-3.5 w-3.5 text-primary-foreground/60" />
+                      <span className="text-[10px] font-semibold text-primary-foreground/50 uppercase tracking-widest">
+                        {new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
                       </span>
-                      <span className="font-mono font-bold text-foreground">{d.value}</span>
                     </div>
-                  ))}
+                    <h2 className="text-lg sm:text-xl font-extrabold tracking-tight">
+                      Secretaria Municipal de Saúde
+                    </h2>
+                    <p className="text-[11px] text-primary-foreground/40">Três Lagoas · Painel Executivo</p>
+                  </div>
+                  <div className="flex items-center gap-5 sm:gap-8">
+                    <div className="text-center">
+                      <p className="text-2xl sm:text-3xl font-extrabold font-mono">{stats.total}</p>
+                      <p className="text-[10px] text-primary-foreground/50 font-medium">Servidores</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl sm:text-3xl font-extrabold font-mono text-success">{coberturaGeral}%</p>
+                      <p className="text-[10px] text-primary-foreground/50 font-medium">Cobertura</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl sm:text-3xl font-extrabold font-mono">{diretorias.length}</p>
+                      <p className="text-[10px] text-primary-foreground/50 font-medium">Diretorias</p>
+                    </div>
+                    {hasFinancialAccess && (
+                      <div className="text-center hidden sm:block">
+                        <p className="text-2xl sm:text-3xl font-extrabold font-mono">
+                          {folhaTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        </p>
+                        <p className="text-[10px] text-primary-foreground/50 font-medium">Folha Mensal</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
+            </div>
 
-              {/* Alocação & Alertas */}
+            {/* ═══ Indicadores rápidos ═══ */}
+            <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+              <div className="rounded-xl border border-success/30 bg-success/5 p-3 text-center">
+                <p className="text-lg font-extrabold font-mono text-success">{stats.presentes}</p>
+                <p className="text-[9px] font-semibold text-success/70 uppercase tracking-wider">Presentes</p>
+              </div>
+              <div className="rounded-xl border border-warning/30 bg-warning/5 p-3 text-center">
+                <p className="text-lg font-extrabold font-mono text-warning">{stats.ferias}</p>
+                <p className="text-[9px] font-semibold text-warning/70 uppercase tracking-wider">Férias</p>
+              </div>
+              <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-center">
+                <p className="text-lg font-extrabold font-mono text-destructive">{stats.afastados}</p>
+                <p className="text-[9px] font-semibold text-destructive/70 uppercase tracking-wider">Afastados</p>
+              </div>
+              <div className="rounded-xl border border-border bg-card p-3 text-center">
+                <p className="text-lg font-extrabold font-mono text-muted-foreground">{stats.ausentes}</p>
+                <p className="text-[9px] font-semibold text-muted-foreground/70 uppercase tracking-wider">Ausentes</p>
+              </div>
+              <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-center">
+                <p className="text-lg font-extrabold font-mono text-primary">{stats.concursados}</p>
+                <p className="text-[9px] font-semibold text-primary/70 uppercase tracking-wider">Concursados</p>
+              </div>
+              <div className="rounded-xl border border-info/30 bg-info/5 p-3 text-center">
+                <p className="text-lg font-extrabold font-mono text-info">{stats.contratados}</p>
+                <p className="text-[9px] font-semibold text-info/70 uppercase tracking-wider">Contratados</p>
+              </div>
+              <div className="rounded-xl border border-border bg-card p-3 text-center">
+                <p className="text-lg font-extrabold font-mono text-foreground">{unidades.length}</p>
+                <p className="text-[9px] font-semibold text-muted-foreground/70 uppercase tracking-wider">Unidades</p>
+              </div>
+              <div className="rounded-xl border border-border bg-card p-3 text-center">
+                <p className="text-lg font-extrabold font-mono text-foreground">{pctAlocados}%</p>
+                <p className="text-[9px] font-semibold text-muted-foreground/70 uppercase tracking-wider">Alocados</p>
+              </div>
+            </div>
+
+            {/* ═══ DIRETORIAS — FOCO PRINCIPAL ═══ */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-primary" /> Situação das Diretorias
+                </h3>
+                <Link to="/monitor" className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+                  Ver no Monitor <ChevronRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {diretorias.map(dir => {
+                  const ds = servidores.filter(s => s.diretoria_id === dir.id);
+                  const dp = ds.filter(s => s.status_presenca === "presente").length;
+                  const dFerias = ds.filter(s => s.status_presenca === "ferias").length;
+                  const dAfastados = ds.filter(s => s.status_presenca === "afastado").length;
+                  const du = unidades.filter(u => u.diretoria_id === dir.id);
+                  const df = ds.reduce((sum, s) => sum + (s.salario || 0), 0);
+                  const cob = ds.length > 0 ? Math.round((dp / ds.length) * 100) : 0;
+                  const cobColor = cob >= 80 ? "text-success" : cob >= 50 ? "text-warning" : "text-destructive";
+                  const cobBg = cob >= 80 ? "bg-success" : cob >= 50 ? "bg-warning" : "bg-destructive";
+                  const diretor = servidores.find(s => s.diretoria_id === dir.id && s.is_diretor);
+                  const criticas = ds.filter(s => s.funcao_critica && s.status_presenca !== "presente");
+
+                  return (
+                    <Link
+                      key={dir.id}
+                      to={`/monitor?view=diretoria&diretoria=${dir.id}`}
+                      className="group rounded-2xl border border-border bg-card p-5 transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/30"
+                    >
+                      {/* Header */}
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors truncate">{dir.nome}</h4>
+                          {diretor && (
+                            <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                              Diretor(a): <span className="font-medium text-foreground/70">{diretor.nome}</span>
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end flex-shrink-0">
+                          <span className={`text-xl font-extrabold font-mono ${cobColor}`}>{cob}%</span>
+                          <span className="text-[9px] text-muted-foreground font-medium">cobertura</span>
+                        </div>
+                      </div>
+
+                      {/* Progress bar */}
+                      <div className="h-2 w-full rounded-full bg-muted overflow-hidden mb-3">
+                        <div className={`h-full rounded-full ${cobBg} transition-all duration-700`} style={{ width: `${cob}%` }} />
+                      </div>
+
+                      {/* Stats row */}
+                      <div className="grid grid-cols-4 gap-2 mb-3">
+                        <div className="text-center">
+                          <p className="text-sm font-bold font-mono text-foreground">{ds.length}</p>
+                          <p className="text-[8px] font-semibold text-muted-foreground uppercase">Total</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-bold font-mono text-success">{dp}</p>
+                          <p className="text-[8px] font-semibold text-success/70 uppercase">Presentes</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-bold font-mono text-warning">{dFerias}</p>
+                          <p className="text-[8px] font-semibold text-warning/70 uppercase">Férias</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-bold font-mono text-destructive">{dAfastados}</p>
+                          <p className="text-[8px] font-semibold text-destructive/70 uppercase">Afastados</p>
+                        </div>
+                      </div>
+
+                      {/* Footer: units + financial + alerts */}
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/50">
+                        <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                          <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {du.length} unid.</span>
+                          {hasFinancialAccess && df > 0 && (
+                            <span className="flex items-center gap-1 text-primary font-mono font-bold">
+                              <DollarSign className="h-3 w-3" />
+                              {df.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                            </span>
+                          )}
+                        </div>
+                        {criticas.length > 0 && (
+                          <span className="flex items-center gap-1 text-[10px] text-destructive font-semibold">
+                            <AlertTriangle className="h-3 w-3" /> {criticas.length} crítica{criticas.length > 1 ? "s" : ""}
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
+
+                {/* Sem diretoria */}
+                {(() => {
+                  const semDir = servidores.filter(s => !s.diretoria_id);
+                  if (semDir.length === 0) return null;
+                  const sp = semDir.filter(s => s.status_presenca === "presente").length;
+                  const folha = semDir.reduce((s, sv) => s + (sv.salario || 0), 0);
+                  const cob = semDir.length > 0 ? Math.round((sp / semDir.length) * 100) : 0;
+                  return (
+                    <div className="rounded-2xl border border-dashed border-warning/40 bg-warning/5 p-5">
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <div>
+                          <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                            <Shield className="h-4 w-4 text-warning" /> Sem Diretoria (Gabinete)
+                          </h4>
+                        </div>
+                        <span className="text-xl font-extrabold font-mono text-warning">{cob}%</span>
+                      </div>
+                      <div className="h-2 w-full rounded-full bg-muted overflow-hidden mb-3">
+                        <div className="h-full rounded-full bg-warning transition-all duration-700" style={{ width: `${cob}%` }} />
+                      </div>
+                      <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                        <span><Users className="h-3 w-3 inline mr-1" />{semDir.length} servidores</span>
+                        <span className="text-success"><CheckCircle className="h-3 w-3 inline mr-1" />{sp} presentes</span>
+                        {hasFinancialAccess && folha > 0 && (
+                          <span className="text-warning font-mono font-bold">
+                            {folha.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* ═══ Gráfico + Alertas lado a lado ═══ */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Bar Chart */}
+              <div className="lg:col-span-2 rounded-2xl border border-border bg-card p-5">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                  Presença vs Ausências por Diretoria
+                </h3>
+                <DiretoriaBarChart diretorias={diretorias} servidores={servidores} />
+              </div>
+
+              {/* Alertas */}
               <div className="space-y-4">
-                {/* Alocação Progress */}
-                <div className="rounded-2xl border border-border bg-card p-5">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Alocação em Diretorias</h3>
-                  <div className="flex items-end gap-3 mb-3">
-                    <span className="text-3xl font-extrabold font-mono text-foreground">{pctAlocados}%</span>
-                    <span className="text-xs text-muted-foreground mb-1">{alocados} de {stats.total}</span>
-                  </div>
-                  <div className="h-3 w-full rounded-full bg-muted overflow-hidden">
-                    <div className="h-full rounded-full bg-primary transition-all duration-700" style={{ width: `${pctAlocados}%` }} />
-                  </div>
-                  <p className="text-[11px] text-muted-foreground mt-2">
-                    {stats.total - alocados} servidores aguardando alocação
-                  </p>
-                </div>
-
-                {/* Alertas */}
                 <AlertCard
                   title="Funções Críticas Descobertas"
                   count={funcoesCriticasDescobertas.length}
@@ -423,127 +507,67 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                   color="border-warning/20 bg-warning/5 text-warning"
                   items={contratosVencendo.map(s => `${s.nome} — ${s.data_encerramento_contrato}`)}
                 />
+
+                {/* Donuts compactos */}
+                <div className="rounded-2xl border border-border bg-card p-4">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Vínculos</h3>
+                  <DonutChart data={vinculoData} colors={vinculoColors} total={stats.total} centerLabel="vínculos" />
+                  <div className="space-y-1 mt-2">
+                    {vinculoData.slice(0, 4).map((d, i) => (
+                      <div key={d.name} className="flex items-center justify-between text-[10px]">
+                        <span className="flex items-center gap-1.5 text-muted-foreground truncate max-w-[140px]">
+                          <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: vinculoColors[i % vinculoColors.length] }} />
+                          {d.name}
+                        </span>
+                        <span className="font-mono font-bold text-foreground">{d.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* ═══ Servidores por Diretoria (Bar Chart) ═══ */}
-            <div className="rounded-2xl border border-border bg-card p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Servidores por Diretoria — Presença vs Ausências
-                </h3>
-                <Link to="/monitor" className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
-                  Ver detalhes <ChevronRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-              <DiretoriaBarChart diretorias={diretorias} servidores={servidores} />
-            </div>
-
-            {/* ═══ Quick Access & Tools ═══ */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* ═══ Quick Access ═══ */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <Link
                 to="/monitor"
-                className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
+                className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:shadow-md hover:-translate-y-0.5"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-                  <Eye className="h-6 w-6 text-primary" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                  <Eye className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-foreground">Monitor por Unidade</p>
-                  <p className="text-[11px] text-muted-foreground">Acompanhe cada unidade de saúde</p>
+                  <p className="text-xs font-bold text-foreground">Monitor</p>
+                  <p className="text-[10px] text-muted-foreground">Por unidade</p>
                 </div>
               </Link>
               <Link
                 to="/estrutura"
-                className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
+                className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:shadow-md hover:-translate-y-0.5"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent">
-                  <Network className="h-6 w-6 text-primary" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
+                  <Network className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-foreground">Estrutura Organizacional</p>
-                  <p className="text-[11px] text-muted-foreground">Gerencie diretorias e unidades</p>
+                  <p className="text-xs font-bold text-foreground">Estrutura</p>
+                  <p className="text-[10px] text-muted-foreground">Organização</p>
                 </div>
               </Link>
               <Link
                 to="/acesso"
-                className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
+                className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:shadow-md hover:-translate-y-0.5"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-info/10">
-                  <UserCheck className="h-6 w-6 text-info" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-info/10">
+                  <UserCheck className="h-5 w-5 text-info" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-foreground">Acesso Rápido</p>
-                  <p className="text-[11px] text-muted-foreground">Visão de diretores e coordenadores</p>
+                  <p className="text-xs font-bold text-foreground">Acesso Rápido</p>
+                  <p className="text-[10px] text-muted-foreground">Gestores</p>
                 </div>
               </Link>
-              <div className="rounded-2xl border border-dashed border-border bg-card/50 p-5">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Importar Dados</h3>
+              <div className="rounded-xl border border-dashed border-border bg-card/50 p-4">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Importar</p>
                 <ImportCSVButton onComplete={loadData} />
-              </div>
-            </div>
-
-            {/* ═══ Diretorias Overview Table ═══ */}
-            <div className="rounded-2xl border border-border bg-card overflow-hidden">
-              <div className="px-5 py-4 border-b border-border bg-muted/20">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Resumo por Diretoria</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border text-xs text-muted-foreground">
-                      <th className="text-left px-5 py-3 font-semibold">Diretoria</th>
-                      <th className="text-center px-3 py-3 font-semibold">Servidores</th>
-                      <th className="text-center px-3 py-3 font-semibold">Presentes</th>
-                      <th className="text-center px-3 py-3 font-semibold">Cobertura</th>
-                      <th className="text-center px-3 py-3 font-semibold">Unidades</th>
-                      {hasFinancialAccess && <th className="text-right px-5 py-3 font-semibold">Folha Est.</th>}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/50">
-                    {diretorias.map(dir => {
-                      const ds = servidores.filter(s => s.diretoria_id === dir.id);
-                      const dp = ds.filter(s => s.status_presenca === "presente").length;
-                      const du = unidades.filter(u => u.diretoria_id === dir.id).length;
-                      const df = ds.reduce((sum, s) => sum + (s.salario || 0), 0);
-                      const cob = ds.length > 0 ? Math.round((dp / ds.length) * 100) : 0;
-                      const cobColor = cob >= 80 ? "text-success bg-success/10" : cob >= 50 ? "text-warning bg-warning/10" : "text-destructive bg-destructive/10";
-                      return (
-                        <tr key={dir.id} className="hover:bg-muted/20 transition-colors">
-                          <td className="px-5 py-3">
-                            <span className="font-semibold text-foreground">{dir.nome}</span>
-                          </td>
-                          <td className="text-center px-3 py-3 font-mono font-bold text-foreground">{ds.length}</td>
-                          <td className="text-center px-3 py-3 font-mono text-success font-bold">{dp}</td>
-                          <td className="text-center px-3 py-3">
-                            <span className={`inline-block rounded-md px-2 py-0.5 text-xs font-bold font-mono ${cobColor}`}>{cob}%</span>
-                          </td>
-                          <td className="text-center px-3 py-3 font-mono text-muted-foreground">{du}</td>
-                          {hasFinancialAccess && (
-                          <td className="text-right px-5 py-3 font-mono text-xs text-muted-foreground">
-                            {df.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                          </td>
-                          )}
-                        </tr>
-                      );
-                    })}
-                    {/* Total row */}
-                    <tr className="bg-muted/30 font-bold">
-                      <td className="px-5 py-3 text-foreground">TOTAL</td>
-                      <td className="text-center px-3 py-3 font-mono text-foreground">{servidores.filter(s => s.diretoria_id).length}</td>
-                      <td className="text-center px-3 py-3 font-mono text-success">{servidores.filter(s => s.diretoria_id && s.status_presenca === "presente").length}</td>
-                      <td className="text-center px-3 py-3">
-                        <span className="inline-block rounded-md px-2 py-0.5 text-xs font-bold font-mono bg-primary/10 text-primary">{coberturaGeral}%</span>
-                      </td>
-                      <td className="text-center px-3 py-3 font-mono text-muted-foreground">{unidades.length}</td>
-                      {hasFinancialAccess && (
-                      <td className="text-right px-5 py-3 font-mono text-xs text-foreground">
-                        {folhaTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                      </td>
-                      )}
-                    </tr>
-                  </tbody>
-                </table>
               </div>
             </div>
           </>
