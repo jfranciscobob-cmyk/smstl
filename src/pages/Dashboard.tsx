@@ -4,11 +4,12 @@ import { ImportCSVButton } from "@/components/ImportCSVButton";
 import { LoginForm } from "@/components/LoginForm";
 import { StatCard } from "@/components/StatCard";
 import { ServidorRow } from "@/components/ServidorRow";
+import { Link } from "react-router-dom";
 import { UnidadeSection } from "@/components/UnidadeSection";
 import { EditServidorModal } from "@/components/EditServidorModal";
 import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB, type CoordenacaoDB } from "@/hooks/useServidores";
 import {
-  Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Search, Filter, LogOut, Loader2
+  Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Search, Filter, LogOut, Loader2, Network
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -100,6 +101,13 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
                 <div className="flex h-2 w-2 rounded-full bg-status-present animate-pulse" />
                 <span className="text-xs font-medium text-muted-foreground">Tempo real</span>
               </div>
+              <Link
+                to="/estrutura"
+                className="flex h-8 items-center gap-1.5 rounded-lg bg-primary/10 px-3 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+              >
+                <Network className="h-3.5 w-3.5" />
+                Estrutura
+              </Link>
               <span className="text-xs text-muted-foreground hidden sm:block">{userEmail}</span>
               <button
                 onClick={signOut}
