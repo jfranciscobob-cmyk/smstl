@@ -243,7 +243,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
         servidores={servidores}
       />
 
-      <main className="container mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Loading */}
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
