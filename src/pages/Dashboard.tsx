@@ -125,7 +125,7 @@ function AlertCard({ title, count, icon, color, items }: {
   );
 }
 
-function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEmail?: string }) {
+function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut: () => void; userEmail?: string; hasFinancialAccess?: boolean }) {
   const [servidores, setServidores] = useState<ServidorDB[]>([]);
   const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
