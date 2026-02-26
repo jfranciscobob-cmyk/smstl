@@ -101,6 +101,27 @@ function EstruturaContent() {
     loadData();
   };
 
+  // Assign servidor to unidade/coordenação
+  const assignServidor = async (servidorId: string, diretoriaId: string, unidadeId: string, coordenacaoId?: string) => {
+    const updateData: any = { diretoria_id: diretoriaId, unidade_id: unidadeId };
+    if (coordenacaoId) updateData.coordenacao_id = coordenacaoId;
+    const { error } = await supabase.from("servidores").update(updateData).eq("id", servidorId);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Servidor vinculado!" });
+    setAssigningTo(null);
+    setAssignSearch("");
+    loadData();
+  };
+
+  const unassignedServidores = servidores.filter(s => !s.unidade_id);
+  const getServidoresByUnidade = (unidadeId: string) => servidores.filter(s => s.unidade_id === unidadeId);
+  const getServidoresByCoord = (coordId: string) => servidores.filter(s => s.coordenacao_id === coordId);
+
+  const filteredAssignResults = assignSearch.length >= 2
+    ? servidores.filter(s => s.nome.toLowerCase().includes(assignSearch.toLowerCase()) || s.matricula.includes(assignSearch)).slice(0, 8)
+    : unassignedServidores.slice(0, 8);
+  };
+
   const deleteCoord = async (id: string) => {
     await supabase.from("coordenacoes").delete().eq("id", id);
     toast({ title: "Coordenação removida" });
