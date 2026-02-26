@@ -23,6 +23,7 @@ export function useAuthSession(): AuthSession {
   const [user, setUser] = useState<User | null>(null);
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [servidorId, setServidorId] = useState<string | null>(null);
+  const [acessoFinanceiro, setAcessoFinanceiro] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
