@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useServidores, useDiretorias, useUnidades, useCoordenacoes, useStats, type ServidorDB } from "@/hooks/useServidores";
+import { useServidores, useDiretorias, useUnidades, useCoordenacoes, computeStats, type ServidorDB } from "@/hooks/useServidores";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginForm } from "@/components/LoginForm";
 import { StatCard } from "@/components/StatCard";
@@ -13,8 +13,8 @@ import { useQueryClient } from "@tanstack/react-query";
 
 const Dashboard = () => {
   const { session, loading: authLoading, signOut, user } = useAuth();
-  const stats = useStats();
   const { data: servidores = [], isLoading } = useServidores();
+  const stats = computeStats(servidores);
   const { data: diretorias = [] } = useDiretorias();
   const { data: unidades = [] } = useUnidades();
   const { data: coordenacoes = [] } = useCoordenacoes();

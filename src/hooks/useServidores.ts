@@ -121,10 +121,8 @@ export function useServidoresRealtime() {
   return { ...query, channel };
 }
 
-// Computed stats
-export function useStats() {
-  const { data: servidores = [] } = useServidores();
-
+// Computed stats from data (no hook dependency)
+export function computeStats(servidores: ServidorDB[]) {
   const total = servidores.length;
   const presentes = servidores.filter((s) => s.status_presenca === "presente").length;
   const ferias = servidores.filter((s) => s.status_presenca === "ferias").length;
