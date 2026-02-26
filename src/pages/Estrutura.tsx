@@ -818,6 +818,96 @@ function EstruturaContent() {
                           contextServidores={servidores.filter(s => s.diretoria_id === dir.id)}
                         />
 
+                        {/* ═══ Agrupamentos ═══ */}
+                        {(() => {
+                          const dirAgrupamentos = getAgrupamentosByDiretoria(dir.id);
+                          return (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Layers className="h-4 w-4 text-primary" />
+                                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Agrupamentos de Unidades ({dirAgrupamentos.length})</span>
+                                {newAgrupamento?.diretoria_id === dir.id ? (
+                                  <div className="flex items-center gap-2 ml-2">
+                                    <input
+                                      autoFocus
+                                      value={newAgrupamento.nome}
+                                      onChange={e => setNewAgrupamento({ ...newAgrupamento, nome: e.target.value })}
+                                      onKeyDown={e => e.key === "Enter" && addAgrupamento(newAgrupamento.nome, dir.id)}
+                                      placeholder="Nome do agrupamento..."
+                                      className="h-7 w-56 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                                    />
+                                    <button onClick={() => addAgrupamento(newAgrupamento.nome, dir.id)} className="text-primary"><Check className="h-3.5 w-3.5" /></button>
+                                    <button onClick={() => setNewAgrupamento(null)} className="text-muted-foreground"><X className="h-3.5 w-3.5" /></button>
+                                  </div>
+                                ) : (
+                                  <button onClick={() => setNewAgrupamento({ nome: "", diretoria_id: dir.id })} className="text-xs text-primary font-medium hover:text-primary/80 ml-2">
+                                    + Novo agrupamento
+                                  </button>
+                                )}
+                              </div>
+                              {dirAgrupamentos.map(agrup => {
+                                const agrupCoord = agrup.coordenador_id ? servidores.find(s => s.id === agrup.coordenador_id) : null;
+                                const agrupUnidades = dirUnidades.filter(u => (u as any).agrupamento_id === agrup.id);
+                                return (
+                                  <div key={agrup.id} className="border border-primary/20 rounded-lg overflow-hidden bg-primary/5">
+                                    <div className="flex items-center justify-between px-4 py-2">
+                                      <div className="flex items-center gap-2">
+                                        <Layers className="h-4 w-4 text-primary" />
+                                        <span className="text-sm font-bold text-foreground">{agrup.nome}</span>
+                                        <span className="text-xs text-muted-foreground">({agrupUnidades.length} unidade{agrupUnidades.length !== 1 ? "s" : ""})</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        {/* Coordenador do agrupamento */}
+                                        {agrupCoord ? (
+                                          <div className="flex items-center gap-1.5 text-xs">
+                                            <Star className="h-3 w-3 text-amber-500" />
+                                            <span className="font-medium text-foreground">{agrupCoord.nome}</span>
+                                            <button onClick={() => { supabase.from("agrupamentos").update({ coordenador_id: null }).eq("id", agrup.id).then(() => loadData()); }} className="p-0.5 text-muted-foreground hover:text-destructive"><X className="h-3 w-3" /></button>
+                                          </div>
+                                        ) : pickingAgrupCoord === agrup.id ? (
+                                          <div className="space-y-1">
+                                            <input autoFocus value={agrupCoordSearch} onChange={e => setAgrupCoordSearch(e.target.value)} placeholder="Buscar..." className="h-6 w-40 rounded border border-input bg-card px-2 text-xs text-foreground focus:ring-2 focus:ring-ring focus:outline-none" />
+                                            <div className="max-h-24 overflow-y-auto bg-card rounded border border-border shadow-md absolute z-10">
+                                              {(agrupCoordSearch.length >= 2 ? servidores.filter(s => s.nome.toLowerCase().includes(agrupCoordSearch.toLowerCase())).slice(0, 5) : servidores.slice(0, 5)).map(s => (
+                                                <button key={s.id} onClick={() => setAgrupamentoCoord(agrup.id, s.id)} className="w-full text-left px-2 py-1 text-xs hover:bg-primary/10 text-foreground">{s.nome}</button>
+                                              ))}
+                                            </div>
+                                            <button onClick={() => { setPickingAgrupCoord(null); setAgrupCoordSearch(""); }} className="text-[10px] text-muted-foreground">Cancelar</button>
+                                          </div>
+                                        ) : (
+                                          <button onClick={() => setPickingAgrupCoord(agrup.id)} className="text-xs text-primary font-medium">+ Coordenador</button>
+                                        )}
+                                        {/* Add unidade to this agrupamento */}
+                                        <select
+                                          className="h-7 rounded border border-input bg-card px-1 text-xs text-foreground"
+                                          value=""
+                                          onChange={e => { if (e.target.value) assignUnidadeToAgrupamento(e.target.value, agrup.id); }}
+                                        >
+                                          <option value="">+ Vincular unidade</option>
+                                          {dirUnidades.filter(u => !(u as any).agrupamento_id).map(u => (
+                                            <option key={u.id} value={u.id}>{u.sigla} — {u.nome}</option>
+                                          ))}
+                                        </select>
+                                        <button onClick={() => deleteAgrupamento(agrup.id)} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
+                                      </div>
+                                    </div>
+                                    {agrupUnidades.length > 0 && (
+                                      <div className="px-4 pb-2 space-y-1">
+                                        {agrupUnidades.map(u => (
+                                          <div key={u.id} className="flex items-center justify-between text-xs py-1 px-2 rounded bg-card/50">
+                                            <span className="font-medium text-foreground">{u.sigla} — {u.nome}</span>
+                                            <button onClick={() => assignUnidadeToAgrupamento(u.id, null)} className="text-muted-foreground hover:text-destructive text-[10px]">desvincular</button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })()}
+
                         {/* Unidades list */}
                         {dirUnidades.map(uni => {
                           const uniExpanded = expanded[uni.id] !== false;
