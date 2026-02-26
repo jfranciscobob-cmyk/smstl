@@ -812,52 +812,74 @@ function MonitorContent() {
                     {filteredServidores.map(s => {
                       const faltaInfo = getFaltasNoAno(s.id, s.data_admissao);
                       return (
-                        <tr key={s.id} className="border-b border-border/30 hover:bg-muted/20">
-                          <td className="py-2 font-medium text-foreground">{s.nome}</td>
-                          <td className="py-2 text-muted-foreground">{s.cargo}</td>
-                          <td className="py-2 text-muted-foreground font-mono">{s.data_admissao ? format(parseISO(s.data_admissao), "dd/MM/yyyy") : "—"}</td>
-                          {showBulkEscala && bulkEscalas[s.id] ? (
-                            <>
-                              <td className="py-1">
-                                <div className="flex gap-1">
-                                  <input type="time" value={bulkEscalas[s.id].inicio1} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], inicio1: e.target.value } }))}
-                                    className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
-                                  <input type="time" value={bulkEscalas[s.id].fim1} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], fim1: e.target.value } }))}
-                                    className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
-                                </div>
+                        <React.Fragment key={s.id}>
+                          <tr className="border-b border-border/30 hover:bg-muted/20">
+                            <td className="py-2 font-medium text-foreground">{s.nome}</td>
+                            <td className="py-2 text-muted-foreground">{s.cargo}</td>
+                            <td className="py-2 text-muted-foreground font-mono">{s.data_admissao ? format(parseISO(s.data_admissao), "dd/MM/yyyy") : "—"}</td>
+                            {showBulkEscala && bulkEscalas[s.id] ? (
+                              <>
+                                <td className="py-1">
+                                  <div className="flex gap-1">
+                                    <input type="time" value={bulkEscalas[s.id].inicio1} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], inicio1: e.target.value } }))}
+                                      className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                    <input type="time" value={bulkEscalas[s.id].fim1} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], fim1: e.target.value } }))}
+                                      className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                  </div>
+                                </td>
+                                <td className="py-1">
+                                  <div className="flex gap-1">
+                                    <input type="time" value={bulkEscalas[s.id].inicio2} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], inicio2: e.target.value } }))}
+                                      className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                    <input type="time" value={bulkEscalas[s.id].fim2} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], fim2: e.target.value } }))}
+                                      className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                  </div>
+                                </td>
+                                <td className="py-1">
+                                  <input type="number" value={bulkEscalas[s.id].total} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], total: e.target.value } }))}
+                                    className="w-12 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground text-center focus:ring-1 focus:ring-ring focus:outline-none" placeholder="h" />
+                                </td>
+                              </>
+                            ) : (
+                              <>
+                                <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio1 ? `${s.escala_inicio1}-${s.escala_fim1}` : "—"}</td>
+                                <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio2 ? `${s.escala_inicio2}-${s.escala_fim2}` : "—"}</td>
+                                <td className="py-2 font-mono font-bold text-foreground">{s.escala_total_horas ? `${s.escala_total_horas}h` : "—"}</td>
+                              </>
+                            )}
+                            <td className="py-2 font-mono text-primary">{s.salario > 0 ? formatCurrency(s.salario) : "—"}</td>
+                            <td className="py-2">
+                              <span className={cn("text-xs font-mono font-bold", faltaInfo.usadas >= 5 ? "text-destructive" : faltaInfo.usadas >= 3 ? "text-warning" : "text-muted-foreground")}>{faltaInfo.usadas}/5</span>
+                            </td>
+                            <td className="py-2">
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                s.status_presenca === "presente" ? "bg-success/10 text-success" :
+                                s.status_presenca === "ferias" ? "bg-warning/10 text-warning" :
+                                "bg-destructive/10 text-destructive"
+                              }`}>{s.status_presenca}</span>
+                            </td>
+                            <td className="py-2">
+                              <button
+                                onClick={() => setExpandedSemanalId(expandedSemanalId === s.id ? null : s.id)}
+                                className={cn("text-[10px] font-medium px-1.5 py-0.5 rounded", expandedSemanalId === s.id ? "bg-primary text-primary-foreground" : "text-primary hover:bg-primary/10")}
+                                title="Escala semanal"
+                              >
+                                <Calendar className="h-3 w-3" />
+                              </button>
+                            </td>
+                          </tr>
+                          {expandedSemanalId === s.id && (
+                            <tr>
+                              <td colSpan={10} className="p-2 bg-muted/10">
+                                <EscalaSemanalEditor
+                                  servidorId={s.id}
+                                  servidorNome={s.nome}
+                                  defaultEscala={{ inicio1: s.escala_inicio1 || "", fim1: s.escala_fim1 || "", inicio2: s.escala_inicio2 || "", fim2: s.escala_fim2 || "", total: s.escala_total_horas }}
+                                />
                               </td>
-                              <td className="py-1">
-                                <div className="flex gap-1">
-                                  <input type="time" value={bulkEscalas[s.id].inicio2} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], inicio2: e.target.value } }))}
-                                    className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
-                                  <input type="time" value={bulkEscalas[s.id].fim2} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], fim2: e.target.value } }))}
-                                    className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
-                                </div>
-                              </td>
-                              <td className="py-1">
-                                <input type="number" value={bulkEscalas[s.id].total} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], total: e.target.value } }))}
-                                  className="w-12 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground text-center focus:ring-1 focus:ring-ring focus:outline-none" placeholder="h" />
-                              </td>
-                            </>
-                          ) : (
-                            <>
-                              <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio1 ? `${s.escala_inicio1}-${s.escala_fim1}` : "—"}</td>
-                              <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio2 ? `${s.escala_inicio2}-${s.escala_fim2}` : "—"}</td>
-                              <td className="py-2 font-mono font-bold text-foreground">{s.escala_total_horas ? `${s.escala_total_horas}h` : "—"}</td>
-                            </>
+                            </tr>
                           )}
-                          <td className="py-2 font-mono text-primary">{s.salario > 0 ? formatCurrency(s.salario) : "—"}</td>
-                          <td className="py-2">
-                            <span className={cn("text-xs font-mono font-bold", faltaInfo.usadas >= 5 ? "text-destructive" : faltaInfo.usadas >= 3 ? "text-warning" : "text-muted-foreground")}>{faltaInfo.usadas}/5</span>
-                          </td>
-                          <td className="py-2">
-                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                              s.status_presenca === "presente" ? "bg-success/10 text-success" :
-                              s.status_presenca === "ferias" ? "bg-warning/10 text-warning" :
-                              "bg-destructive/10 text-destructive"
-                            }`}>{s.status_presenca}</span>
-                          </td>
-                        </tr>
+                        </React.Fragment>
                       );
                     })}
                   </tbody>
