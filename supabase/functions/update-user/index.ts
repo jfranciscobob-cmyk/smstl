@@ -34,7 +34,7 @@ serve(async (req) => {
     const isAdmin = callerRoles?.some(r => r.role === "admin" || r.role === "diretor");
     if (!isAdmin) throw new Error("Sem permissão");
 
-    const { user_id, nome, password, role } = await req.json();
+    const { user_id, nome, password, role, acesso_financeiro } = await req.json();
     if (!user_id) throw new Error("user_id é obrigatório");
 
     // Update auth user (name and/or password)
