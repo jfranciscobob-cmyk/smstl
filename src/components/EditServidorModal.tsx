@@ -134,6 +134,7 @@ export function EditServidorModal({
       is_diretor: form.is_diretor,
       is_coordenador: form.is_coordenador,
       data_admissao: form.data_admissao || null,
+    };
 
     const { error } = await supabase
       .from("servidores")
