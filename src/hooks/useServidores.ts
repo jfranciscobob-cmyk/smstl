@@ -37,6 +37,16 @@ export interface ServidorDB {
   updated_at: string;
   setor_id: string | null;
   salario: number;
+  data_admissao: string | null;
+}
+
+export interface FaltaAbonadaDB {
+  id: string;
+  servidor_id: string;
+  data: string;
+  observacao: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface DiretoriaDB {

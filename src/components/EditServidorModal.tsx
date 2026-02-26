@@ -55,6 +55,7 @@ export function EditServidorModal({
     ferias_total_dias: "" as string,
     ferias_vencidas: "" as string,
     observacao: "",
+    data_admissao: "",
     is_diretor: false,
     is_coordenador: false,
   });
@@ -87,6 +88,7 @@ export function EditServidorModal({
         ferias_total_dias: servidor.ferias_total_dias?.toString() || "",
         ferias_vencidas: servidor.ferias_vencidas?.toString() || "",
         observacao: servidor.observacao || "",
+        data_admissao: servidor.data_admissao || "",
         is_diretor: servidor.is_diretor,
         is_coordenador: servidor.is_coordenador,
       });
@@ -132,6 +134,7 @@ export function EditServidorModal({
       observacao: form.observacao || null,
       is_diretor: form.is_diretor,
       is_coordenador: form.is_coordenador,
+      data_admissao: form.data_admissao || null,
     };
 
     const { error } = await supabase
@@ -192,6 +195,10 @@ export function EditServidorModal({
                   <option value="CLT">CLT</option>
                   <option value="AGENTE POLITICO">Agente Político</option>
                 </select>
+              </div>
+              <div>
+                <label className={labelClass}>Data de Admissão</label>
+                <input type="date" className={inputClass} value={form.data_admissao} onChange={(e) => set("data_admissao", e.target.value)} />
               </div>
             </div>
           </section>
