@@ -227,7 +227,7 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
                     </div>
                     <div className="glass-card rounded-xl overflow-hidden divide-y divide-border/30 px-1">
                       {filteredServidores.filter((s) => !s.diretoria_id).map((servidor) => (
-                        <ServidorRow key={servidor.id} servidor={servidor} />
+                        <ServidorRow key={servidor.id} servidor={servidor} onEdit={setEditingServidor} />
                       ))}
                     </div>
                   </div>
