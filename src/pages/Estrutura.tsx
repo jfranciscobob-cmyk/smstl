@@ -250,13 +250,13 @@ function EstruturaContent() {
     ? servidores.filter(s => s.nome.toLowerCase().includes(setorAssignSearch.toLowerCase()) || s.matricula.includes(setorAssignSearch)).slice(0, 8)
     : servidores.slice(0, 8);
 
-  const assignRole = async (servidorId: string, type: "diretor" | "coordenador" | "secretario" | "diretor_geral", diretoriaId?: string, unidadeId?: string, coordId?: string) => {
+  const assignRole = async (servidorId: string, type: "diretor" | "coordenador" | "coordenador_medico" | "secretario" | "diretor_geral", diretoriaId?: string, unidadeId?: string, coordId?: string) => {
     if (type === "coordenador" && unidadeId) {
-      // Use junction table for coordenador
       const { error } = await supabase.from("coordenadores_unidades").insert({ servidor_id: servidorId, unidade_id: unidadeId });
       if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-      // Also update servidor's is_coordenador flag for backward compat
       await supabase.from("servidores").update({ is_coordenador: true, unidade_id: unidadeId, diretoria_id: diretoriaId }).eq("id", servidorId);
+    } else if (type === "coordenador_medico" && unidadeId) {
+      await supabase.from("servidores").update({ is_coordenador_medico: true, unidade_id: unidadeId, diretoria_id: diretoriaId }).eq("id", servidorId);
     } else {
       const updateData: any = type === "diretor"
         ? { is_diretor: true, diretoria_id: diretoriaId }
@@ -266,7 +266,7 @@ function EstruturaContent() {
       const { error } = await supabase.from("servidores").update(updateData).eq("id", servidorId);
       if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     }
-    const labels: Record<string, string> = { diretor: "Diretor(a) definido!", coordenador: "Coordenador(a) definido!", secretario: "Secretário(a) definido!", diretor_geral: "Diretor(a) Geral definido!" };
+    const labels: Record<string, string> = { diretor: "Diretor(a) definido!", coordenador: "Coordenador(a) definido!", coordenador_medico: "Coordenador(a) Médico(a) definido!", secretario: "Secretário(a) definido!", diretor_geral: "Diretor(a) Geral definido!" };
     toast({ title: labels[type] });
     setPickingRole(null);
     setRoleSearch("");
