@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import type { ServidorDB, DiretoriaDB, UnidadeDB, CoordenacaoDB } from "@/hooks/useServidores";
 import {
   Shield, Building2, ChevronDown, ChevronRight, Crown, Users,
-  AlertTriangle, CheckCircle, Palmtree, Star, MapPin
+  AlertTriangle, CheckCircle, Palmtree, Star, MapPin, Briefcase
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
