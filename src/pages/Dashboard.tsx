@@ -9,7 +9,7 @@ import { UnidadeSection } from "@/components/UnidadeSection";
 import { EditServidorModal } from "@/components/EditServidorModal";
 import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB, type CoordenacaoDB } from "@/hooks/useServidores";
 import {
-  Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Search, Filter, LogOut, Loader2
+  Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Search, Filter, LogOut, Loader2, Network
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
