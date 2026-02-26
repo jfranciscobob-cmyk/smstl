@@ -406,7 +406,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                       </div>
 
                       {/* Stats row */}
-                      <div className="grid grid-cols-4 gap-2 mb-3">
+                      <div className="grid grid-cols-3 gap-2 mb-2">
                         <div className="text-center">
                           <p className="text-sm font-bold font-mono text-foreground">{ds.length}</p>
                           <p className="text-[8px] font-semibold text-muted-foreground uppercase">Total</p>
@@ -419,9 +419,19 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                           <p className="text-sm font-bold font-mono text-warning">{dFerias}</p>
                           <p className="text-[8px] font-semibold text-warning/70 uppercase">Férias</p>
                         </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mb-3">
                         <div className="text-center">
                           <p className="text-sm font-bold font-mono text-destructive">{dAfastados}</p>
                           <p className="text-[8px] font-semibold text-destructive/70 uppercase">Afastados</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-bold font-mono text-primary">{ds.filter(s => (s.vinculo || "").includes("CONCURSADO")).length}</p>
+                          <p className="text-[8px] font-semibold text-primary/70 uppercase">Concursados</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm font-bold font-mono text-info">{ds.filter(s => (s.vinculo || "").includes("CONTRATO")).length}</p>
+                          <p className="text-[8px] font-semibold text-info/70 uppercase">Contratados</p>
                         </div>
                       </div>
 
