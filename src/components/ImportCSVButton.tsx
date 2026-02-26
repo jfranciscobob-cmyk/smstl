@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Upload, CheckCircle } from "lucide-react";
 
@@ -13,17 +13,25 @@ interface ImportResult {
 export function ImportCSVButton({ onComplete }: { onComplete: () => void }) {
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImport = async () => {
+  const handleFileSelect = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     setImporting(true);
     setResult(null);
 
     try {
-      // Fetch the CSV from public folder
-      const response = await fetch("/data/servidores.csv");
-      const csvData = await response.text();
+      const csvData = await file.text();
 
-      // Call edge function
       const { data, error } = await supabase.functions.invoke("import-servidores", {
         body: { csvData },
       });
@@ -48,8 +56,15 @@ export function ImportCSVButton({ onComplete }: { onComplete: () => void }) {
 
   return (
     <div className="space-y-3">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".csv"
+        onChange={handleFileChange}
+        className="hidden"
+      />
       <button
-        onClick={handleImport}
+        onClick={handleFileSelect}
         disabled={importing}
         className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
       >
@@ -58,7 +73,7 @@ export function ImportCSVButton({ onComplete }: { onComplete: () => void }) {
         ) : (
           <Upload className="h-4 w-4" />
         )}
-        {importing ? "Importando..." : "Importar Servidores do CSV"}
+        {importing ? "Importando..." : "Importar CSV de Servidores"}
       </button>
 
       {result && (
