@@ -26,29 +26,32 @@ export function useAuthSession(): AuthSession {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
+      try {
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
 
-      if (currentUser) {
-        // Fetch roles
-        const { data: rolesData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", currentUser.id);
-        setRoles((rolesData ?? []) as UserRole[]);
+        if (currentUser) {
+          const { data: rolesData } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", currentUser.id);
+          setRoles((rolesData ?? []) as UserRole[]);
 
-        // Fetch profile for servidor_id
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("servidor_id")
-          .eq("id", currentUser.id)
-          .single();
-        setServidorId(profile?.servidor_id ?? null);
-      } else {
-        setRoles([]);
-        setServidorId(null);
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("servidor_id")
+            .eq("id", currentUser.id)
+            .maybeSingle();
+          setServidorId(profile?.servidor_id ?? null);
+        } else {
+          setRoles([]);
+          setServidorId(null);
+        }
+      } catch (err) {
+        console.error("[useAuthSession] error:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
