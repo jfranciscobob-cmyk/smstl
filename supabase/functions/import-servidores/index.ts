@@ -81,6 +81,9 @@ serve(async (req) => {
       escala_total_horas: s.carga_horaria > 0 ? Math.round(s.carga_horaria / 5) : null,
     }));
 
+    // Clear existing before import
+    await supabase.from("servidores").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+
     // Insert in batches of 50
     let inserted = 0;
     let errors: string[] = [];
