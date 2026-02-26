@@ -212,8 +212,8 @@ function EstruturaContent() {
   const getDiretorGeral = () => servidores.find(s => (s as any).is_diretor_geral);
 
   const filteredAssignResults = assignSearch.length >= 2
-    ? servidores.filter(s => s.nome.toLowerCase().includes(assignSearch.toLowerCase()) || s.matricula.includes(assignSearch)).slice(0, 8)
-    : unassignedServidores.slice(0, 8);
+    ? servidores.filter(s => s.nome.toLowerCase().includes(assignSearch.toLowerCase()) || s.matricula.includes(assignSearch)).slice(0, 30)
+    : servidores.filter(s => !s.unidade_id).slice(0, 30);
 
   const filteredSecAssign = secAssignSearch.length >= 2
     ? servidores.filter(s => s.nome.toLowerCase().includes(secAssignSearch.toLowerCase()) || s.matricula.includes(secAssignSearch)).slice(0, 8)
