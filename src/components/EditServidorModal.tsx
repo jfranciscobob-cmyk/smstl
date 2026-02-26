@@ -146,6 +146,8 @@ export function EditServidorModal({
       is_diretor: form.is_diretor,
       is_coordenador: form.is_coordenador,
       is_coordenador_medico: form.is_coordenador_medico,
+      duplo_vinculo: form.duplo_vinculo,
+      vinculo2: form.duplo_vinculo ? (form.vinculo2 || null) : null,
       data_admissao: form.data_admissao || null,
       data_encerramento_contrato: form.data_encerramento_contrato || null,
       tipo_escala: form.tipo_escala,
