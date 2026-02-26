@@ -231,6 +231,14 @@ export function HierarchyMonitor({ servidores, diretorias, unidades, coordenacoe
   const semDirStats = getStats(semDiretoria);
   const alocados = servidores.filter(s => s.diretoria_id).length;
 
+  // Diretores de cada pasta (vinculados à Secretaria)
+  const diretores = useMemo(() => {
+    return diretorias.map(dir => {
+      const diretor = servidores.find(s => s.diretoria_id === dir.id && s.is_diretor);
+      return diretor ? { diretor, diretoria: dir } : null;
+    }).filter(Boolean) as { diretor: ServidorDB; diretoria: DiretoriaDB }[];
+  }, [servidores, diretorias]);
+
   return (
     <div className="space-y-4">
       {/* Secretaria Root Card */}
