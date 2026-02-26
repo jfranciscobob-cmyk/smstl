@@ -302,6 +302,10 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                       <p className="text-[10px] text-primary-foreground/50 font-medium">Cobertura</p>
                     </div>
                     <div className="text-center">
+                      <p className="text-2xl sm:text-3xl font-extrabold font-mono">{alocados}<span className="text-base text-primary-foreground/40">/{stats.total}</span></p>
+                      <p className="text-[10px] text-primary-foreground/50 font-medium">Alocados</p>
+                    </div>
+                    <div className="text-center">
                       <p className="text-2xl sm:text-3xl font-extrabold font-mono">{diretorias.length}</p>
                       <p className="text-[10px] text-primary-foreground/50 font-medium">Diretorias</p>
                     </div>
