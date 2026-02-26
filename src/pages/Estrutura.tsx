@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CreateServidorModal } from "@/components/CreateServidorModal";
 import { UnidadeServidores } from "@/components/UnidadeServidores";
 import { EditServidorModal } from "@/components/EditServidorModal";
+import { SetorList } from "@/components/SetorList";
 
 function EstruturaContent() {
   const { toast } = useToast();
