@@ -46,6 +46,7 @@ const initialForm = {
   ferias_total_dias: "",
   ferias_vencidas: "",
   observacao: "",
+  data_encerramento_contrato: "",
   is_diretor: false,
   is_coordenador: false,
 };
