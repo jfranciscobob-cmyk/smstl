@@ -207,6 +207,7 @@ function EstruturaContent() {
   };
 
   const getSetoresByDiretoria = (diretoriaId: string | null) => setores.filter(s => s.diretoria_id === diretoriaId);
+  const getFuncoesByUnidade = (unidadeId: string) => funcoes.filter(f => f.unidade_id === unidadeId);
   const getServidoresBySetor = (setorId: string) => servidores.filter(s => (s as any).setor_id === setorId);
   const getResponsavel = (responsavelId: string | null) => responsavelId ? servidores.find(s => s.id === responsavelId) : null;
 
