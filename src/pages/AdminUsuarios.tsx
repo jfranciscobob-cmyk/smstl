@@ -9,6 +9,7 @@ interface ProfileRow {
   email: string;
   nome: string | null;
   servidor_id: string | null;
+  acesso_financeiro: boolean;
   created_at: string;
 }
 
@@ -31,7 +32,7 @@ export default function AdminUsuarios() {
 
   // Edit user
   const [editUser, setEditUser] = useState<ProfileRow | null>(null);
-  const [editForm, setEditForm] = useState({ nome: "", role: "", password: "" });
+  const [editForm, setEditForm] = useState({ nome: "", role: "", password: "", acesso_financeiro: false });
   const [saving, setSaving] = useState(false);
 
   const loadData = useCallback(async () => {
@@ -91,6 +92,7 @@ export default function AdminUsuarios() {
       nome: profile.nome || "",
       role: userRoles[0] || "coordenador",
       password: "",
+      acesso_financeiro: profile.acesso_financeiro ?? false,
     });
   };
 
@@ -108,6 +110,7 @@ export default function AdminUsuarios() {
         nome: editForm.nome,
         role: editForm.role,
         password: editForm.password || undefined,
+        acesso_financeiro: editForm.acesso_financeiro,
       },
     });
 
@@ -262,6 +265,17 @@ export default function AdminUsuarios() {
                     className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
                   />
                 </div>
+                <div className="flex items-center gap-3 pt-1">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editForm.acesso_financeiro}
+                      onChange={e => setEditForm(f => ({ ...f, acesso_financeiro: e.target.checked }))}
+                      className="h-4 w-4 rounded border-input"
+                    />
+                    <span className="text-xs font-medium text-foreground">Acesso à parte financeira (folha, salários)</span>
+                  </label>
+                </div>
               </div>
               <div className="flex items-center gap-2 pt-2">
                 <button
@@ -299,6 +313,11 @@ export default function AdminUsuarios() {
                       {roleLabel[r] || r}
                     </span>
                   ))}
+                  {p.acesso_financeiro && (
+                    <span className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary">
+                      💰 Financeiro
+                    </span>
+                  )}
                   <button
                     onClick={() => openEdit(p)}
                     className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"

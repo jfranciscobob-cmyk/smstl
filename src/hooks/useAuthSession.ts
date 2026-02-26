@@ -15,6 +15,7 @@ export interface AuthSession {
   isDiretor: boolean;
   isCoordenador: boolean;
   hasFullAccess: boolean;
+  hasFinancialAccess: boolean;
   signOut: () => Promise<void>;
 }
 
@@ -22,6 +23,7 @@ export function useAuthSession(): AuthSession {
   const [user, setUser] = useState<User | null>(null);
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [servidorId, setServidorId] = useState<string | null>(null);
+  const [acessoFinanceiro, setAcessoFinanceiro] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,6 +46,7 @@ export function useAuthSession(): AuthSession {
         if (!currentUser) {
           setRoles([]);
           setServidorId(null);
+          setAcessoFinanceiro(false);
           return;
         }
 
@@ -51,7 +54,7 @@ export function useAuthSession(): AuthSession {
           supabase.from("user_roles").select("role").eq("user_id", currentUser.id),
           supabase
             .from("profiles")
-            .select("servidor_id")
+            .select("servidor_id, acesso_financeiro")
             .eq("id", currentUser.id)
             .maybeSingle(),
         ]);
@@ -67,15 +70,18 @@ export function useAuthSession(): AuthSession {
 
         if (profileResult.status === "fulfilled") {
           setServidorId(profileResult.value.data?.servidor_id ?? null);
+          setAcessoFinanceiro(profileResult.value.data?.acesso_financeiro ?? false);
         } else {
           console.error("[useAuthSession/profile] error:", profileResult.reason);
           setServidorId(null);
+          setAcessoFinanceiro(false);
         }
       } catch (err) {
         console.error("[useAuthSession] error:", err);
         if (!isActive) return;
         setRoles([]);
         setServidorId(null);
+        setAcessoFinanceiro(false);
       } finally {
         if (isActive) setLoading(false);
       }
@@ -113,11 +119,12 @@ export function useAuthSession(): AuthSession {
   const isDiretor = roles.some((r) => r.role === "diretor");
   const isCoordenador = roles.some((r) => r.role === "coordenador");
   const hasFullAccess = isAdmin || isDiretor;
+  const hasFinancialAccess = isAdmin || acessoFinanceiro;
 
   const signOut = async () => {
     await supabase.auth.signOut();
   };
 
-  return { user, roles, servidorId, loading, isAdmin, isDiretor, isCoordenador, hasFullAccess, signOut };
+  return { user, roles, servidorId, loading, isAdmin, isDiretor, isCoordenador, hasFullAccess, hasFinancialAccess, signOut };
 }
 

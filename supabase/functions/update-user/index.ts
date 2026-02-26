@@ -34,7 +34,7 @@ serve(async (req) => {
     const isAdmin = callerRoles?.some(r => r.role === "admin" || r.role === "diretor");
     if (!isAdmin) throw new Error("Sem permissão");
 
-    const { user_id, nome, password, role } = await req.json();
+    const { user_id, nome, password, role, acesso_financeiro } = await req.json();
     if (!user_id) throw new Error("user_id é obrigatório");
 
     // Update auth user (name and/or password)
@@ -51,9 +51,12 @@ serve(async (req) => {
       if (updateError) throw updateError;
     }
 
-    // Update profile name
-    if (nome !== undefined) {
-      await supabase.from("profiles").update({ nome }).eq("id", user_id);
+    // Update profile name and financial access
+    const profileUpdate: Record<string, unknown> = {};
+    if (nome !== undefined) profileUpdate.nome = nome;
+    if (acesso_financeiro !== undefined) profileUpdate.acesso_financeiro = acesso_financeiro;
+    if (Object.keys(profileUpdate).length > 0) {
+      await supabase.from("profiles").update(profileUpdate).eq("id", user_id);
     }
 
     // Update role if provided

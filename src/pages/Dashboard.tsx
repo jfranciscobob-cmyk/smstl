@@ -125,7 +125,7 @@ function AlertCard({ title, count, icon, color, items }: {
   );
 }
 
-function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEmail?: string }) {
+function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut: () => void; userEmail?: string; hasFinancialAccess?: boolean }) {
   const [servidores, setServidores] = useState<ServidorDB[]>([]);
   const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
@@ -299,12 +299,14 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
                     <p className="text-3xl sm:text-4xl font-extrabold font-mono text-success">{coberturaGeral}%</p>
                     <p className="text-[11px] text-primary-foreground/50 font-medium mt-0.5">Cobertura Presencial</p>
                   </div>
+                  {hasFinancialAccess && (
                   <div>
                     <p className="text-3xl sm:text-4xl font-extrabold font-mono">
                       {folhaTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                     </p>
                     <p className="text-[11px] text-primary-foreground/50 font-medium mt-0.5">Folha Mensal Estimada</p>
                   </div>
+                  )}
                   <div>
                     <p className="text-3xl sm:text-4xl font-extrabold font-mono">{diretorias.length}</p>
                     <p className="text-[11px] text-primary-foreground/50 font-medium mt-0.5">Diretorias</p>
@@ -495,7 +497,7 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
                       <th className="text-center px-3 py-3 font-semibold">Presentes</th>
                       <th className="text-center px-3 py-3 font-semibold">Cobertura</th>
                       <th className="text-center px-3 py-3 font-semibold">Unidades</th>
-                      <th className="text-right px-5 py-3 font-semibold">Folha Est.</th>
+                      {hasFinancialAccess && <th className="text-right px-5 py-3 font-semibold">Folha Est.</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/50">
@@ -517,9 +519,11 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
                             <span className={`inline-block rounded-md px-2 py-0.5 text-xs font-bold font-mono ${cobColor}`}>{cob}%</span>
                           </td>
                           <td className="text-center px-3 py-3 font-mono text-muted-foreground">{du}</td>
+                          {hasFinancialAccess && (
                           <td className="text-right px-5 py-3 font-mono text-xs text-muted-foreground">
                             {df.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                           </td>
+                          )}
                         </tr>
                       );
                     })}
@@ -532,9 +536,11 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
                         <span className="inline-block rounded-md px-2 py-0.5 text-xs font-bold font-mono bg-primary/10 text-primary">{coberturaGeral}%</span>
                       </td>
                       <td className="text-center px-3 py-3 font-mono text-muted-foreground">{unidades.length}</td>
+                      {hasFinancialAccess && (
                       <td className="text-right px-5 py-3 font-mono text-xs text-foreground">
                         {folhaTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                       </td>
+                      )}
                     </tr>
                   </tbody>
                 </table>
@@ -567,8 +573,8 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
 }
 
 const Dashboard = () => {
-  const { signOut, user } = useAuthSession();
-  return <DashboardContent signOut={signOut} userEmail={user?.email} />;
+  const { signOut, user, hasFinancialAccess } = useAuthSession();
+  return <DashboardContent signOut={signOut} userEmail={user?.email} hasFinancialAccess={hasFinancialAccess} />;
 };
 
 export default Dashboard;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuthSession } from "@/hooks/useAuthSession";
 import type { ServidorDB, DiretoriaDB, UnidadeDB, FuncaoDB, AtestadoDB, FaltaAbonadaDB, AfastamentoDB } from "@/hooks/useServidores";
 import { Link, useSearchParams } from "react-router-dom";
 import {
@@ -17,6 +18,7 @@ function formatCurrency(value: number) {
 }
 
 function MonitorContent() {
+  const { hasFinancialAccess } = useAuthSession();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const viewMode = searchParams.get("view") || "tudo"; // tudo | diretoria | unidade
@@ -419,6 +421,7 @@ function MonitorContent() {
 
   // Payroll card for a group of servidores
   const PayrollCard = ({ servs, label }: { servs: ServidorDB[]; label: string }) => {
+    if (!hasFinancialAccess) return null;
     const folha = servs.reduce((sum, s) => sum + (s.salario || 0), 0);
     const count = servs.length;
     return (
@@ -457,7 +460,7 @@ function MonitorContent() {
         <div className="flex items-center gap-3 text-[10px] text-muted-foreground flex-wrap">
           <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {uniServs.length}</span>
           <span className="flex items-center gap-1 text-success"><CheckCircle className="h-3 w-3" /> {uniPresentes}</span>
-          {uniFolha > 0 && <span className="flex items-center gap-1 text-primary"><DollarSign className="h-3 w-3" /> {formatCurrency(uniFolha)}</span>}
+          {hasFinancialAccess && uniFolha > 0 && <span className="flex items-center gap-1 text-primary"><DollarSign className="h-3 w-3" /> {formatCurrency(uniFolha)}</span>}
         </div>
       </button>
     );
@@ -544,10 +547,12 @@ function MonitorContent() {
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Clock className="h-3.5 w-3.5" /> Carga Total</div>
                 <p className="text-2xl font-bold text-foreground">{servidores.reduce((s, sv) => s + (sv.escala_total_horas || 0), 0)}h</p>
               </div>
+              {hasFinancialAccess && (
               <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
                 <div className="flex items-center gap-2 text-xs text-primary mb-1"><DollarSign className="h-3.5 w-3.5" /> Folha Total</div>
                 <p className="text-lg font-bold text-foreground font-mono">{formatCurrency(servidores.reduce((s, sv) => s + (sv.salario || 0), 0))}</p>
               </div>
+              )}
             </div>
 
             {/* Diretorias grid */}
@@ -581,7 +586,7 @@ function MonitorContent() {
                         <span className="text-success"><CheckCircle className="h-3 w-3 inline mr-1" />{dirPresentes}</span>
                         <span>{dirUnidades.length} unid.</span>
                       </div>
-                      {dirFolha > 0 && (
+                      {hasFinancialAccess && dirFolha > 0 && (
                         <p className="mt-2 text-xs font-mono font-bold text-primary">{formatCurrency(dirFolha)}</p>
                       )}
                     </button>
@@ -603,7 +608,7 @@ function MonitorContent() {
                         <span><Users className="h-3 w-3 inline mr-1" />{semDir.length}</span>
                         <span className="text-success"><CheckCircle className="h-3 w-3 inline mr-1" />{semDir.filter(s => s.status_presenca === "presente").length}</span>
                       </div>
-                      {folha > 0 && <p className="mt-2 text-xs font-mono font-bold text-warning">{formatCurrency(folha)}</p>}
+                      {hasFinancialAccess && folha > 0 && <p className="mt-2 text-xs font-mono font-bold text-warning">{formatCurrency(folha)}</p>}
                     </div>
                   );
                 })()}
