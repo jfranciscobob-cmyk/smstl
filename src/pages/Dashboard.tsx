@@ -28,7 +28,7 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
 
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
-  const [view, setView] = useState<"hierarchy" | "list">("hierarchy");
+  const [view, setView] = useState<"monitor" | "hierarchy" | "list">("monitor");
   const [editingServidor, setEditingServidor] = useState<ServidorDB | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
