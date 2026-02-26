@@ -32,30 +32,57 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
     setIsLoading(true);
     setLoadError(null);
 
-    const [servidoresRes, diretoriasRes, unidadesRes, coordenacoesRes] = await Promise.all([
-      supabase.from("servidores").select("*").order("nome").limit(5000),
-      supabase.from("diretorias").select("*").order("nome"),
-      supabase.from("unidades").select("*").order("nome"),
-      supabase.from("coordenacoes").select("*").order("nome"),
-    ]);
+    const fetchAllServidores = async () => {
+      const pageSize = 1000;
+      let from = 0;
+      const allServidores: ServidorDB[] = [];
 
-    if (servidoresRes.error || diretoriasRes.error || unidadesRes.error || coordenacoesRes.error) {
-      setLoadError(
-        servidoresRes.error?.message ||
-        diretoriasRes.error?.message ||
-        unidadesRes.error?.message ||
-        coordenacoesRes.error?.message ||
-        "Erro ao carregar dados"
-      );
+      while (true) {
+        const { data, error } = await supabase
+          .from("servidores")
+          .select("*")
+          .order("nome", { ascending: true })
+          .order("id", { ascending: true })
+          .range(from, from + pageSize - 1);
+
+        if (error) throw error;
+
+        const batch = (data ?? []) as ServidorDB[];
+        allServidores.push(...batch);
+
+        if (batch.length < pageSize) break;
+        from += pageSize;
+      }
+
+      return allServidores;
+    };
+
+    try {
+      const [allServidores, diretoriasRes, unidadesRes, coordenacoesRes] = await Promise.all([
+        fetchAllServidores(),
+        supabase.from("diretorias").select("*").order("nome"),
+        supabase.from("unidades").select("*").order("nome"),
+        supabase.from("coordenacoes").select("*").order("nome"),
+      ]);
+
+      if (diretoriasRes.error || unidadesRes.error || coordenacoesRes.error) {
+        throw new Error(
+          diretoriasRes.error?.message ||
+          unidadesRes.error?.message ||
+          coordenacoesRes.error?.message ||
+          "Erro ao carregar dados"
+        );
+      }
+
+      setServidores(allServidores);
+      setDiretorias((diretoriasRes.data ?? []) as DiretoriaDB[]);
+      setUnidades((unidadesRes.data ?? []) as UnidadeDB[]);
+      setCoordenacoes((coordenacoesRes.data ?? []) as CoordenacaoDB[]);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Erro ao carregar dados");
+    } finally {
       setIsLoading(false);
-      return;
     }
-
-    setServidores((servidoresRes.data ?? []) as ServidorDB[]);
-    setDiretorias((diretoriasRes.data ?? []) as DiretoriaDB[]);
-    setUnidades((unidadesRes.data ?? []) as UnidadeDB[]);
-    setCoordenacoes((coordenacoesRes.data ?? []) as CoordenacaoDB[]);
-    setIsLoading(false);
   }, []);
 
   useEffect(() => {
