@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useAuthSession } from "@/hooks/useAuthSession";
+import { useAuthSession, type AuthSession } from "@/hooks/useAuthSession";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Dashboard from "./pages/Dashboard";
@@ -18,8 +18,16 @@ import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children, requireFullAccess = false }: { children: React.ReactNode; requireFullAccess?: boolean }) {
-  const { user, loading, hasFullAccess } = useAuthSession();
+function ProtectedRoute({
+  children,
+  auth,
+  requireFullAccess = false,
+}: {
+  children: React.ReactNode;
+  auth: AuthSession;
+  requireFullAccess?: boolean;
+}) {
+  const { user, loading, hasFullAccess } = auth;
 
   if (loading) {
     return (
@@ -36,14 +44,34 @@ function ProtectedRoute({ children, requireFullAccess = false }: { children: Rea
 }
 
 function AppRoutes() {
-  const { user, loading } = useAuthSession();
+  const auth = useAuthSession();
+  const { user, loading } = auth;
   const [hasAnyUsers, setHasAnyUsers] = useState<boolean | null>(null);
 
   useEffect(() => {
-    supabase.from("profiles").select("id", { count: "exact", head: true }).then(({ count }) => {
-      setHasAnyUsers((count ?? 0) > 0);
-    });
-  }, [user]);
+    let isMounted = true;
+
+    supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .then(({ count, error }) => {
+        if (!isMounted) return;
+        if (error) {
+          console.error("[AppRoutes/profiles-count] error:", error);
+          setHasAnyUsers(true);
+          return;
+        }
+        setHasAnyUsers((count ?? 0) > 0);
+      })
+      .catch((err) => {
+        console.error("[AppRoutes/profiles-count] unexpected error:", err);
+        if (isMounted) setHasAnyUsers(true);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   if (loading || hasAnyUsers === null) {
     return (
@@ -61,11 +89,11 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
-      <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/estrutura" element={<ProtectedRoute requireFullAccess><Estrutura /></ProtectedRoute>} />
-      <Route path="/monitor" element={<ProtectedRoute><MonitorUnidade /></ProtectedRoute>} />
-      <Route path="/acesso" element={<ProtectedRoute><AcessoRapido /></ProtectedRoute>} />
-      <Route path="/admin/usuarios" element={<ProtectedRoute requireFullAccess><AdminUsuarios /></ProtectedRoute>} />
+      <Route path="/" element={<ProtectedRoute auth={auth}><Dashboard /></ProtectedRoute>} />
+      <Route path="/estrutura" element={<ProtectedRoute auth={auth} requireFullAccess><Estrutura /></ProtectedRoute>} />
+      <Route path="/monitor" element={<ProtectedRoute auth={auth}><MonitorUnidade /></ProtectedRoute>} />
+      <Route path="/acesso" element={<ProtectedRoute auth={auth}><AcessoRapido /></ProtectedRoute>} />
+      <Route path="/admin/usuarios" element={<ProtectedRoute auth={auth} requireFullAccess><AdminUsuarios /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
@@ -84,3 +112,4 @@ const App = () => (
 );
 
 export default App;
+
