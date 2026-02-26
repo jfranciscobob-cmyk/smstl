@@ -31,14 +31,16 @@ function EstruturaContent() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [d, u, c] = await Promise.all([
+    const [d, u, c, s] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenacoes").select("*").order("nome"),
+      supabase.from("servidores").select("id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id").order("nome").limit(2000),
     ]);
     setDiretorias((d.data ?? []) as DiretoriaDB[]);
     setUnidades((u.data ?? []) as UnidadeDB[]);
     setCoordenacoes((c.data ?? []) as CoordenacaoDB[]);
+    setServidores((s.data ?? []) as ServidorDB[]);
     setLoading(false);
   }, []);
 
