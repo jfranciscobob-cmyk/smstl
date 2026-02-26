@@ -310,6 +310,18 @@ function EstruturaContent() {
                             )}
                           </button>
                           <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => setCreateServidorTarget({ diretoria_id: dir.id, unidade_id: uni.id })}
+                              className="p-1.5 rounded text-primary hover:bg-primary/10 transition-colors" title="Novo servidor nesta unidade"
+                            >
+                              <UserPlus className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setAssigningTo({ type: "unidade", id: uni.id, diretoria_id: dir.id })}
+                              className="p-1.5 rounded text-primary hover:bg-primary/10 transition-colors" title="Vincular servidor existente"
+                            >
+                              <Users className="h-3.5 w-3.5" />
+                            </button>
                             <button onClick={() => { setEditingId(uni.id); setEditingValue(uni.nome); }} className="p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                               <Edit2 className="h-3.5 w-3.5" />
                             </button>
@@ -318,6 +330,35 @@ function EstruturaContent() {
                             </button>
                           </div>
                         </div>
+
+                        {/* Assign to unidade dropdown */}
+                        {assigningTo?.type === "unidade" && assigningTo.id === uni.id && (
+                          <div className="px-5 py-3 border-t border-border/30 space-y-2">
+                            <input
+                              autoFocus
+                              value={assignSearch}
+                              onChange={e => setAssignSearch(e.target.value)}
+                              placeholder="Buscar servidor por nome ou matrícula..."
+                              className="w-full h-8 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                            />
+                            <div className="max-h-40 overflow-y-auto space-y-1">
+                              {filteredAssignResults.map(s => (
+                                <button
+                                  key={s.id}
+                                  onClick={() => assignServidor(s.id, assigningTo.diretoria_id, uni.id)}
+                                  className="w-full text-left px-2 py-1.5 rounded text-xs hover:bg-primary/10 transition-colors text-foreground"
+                                >
+                                  <span className="font-medium">{s.nome}</span>
+                                  <span className="text-muted-foreground ml-2">({s.matricula})</span>
+                                </button>
+                              ))}
+                              {filteredAssignResults.length === 0 && (
+                                <p className="text-xs text-muted-foreground py-1 px-2">Nenhum servidor encontrado</p>
+                              )}
+                            </div>
+                            <button onClick={() => { setAssigningTo(null); setAssignSearch(""); }} className="text-xs text-muted-foreground hover:text-foreground">Cancelar</button>
+                          </div>
+                        )}
 
                         {uniExpanded && (
                           <div className="px-4 pb-3 pt-2 space-y-2 ml-6">
