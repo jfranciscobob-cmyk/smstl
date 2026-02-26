@@ -1,0 +1,1 @@
+ALTER TABLE public.servidores ADD COLUMN is_diretor_geral boolean NOT NULL DEFAULT false;
