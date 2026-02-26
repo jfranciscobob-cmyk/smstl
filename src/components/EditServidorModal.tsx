@@ -61,6 +61,7 @@ export function EditServidorModal({
     tipo_escala: "fixa",
     is_diretor: false,
     is_coordenador: false,
+    is_coordenador_medico: false,
   });
 
   useEffect(() => {
