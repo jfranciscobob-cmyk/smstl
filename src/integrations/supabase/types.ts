@@ -147,6 +147,41 @@ export type Database = {
         }
         Relationships: []
       }
+      faltas_abonadas: {
+        Row: {
+          created_at: string
+          data: string
+          id: string
+          observacao: string | null
+          servidor_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data: string
+          id?: string
+          observacao?: string | null
+          servidor_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          id?: string
+          observacao?: string | null
+          servidor_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faltas_abonadas_servidor_id_fkey"
+            columns: ["servidor_id"]
+            isOneToOne: false
+            referencedRelation: "servidores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       funcoes: {
         Row: {
           created_at: string
@@ -220,6 +255,7 @@ export type Database = {
           cobertura_prevista: string
           coordenacao_id: string | null
           created_at: string
+          data_admissao: string | null
           diretoria_id: string | null
           email: string | null
           escala_fim1: string | null
@@ -259,6 +295,7 @@ export type Database = {
           cobertura_prevista?: string
           coordenacao_id?: string | null
           created_at?: string
+          data_admissao?: string | null
           diretoria_id?: string | null
           email?: string | null
           escala_fim1?: string | null
@@ -298,6 +335,7 @@ export type Database = {
           cobertura_prevista?: string
           coordenacao_id?: string | null
           created_at?: string
+          data_admissao?: string | null
           diretoria_id?: string | null
           email?: string | null
           escala_fim1?: string | null
