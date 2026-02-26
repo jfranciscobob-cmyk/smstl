@@ -112,12 +112,23 @@ function UnidadeCard({ unidade, servidores, coordenacoes, coordenadores, coorden
 
       {coordenadores.length > 0 && (
         <div className="space-y-1">
-          {coordenadores.map(coord => (
-            <div key={coord.id} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Star className="h-3 w-3 text-amber-500" />
-              <span className="font-medium text-foreground">{coord.nome}</span>
-            </div>
-          ))}
+          {coordenadores.map(coord => {
+            const outrasUnidades = coordenadoresUnidades
+              .filter(cu => cu.servidor_id === coord.id && cu.unidade_id !== unidade.id)
+              .map(cu => allUnidades.find(u => u.id === cu.unidade_id))
+              .filter(Boolean);
+            return (
+              <div key={coord.id} className="flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap">
+                <Star className="h-3 w-3 text-amber-500" />
+                <span className="font-medium text-foreground">{coord.nome}</span>
+                {outrasUnidades.length > 0 && (
+                  <span className="text-[10px] text-primary font-medium">
+                    (+{outrasUnidades.map(u => u!.sigla).join(", ")})
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
