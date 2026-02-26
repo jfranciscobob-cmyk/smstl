@@ -6,6 +6,7 @@ import { StatCard } from "@/components/StatCard";
 import { ServidorRow } from "@/components/ServidorRow";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { VinculoChart } from "@/components/VinculoChart";
+import { HierarchyMonitor } from "@/components/HierarchyMonitor";
 import { Link } from "react-router-dom";
 import { UnidadeSection } from "@/components/UnidadeSection";
 import { EditServidorModal } from "@/components/EditServidorModal";
@@ -13,7 +14,7 @@ import { CreateServidorModal } from "@/components/CreateServidorModal";
 import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB, type CoordenacaoDB } from "@/hooks/useServidores";
 import {
   Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Search, Filter,
-  LogOut, Loader2, Network, UserPlus, TrendingUp, BarChart3, ClipboardList, ChevronRight
+  LogOut, Loader2, Network, UserPlus, TrendingUp, BarChart3, ClipboardList, ChevronRight, LayoutDashboard, Eye
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
