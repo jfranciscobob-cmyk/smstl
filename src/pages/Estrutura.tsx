@@ -131,22 +131,26 @@ function EstruturaContent() {
     ? servidores.filter(s => s.nome.toLowerCase().includes(roleSearch.toLowerCase()) || s.matricula.includes(roleSearch)).slice(0, 8)
     : servidores.slice(0, 8);
 
-  const assignRole = async (servidorId: string, type: "diretor" | "coordenador", diretoriaId?: string, unidadeId?: string, coordId?: string) => {
+  const assignRole = async (servidorId: string, type: "diretor" | "coordenador" | "secretario", diretoriaId?: string, unidadeId?: string, coordId?: string) => {
     const updateData: any = type === "diretor"
       ? { is_diretor: true, diretoria_id: diretoriaId }
-      : { is_coordenador: true, coordenacao_id: coordId, unidade_id: unidadeId, diretoria_id: diretoriaId };
+      : type === "coordenador"
+      ? { is_coordenador: true, coordenacao_id: coordId, unidade_id: unidadeId, diretoria_id: diretoriaId }
+      : { is_secretario: true };
     const { error } = await supabase.from("servidores").update(updateData).eq("id", servidorId);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    toast({ title: type === "diretor" ? "Diretor(a) definido!" : "Coordenador(a) definido!" });
+    const labels = { diretor: "Diretor(a) definido!", coordenador: "Coordenador(a) definido!", secretario: "Secretário(a) definido!" };
+    toast({ title: labels[type] });
     setPickingRole(null);
     setRoleSearch("");
     loadData();
   };
 
-  const removeRole = async (servidorId: string, type: "diretor" | "coordenador") => {
-    const updateData = type === "diretor" ? { is_diretor: false } : { is_coordenador: false };
+  const removeRole = async (servidorId: string, type: "diretor" | "coordenador" | "secretario") => {
+    const updateData = type === "diretor" ? { is_diretor: false } : type === "coordenador" ? { is_coordenador: false } : { is_secretario: false };
     await supabase.from("servidores").update(updateData).eq("id", servidorId);
-    toast({ title: type === "diretor" ? "Diretor removido" : "Coordenador removido" });
+    const labels = { diretor: "Diretor removido", coordenador: "Coordenador removido", secretario: "Secretário removido" };
+    toast({ title: labels[type] });
     loadData();
   };
 
