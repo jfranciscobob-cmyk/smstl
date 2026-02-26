@@ -59,6 +59,11 @@ function MonitorContent() {
   const [savingBulk, setSavingBulk] = useState(false);
   const [expandedSemanalId, setExpandedSemanalId] = useState<string | null>(null);
 
+  // Bulk férias
+  const [showBulkFerias, setShowBulkFerias] = useState(false);
+  const [bulkFerias, setBulkFerias] = useState<Record<string, { status: string; p1_inicio: string; p1_fim: string; p2_inicio: string; p2_fim: string; total_dias: string; vencidas: string }>>({});
+  const [savingBulkFerias, setSavingBulkFerias] = useState(false);
+
   // Expanded diretorias
   const [expandedDirs, setExpandedDirs] = useState<Record<string, boolean>>({});
 
@@ -297,7 +302,52 @@ function MonitorContent() {
     loadData();
   };
 
-  // Contract expiry alerts (temporary contracts)
+  // Bulk férias functions
+  const initBulkFerias = () => {
+    const initial: Record<string, any> = {};
+    filteredServidores.forEach(s => {
+      initial[s.id] = {
+        status: s.ferias_status_gerencial || "",
+        p1_inicio: s.ferias_periodo1_inicio || "",
+        p1_fim: s.ferias_periodo1_fim || "",
+        p2_inicio: s.ferias_periodo2_inicio || "",
+        p2_fim: s.ferias_periodo2_fim || "",
+        total_dias: s.ferias_total_dias?.toString() || "",
+        vencidas: s.ferias_vencidas?.toString() || "",
+      };
+    });
+    setBulkFerias(initial);
+    setShowBulkFerias(true);
+  };
+
+  const saveBulkFerias = async () => {
+    setSavingBulkFerias(true);
+    let count = 0;
+    const entries = Object.entries(bulkFerias);
+    for (let i = 0; i < entries.length; i += 10) {
+      const batch = entries.slice(i, i + 10);
+      const results = await Promise.all(
+        batch.map(([id, f]) =>
+          supabase.from("servidores").update({
+            ferias_status_gerencial: f.status || null,
+            ferias_periodo1_inicio: f.p1_inicio || null,
+            ferias_periodo1_fim: f.p1_fim || null,
+            ferias_periodo2_inicio: f.p2_inicio || null,
+            ferias_periodo2_fim: f.p2_fim || null,
+            ferias_total_dias: f.total_dias ? parseInt(f.total_dias) : null,
+            ferias_vencidas: f.vencidas ? parseInt(f.vencidas) : null,
+          }).eq("id", id)
+        )
+      );
+      for (const r of results) { if (!r.error) count++; }
+    }
+    setSavingBulkFerias(false);
+    toast({ title: `Férias de ${count} servidores atualizadas!` });
+    setShowBulkFerias(false);
+    loadData();
+  };
+
+
   const contractAlerts = useMemo(() => {
     return filteredServidores.filter(s => {
       if (!s.vinculo?.includes("CONTRATO") && !s.vinculo?.includes("TEMPORARIO")) return false;
@@ -641,7 +691,108 @@ function MonitorContent() {
                   ))}
                 </div>
               </div>
+            </div>
 
+            {/* Gestão de Férias em Massa */}
+            <div className="rounded-xl border border-warning/30 bg-card p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-warning flex items-center gap-2">
+                  <Palmtree className="h-3.5 w-3.5" /> Gestão de Férias — {currentUnidade?.sigla || "Unidade"}
+                </h3>
+                {!showBulkFerias ? (
+                  <button onClick={initBulkFerias} className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80">
+                    <Pencil className="h-3.5 w-3.5" /> Editar Férias em Massa
+                  </button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button onClick={saveBulkFerias} disabled={savingBulkFerias} className="flex items-center gap-1 h-7 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50">
+                      {savingBulkFerias ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />} Salvar Todos
+                    </button>
+                    <button onClick={() => setShowBulkFerias(false)} className="text-xs text-muted-foreground">Cancelar</button>
+                  </div>
+                )}
+              </div>
+              <div className="overflow-x-auto -mx-5 px-5">
+                <table className="w-full text-xs min-w-[900px]">
+                  <thead>
+                    <tr className="border-b border-border text-left">
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Servidor</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Status</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Período 1</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Período 2</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Dias</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Vencidas</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredServidores.map(s => {
+                      const f = showBulkFerias ? bulkFerias[s.id] : null;
+                      const iClass = "h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none";
+                      return (
+                        <tr key={s.id} className="border-b border-border/20 hover:bg-muted/10">
+                          <td className="py-1.5 font-medium text-foreground whitespace-nowrap pr-2">{s.nome}</td>
+                          {showBulkFerias && f ? (
+                            <>
+                              <td className="py-1">
+                                <select value={f.status} onChange={e => setBulkFerias(prev => ({ ...prev, [s.id]: { ...prev[s.id], status: e.target.value } }))}
+                                  className={cn(iClass, "w-28")}>
+                                  <option value="">—</option>
+                                  <option value="PROGRAMADAS">Programadas</option>
+                                  <option value="EM GOZO">Em Gozo</option>
+                                  <option value="GOZADAS">Gozadas</option>
+                                  <option value="PENDENTES">Pendentes</option>
+                                  <option value="SEM ANO DE REFERÊNCIA">Sem Ref.</option>
+                                </select>
+                              </td>
+                              <td className="py-1">
+                                <div className="flex gap-1">
+                                  <input type="date" className={cn(iClass, "w-[115px]")} value={f.p1_inicio} onChange={e => setBulkFerias(prev => ({ ...prev, [s.id]: { ...prev[s.id], p1_inicio: e.target.value } }))} />
+                                  <input type="date" className={cn(iClass, "w-[115px]")} value={f.p1_fim} onChange={e => setBulkFerias(prev => ({ ...prev, [s.id]: { ...prev[s.id], p1_fim: e.target.value } }))} />
+                                </div>
+                              </td>
+                              <td className="py-1">
+                                <div className="flex gap-1">
+                                  <input type="date" className={cn(iClass, "w-[115px]")} value={f.p2_inicio} onChange={e => setBulkFerias(prev => ({ ...prev, [s.id]: { ...prev[s.id], p2_inicio: e.target.value } }))} />
+                                  <input type="date" className={cn(iClass, "w-[115px]")} value={f.p2_fim} onChange={e => setBulkFerias(prev => ({ ...prev, [s.id]: { ...prev[s.id], p2_fim: e.target.value } }))} />
+                                </div>
+                              </td>
+                              <td className="py-1"><input type="number" className={cn(iClass, "w-12 text-center")} value={f.total_dias} onChange={e => setBulkFerias(prev => ({ ...prev, [s.id]: { ...prev[s.id], total_dias: e.target.value } }))} /></td>
+                              <td className="py-1"><input type="number" className={cn(iClass, "w-12 text-center")} value={f.vencidas} onChange={e => setBulkFerias(prev => ({ ...prev, [s.id]: { ...prev[s.id], vencidas: e.target.value } }))} /></td>
+                            </>
+                          ) : (
+                            <>
+                              <td className="py-1.5">
+                                <span className={cn("inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold",
+                                  s.ferias_status_gerencial === "EM GOZO" ? "bg-warning/20 text-warning" :
+                                  s.ferias_status_gerencial === "PROGRAMADAS" ? "bg-primary/10 text-primary" :
+                                  s.ferias_status_gerencial === "GOZADAS" ? "bg-success/10 text-success" :
+                                  s.ferias_status_gerencial === "PENDENTES" ? "bg-destructive/10 text-destructive" :
+                                  "bg-muted text-muted-foreground"
+                                )}>{s.ferias_status_gerencial || "—"}</span>
+                              </td>
+                              <td className="py-1.5 font-mono text-muted-foreground text-[10px]">
+                                {s.ferias_periodo1_inicio ? `${s.ferias_periodo1_inicio} → ${s.ferias_periodo1_fim || "?"}` : "—"}
+                              </td>
+                              <td className="py-1.5 font-mono text-muted-foreground text-[10px]">
+                                {s.ferias_periodo2_inicio ? `${s.ferias_periodo2_inicio} → ${s.ferias_periodo2_fim || "?"}` : "—"}
+                              </td>
+                              <td className="py-1.5 font-mono text-foreground font-bold">{s.ferias_total_dias || "—"}</td>
+                              <td className="py-1.5">
+                                <span className={cn("font-mono font-bold", (s.ferias_vencidas || 0) > 0 ? "text-destructive" : "text-muted-foreground")}>
+                                  {s.ferias_vencidas || 0}
+                                </span>
+                              </td>
+                            </>
+                          )}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Atestados */}
               <div className="rounded-xl border border-destructive/30 bg-card p-5">
                 <div className="flex items-center justify-between mb-3">
