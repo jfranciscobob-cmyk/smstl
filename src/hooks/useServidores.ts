@@ -32,6 +32,7 @@ export interface ServidorDB {
   is_diretor: boolean;
   is_coordenador: boolean;
   is_secretario: boolean;
+  is_diretor_geral: boolean;
   created_at: string;
   updated_at: string;
 }
