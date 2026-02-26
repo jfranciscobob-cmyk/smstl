@@ -114,6 +114,14 @@ export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, direto
                 </Link>
               )}
 
+              <Link
+                to="/manual"
+                className="flex h-9 items-center gap-2 rounded-lg bg-primary-foreground/10 border border-primary-foreground/10 px-3.5 text-xs font-semibold text-primary-foreground hover:bg-primary-foreground/20 transition-all"
+              >
+                <BookOpen className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Manual</span>
+              </Link>
+
               <div className="hidden sm:flex items-center gap-2 ml-2 pl-2 border-l border-primary-foreground/10">
                 <div className="h-7 w-7 rounded-full bg-primary-foreground/15 flex items-center justify-center">
                   <span className="text-[10px] font-bold text-primary-foreground">
