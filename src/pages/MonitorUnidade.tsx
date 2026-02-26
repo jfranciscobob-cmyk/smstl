@@ -10,6 +10,10 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO, isWithinInterval, addDays, isBefore, isAfter, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
+import { EscalaSemanalEditor } from "@/components/EscalaSemanalEditor";
+import { useToast } from "@/hooks/use-toast";
+import { format, parseISO, isWithinInterval, addDays, isBefore, isAfter, differenceInDays } from "date-fns";
+import { cn } from "@/lib/utils";
 
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
