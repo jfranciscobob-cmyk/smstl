@@ -1393,6 +1393,16 @@ function MonitorContent() {
           </div>
         )}
       </main>
+
+      <TransferServidorModal
+        servidor={transferServidor}
+        open={!!transferServidor}
+        onClose={() => setTransferServidor(null)}
+        onSent={() => loadData()}
+        diretorias={diretorias}
+        currentDiretoriaId={selectedDiretoriaId || userDiretoriaId || ""}
+        userId={user?.id || ""}
+      />
     </div>
   );
 }
