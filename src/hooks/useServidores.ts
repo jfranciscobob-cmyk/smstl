@@ -61,6 +61,26 @@ export interface CoordenacaoDB {
   updated_at: string;
 }
 
+// Fetch all rows bypassing the 1000-row default limit
+async function fetchAll<T>(table: string, orderCol = "nome", selectCols = "*"): Promise<T[]> {
+  const PAGE = 1000;
+  let offset = 0;
+  let allRows: T[] = [];
+  while (true) {
+    const { data, error } = await supabase
+      .from(table)
+      .select(selectCols)
+      .order(orderCol)
+      .range(offset, offset + PAGE - 1);
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    allRows = allRows.concat(data as T[]);
+    if (data.length < PAGE) break;
+    offset += PAGE;
+  }
+  return allRows;
+}
+
 // Queries
 export function useDiretorias() {
   return useQuery({
