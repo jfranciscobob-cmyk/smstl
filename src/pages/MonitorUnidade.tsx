@@ -1360,6 +1360,17 @@ function MonitorContent() {
                                 <Calendar className="h-3 w-3" />
                               </button>
                             </td>
+                            {canTransfer && (
+                              <td className="py-2">
+                                <button
+                                  onClick={() => setTransferServidor(s)}
+                                  className="text-[10px] text-muted-foreground hover:text-primary transition-colors"
+                                  title="Transferir para outra diretoria"
+                                >
+                                  <ArrowRightLeft className="h-3.5 w-3.5" />
+                                </button>
+                              </td>
+                            )}
                           </tr>
                           {expandedSemanalId === s.id && (
                             <tr>
