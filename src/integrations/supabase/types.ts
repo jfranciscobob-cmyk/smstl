@@ -55,6 +55,48 @@ export type Database = {
           },
         ]
       }
+      agrupamentos: {
+        Row: {
+          coordenador_id: string | null
+          created_at: string
+          diretoria_id: string
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          coordenador_id?: string | null
+          created_at?: string
+          diretoria_id: string
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          coordenador_id?: string | null
+          created_at?: string
+          diretoria_id?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agrupamentos_coordenador_id_fkey"
+            columns: ["coordenador_id"]
+            isOneToOne: false
+            referencedRelation: "servidores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agrupamentos_diretoria_id_fkey"
+            columns: ["diretoria_id"]
+            isOneToOne: false
+            referencedRelation: "diretorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       atestados: {
         Row: {
           created_at: string
@@ -370,6 +412,7 @@ export type Database = {
           funcao_id: string | null
           id: string
           is_coordenador: boolean
+          is_coordenador_medico: boolean
           is_diretor: boolean
           is_diretor_geral: boolean
           is_secretario: boolean
@@ -412,6 +455,7 @@ export type Database = {
           funcao_id?: string | null
           id?: string
           is_coordenador?: boolean
+          is_coordenador_medico?: boolean
           is_diretor?: boolean
           is_diretor_geral?: boolean
           is_secretario?: boolean
@@ -454,6 +498,7 @@ export type Database = {
           funcao_id?: string | null
           id?: string
           is_coordenador?: boolean
+          is_coordenador_medico?: boolean
           is_diretor?: boolean
           is_diretor_geral?: boolean
           is_secretario?: boolean
@@ -555,6 +600,7 @@ export type Database = {
       }
       unidades: {
         Row: {
+          agrupamento_id: string | null
           created_at: string
           diretoria_id: string
           id: string
@@ -563,6 +609,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          agrupamento_id?: string | null
           created_at?: string
           diretoria_id: string
           id?: string
@@ -571,6 +618,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          agrupamento_id?: string | null
           created_at?: string
           diretoria_id?: string
           id?: string
@@ -579,6 +627,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "unidades_agrupamento_id_fkey"
+            columns: ["agrupamento_id"]
+            isOneToOne: false
+            referencedRelation: "agrupamentos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "unidades_diretoria_id_fkey"
             columns: ["diretoria_id"]

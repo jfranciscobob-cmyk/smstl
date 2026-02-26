@@ -61,6 +61,7 @@ export function EditServidorModal({
     tipo_escala: "fixa",
     is_diretor: false,
     is_coordenador: false,
+    is_coordenador_medico: false,
   });
 
   useEffect(() => {
@@ -96,6 +97,7 @@ export function EditServidorModal({
         tipo_escala: servidor.tipo_escala || "fixa",
         is_diretor: servidor.is_diretor,
         is_coordenador: servidor.is_coordenador,
+        is_coordenador_medico: (servidor as any).is_coordenador_medico || false,
       });
     }
   }, [servidor]);
@@ -139,6 +141,7 @@ export function EditServidorModal({
       observacao: form.observacao || null,
       is_diretor: form.is_diretor,
       is_coordenador: form.is_coordenador,
+      is_coordenador_medico: form.is_coordenador_medico,
       data_admissao: form.data_admissao || null,
       data_encerramento_contrato: form.data_encerramento_contrato || null,
       tipo_escala: form.tipo_escala,
@@ -275,6 +278,10 @@ export function EditServidorModal({
               <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
                 <input type="checkbox" checked={form.is_coordenador} onChange={(e) => set("is_coordenador", e.target.checked)} className="rounded border-input" />
                 Coordenador(a)
+              </label>
+              <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                <input type="checkbox" checked={form.is_coordenador_medico} onChange={(e) => set("is_coordenador_medico", e.target.checked)} className="rounded border-input" />
+                Coordenador(a) Médico(a)
               </label>
             </div>
           </section>

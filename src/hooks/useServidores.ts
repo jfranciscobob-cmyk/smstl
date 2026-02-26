@@ -33,6 +33,7 @@ export interface ServidorDB {
   is_coordenador: boolean;
   is_secretario: boolean;
   is_diretor_geral: boolean;
+  is_coordenador_medico: boolean;
   created_at: string;
   updated_at: string;
   setor_id: string | null;
@@ -40,6 +41,15 @@ export interface ServidorDB {
   data_admissao: string | null;
   data_encerramento_contrato: string | null;
   tipo_escala: string;
+}
+
+export interface AgrupamentoDB {
+  id: string;
+  nome: string;
+  diretoria_id: string;
+  coordenador_id: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface FaltaAbonadaDB {
@@ -63,6 +73,7 @@ export interface UnidadeDB {
   nome: string;
   sigla: string;
   diretoria_id: string;
+  agrupamento_id: string | null;
   created_at: string;
   updated_at: string;
 }

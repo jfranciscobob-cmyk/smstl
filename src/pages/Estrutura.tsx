@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginForm } from "@/components/LoginForm";
 import { supabase } from "@/integrations/supabase/client";
-import type { DiretoriaDB, UnidadeDB, CoordenacaoDB, ServidorDB, SetorDB, FuncaoDB, CoordenadorUnidadeDB } from "@/hooks/useServidores";
+import type { DiretoriaDB, UnidadeDB, CoordenacaoDB, ServidorDB, SetorDB, FuncaoDB, CoordenadorUnidadeDB, AgrupamentoDB } from "@/hooks/useServidores";
 import {
-  Building2, Plus, Trash2, Edit2, ChevronDown, ChevronRight, ArrowLeft, Loader2, Shield, X, Check, Network, Users, UserPlus, Crown, Star, Briefcase, Eye
+  Building2, Plus, Trash2, Edit2, ChevronDown, ChevronRight, ArrowLeft, Loader2, Shield, X, Check, Network, Users, UserPlus, Crown, Star, Briefcase, Eye, Layers, Stethoscope
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -24,6 +24,7 @@ function EstruturaContent() {
   const [setores, setSetores] = useState<SetorDB[]>([]);
   const [funcoes, setFuncoes] = useState<FuncaoDB[]>([]);
   const [coordenadoresUnidades, setCoordenadoresUnidades] = useState<CoordenadorUnidadeDB[]>([]);
+  const [agrupamentos, setAgrupamentos] = useState<AgrupamentoDB[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
@@ -36,7 +37,7 @@ function EstruturaContent() {
   const [createServidorTarget, setCreateServidorTarget] = useState<{ diretoria_id?: string; unidade_id?: string; coordenacao_id?: string } | null>(null);
   const [assigningTo, setAssigningTo] = useState<{ type: "unidade" | "coordenacao"; id: string; diretoria_id: string } | null>(null);
   const [assignSearch, setAssignSearch] = useState("");
-  const [pickingRole, setPickingRole] = useState<{ type: "diretor" | "coordenador" | "secretario" | "diretor_geral"; targetId: string; diretoriaId?: string; unidadeId?: string } | null>(null);
+  const [pickingRole, setPickingRole] = useState<{ type: "diretor" | "coordenador" | "coordenador_medico" | "secretario" | "diretor_geral"; targetId: string; diretoriaId?: string; unidadeId?: string } | null>(null);
   const [roleSearch, setRoleSearch] = useState("");
   const [editingServidor, setEditingServidor] = useState<ServidorDB | null>(null);
   const [assigningSecretaria, setAssigningSecretaria] = useState(false);
@@ -51,16 +52,20 @@ function EstruturaContent() {
   const [alocDirSearch, setAlocDirSearch] = useState("");
   const [alocDirSelectedIds, setAlocDirSelectedIds] = useState<Set<string>>(new Set());
   const [alocDirTargetId, setAlocDirTargetId] = useState<string>("");
+  const [newAgrupamento, setNewAgrupamento] = useState<{ nome: string; diretoria_id: string } | null>(null);
+  const [pickingAgrupCoord, setPickingAgrupCoord] = useState<string | null>(null);
+  const [agrupCoordSearch, setAgrupCoordSearch] = useState("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [d, u, c, st, fc, cu] = await Promise.all([
+    const [d, u, c, st, fc, cu, ag] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenacoes").select("*").order("nome"),
       supabase.from("setores").select("*").order("nome"),
       supabase.from("funcoes").select("*").order("nome"),
       supabase.from("coordenadores_unidades").select("*"),
+      supabase.from("agrupamentos").select("*").order("nome"),
     ]);
     // Fetch all servidores with pagination (bypass 1000 limit)
     const selectCols = "id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, setor_id, funcao_id, is_diretor, is_coordenador, is_secretario, is_diretor_geral";
@@ -85,6 +90,7 @@ function EstruturaContent() {
     setSetores((st.data ?? []) as SetorDB[]);
     setFuncoes((fc.data ?? []) as FuncaoDB[]);
     setCoordenadoresUnidades((cu.data ?? []) as CoordenadorUnidadeDB[]);
+    setAgrupamentos((ag.data ?? []) as AgrupamentoDB[]);
     setServidores(allServidores as ServidorDB[]);
     setLoading(false);
   }, []);
@@ -218,6 +224,8 @@ function EstruturaContent() {
   const getServidoresByUnidade = (unidadeId: string) => servidores.filter(s => s.unidade_id === unidadeId);
   const getServidoresByCoord = (coordId: string) => servidores.filter(s => s.coordenacao_id === coordId);
   const getDiretor = (diretoriaId: string) => servidores.find(s => s.diretoria_id === diretoriaId && s.is_diretor);
+  const getAgrupamentosByDiretoria = (diretoriaId: string) => agrupamentos.filter(a => a.diretoria_id === diretoriaId);
+  const getCoordMedicoByUnidade = (unidadeId: string) => servidores.filter(s => (s as any).is_coordenador_medico && s.unidade_id === unidadeId);
 
   // Coordenador now uses junction table - supports multiple coordinators per unidade
   const getCoordenadorByUnidade = (unidadeId: string): ServidorDB[] => {
@@ -225,6 +233,36 @@ function EstruturaContent() {
     return cuEntries.map(cu => servidores.find(s => s.id === cu.servidor_id)).filter(Boolean) as ServidorDB[];
   };
 
+  // Agrupamento CRUD
+  const addAgrupamento = async (nome: string, diretoriaId: string) => {
+    const { error } = await supabase.from("agrupamentos").insert({ nome, diretoria_id: diretoriaId });
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Agrupamento criado!" });
+    setNewAgrupamento(null);
+    loadData();
+  };
+
+  const deleteAgrupamento = async (id: string) => {
+    // Unlink unidades first
+    await supabase.from("unidades").update({ agrupamento_id: null } as any).eq("agrupamento_id", id);
+    await supabase.from("agrupamentos").delete().eq("id", id);
+    toast({ title: "Agrupamento removido" });
+    loadData();
+  };
+
+  const setAgrupamentoCoord = async (agrupamentoId: string, servidorId: string) => {
+    await supabase.from("agrupamentos").update({ coordenador_id: servidorId }).eq("id", agrupamentoId);
+    toast({ title: "Coordenador de agrupamento definido!" });
+    setPickingAgrupCoord(null);
+    setAgrupCoordSearch("");
+    loadData();
+  };
+
+  const assignUnidadeToAgrupamento = async (unidadeId: string, agrupamentoId: string | null) => {
+    await supabase.from("unidades").update({ agrupamento_id: agrupamentoId } as any).eq("id", unidadeId);
+    toast({ title: agrupamentoId ? "Unidade vinculada ao agrupamento!" : "Unidade desvinculada do agrupamento!" });
+    loadData();
+  };
   const getSecretario = () => servidores.find(s => s.is_secretario);
   const getDiretorGeral = () => servidores.find(s => (s as any).is_diretor_geral);
 
@@ -244,13 +282,13 @@ function EstruturaContent() {
     ? servidores.filter(s => s.nome.toLowerCase().includes(setorAssignSearch.toLowerCase()) || s.matricula.includes(setorAssignSearch)).slice(0, 8)
     : servidores.slice(0, 8);
 
-  const assignRole = async (servidorId: string, type: "diretor" | "coordenador" | "secretario" | "diretor_geral", diretoriaId?: string, unidadeId?: string, coordId?: string) => {
+  const assignRole = async (servidorId: string, type: "diretor" | "coordenador" | "coordenador_medico" | "secretario" | "diretor_geral", diretoriaId?: string, unidadeId?: string, coordId?: string) => {
     if (type === "coordenador" && unidadeId) {
-      // Use junction table for coordenador
       const { error } = await supabase.from("coordenadores_unidades").insert({ servidor_id: servidorId, unidade_id: unidadeId });
       if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-      // Also update servidor's is_coordenador flag for backward compat
       await supabase.from("servidores").update({ is_coordenador: true, unidade_id: unidadeId, diretoria_id: diretoriaId }).eq("id", servidorId);
+    } else if (type === "coordenador_medico" && unidadeId) {
+      await supabase.from("servidores").update({ is_coordenador_medico: true, unidade_id: unidadeId, diretoria_id: diretoriaId }).eq("id", servidorId);
     } else {
       const updateData: any = type === "diretor"
         ? { is_diretor: true, diretoria_id: diretoriaId }
@@ -260,27 +298,27 @@ function EstruturaContent() {
       const { error } = await supabase.from("servidores").update(updateData).eq("id", servidorId);
       if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     }
-    const labels: Record<string, string> = { diretor: "Diretor(a) definido!", coordenador: "Coordenador(a) definido!", secretario: "Secretário(a) definido!", diretor_geral: "Diretor(a) Geral definido!" };
+    const labels: Record<string, string> = { diretor: "Diretor(a) definido!", coordenador: "Coordenador(a) definido!", coordenador_medico: "Coordenador(a) Médico(a) definido!", secretario: "Secretário(a) definido!", diretor_geral: "Diretor(a) Geral definido!" };
     toast({ title: labels[type] });
     setPickingRole(null);
     setRoleSearch("");
     loadData();
   };
 
-  const removeRole = async (servidorId: string, type: "diretor" | "coordenador" | "secretario" | "diretor_geral", unidadeId?: string) => {
+  const removeRole = async (servidorId: string, type: "diretor" | "coordenador" | "coordenador_medico" | "secretario" | "diretor_geral", unidadeId?: string) => {
     if (type === "coordenador" && unidadeId) {
-      // Remove from junction table for this specific unidade
       await supabase.from("coordenadores_unidades").delete().eq("servidor_id", servidorId).eq("unidade_id", unidadeId);
-      // Check if still coordinator of any other unidade
       const { data: remaining } = await supabase.from("coordenadores_unidades").select("id").eq("servidor_id", servidorId);
       if (!remaining || remaining.length === 0) {
         await supabase.from("servidores").update({ is_coordenador: false }).eq("id", servidorId);
       }
+    } else if (type === "coordenador_medico") {
+      await supabase.from("servidores").update({ is_coordenador_medico: false }).eq("id", servidorId);
     } else {
       const updateData = type === "diretor" ? { is_diretor: false } : type === "diretor_geral" ? { is_diretor_geral: false } : { is_secretario: false };
       await supabase.from("servidores").update(updateData).eq("id", servidorId);
     }
-    const labels: Record<string, string> = { diretor: "Diretor removido", coordenador: "Coordenador removido", secretario: "Secretário removido", diretor_geral: "Diretor Geral removido" };
+    const labels: Record<string, string> = { diretor: "Diretor removido", coordenador: "Coordenador removido", coordenador_medico: "Coord. Médico removido", secretario: "Secretário removido", diretor_geral: "Diretor Geral removido" };
     toast({ title: labels[type] });
     loadData();
   };
@@ -780,6 +818,96 @@ function EstruturaContent() {
                           contextServidores={servidores.filter(s => s.diretoria_id === dir.id)}
                         />
 
+                        {/* ═══ Agrupamentos ═══ */}
+                        {(() => {
+                          const dirAgrupamentos = getAgrupamentosByDiretoria(dir.id);
+                          return (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Layers className="h-4 w-4 text-primary" />
+                                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Agrupamentos de Unidades ({dirAgrupamentos.length})</span>
+                                {newAgrupamento?.diretoria_id === dir.id ? (
+                                  <div className="flex items-center gap-2 ml-2">
+                                    <input
+                                      autoFocus
+                                      value={newAgrupamento.nome}
+                                      onChange={e => setNewAgrupamento({ ...newAgrupamento, nome: e.target.value })}
+                                      onKeyDown={e => e.key === "Enter" && addAgrupamento(newAgrupamento.nome, dir.id)}
+                                      placeholder="Nome do agrupamento..."
+                                      className="h-7 w-56 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                                    />
+                                    <button onClick={() => addAgrupamento(newAgrupamento.nome, dir.id)} className="text-primary"><Check className="h-3.5 w-3.5" /></button>
+                                    <button onClick={() => setNewAgrupamento(null)} className="text-muted-foreground"><X className="h-3.5 w-3.5" /></button>
+                                  </div>
+                                ) : (
+                                  <button onClick={() => setNewAgrupamento({ nome: "", diretoria_id: dir.id })} className="text-xs text-primary font-medium hover:text-primary/80 ml-2">
+                                    + Novo agrupamento
+                                  </button>
+                                )}
+                              </div>
+                              {dirAgrupamentos.map(agrup => {
+                                const agrupCoord = agrup.coordenador_id ? servidores.find(s => s.id === agrup.coordenador_id) : null;
+                                const agrupUnidades = dirUnidades.filter(u => (u as any).agrupamento_id === agrup.id);
+                                return (
+                                  <div key={agrup.id} className="border border-primary/20 rounded-lg overflow-hidden bg-primary/5">
+                                    <div className="flex items-center justify-between px-4 py-2">
+                                      <div className="flex items-center gap-2">
+                                        <Layers className="h-4 w-4 text-primary" />
+                                        <span className="text-sm font-bold text-foreground">{agrup.nome}</span>
+                                        <span className="text-xs text-muted-foreground">({agrupUnidades.length} unidade{agrupUnidades.length !== 1 ? "s" : ""})</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        {/* Coordenador do agrupamento */}
+                                        {agrupCoord ? (
+                                          <div className="flex items-center gap-1.5 text-xs">
+                                            <Star className="h-3 w-3 text-amber-500" />
+                                            <span className="font-medium text-foreground">{agrupCoord.nome}</span>
+                                            <button onClick={() => { supabase.from("agrupamentos").update({ coordenador_id: null }).eq("id", agrup.id).then(() => loadData()); }} className="p-0.5 text-muted-foreground hover:text-destructive"><X className="h-3 w-3" /></button>
+                                          </div>
+                                        ) : pickingAgrupCoord === agrup.id ? (
+                                          <div className="space-y-1">
+                                            <input autoFocus value={agrupCoordSearch} onChange={e => setAgrupCoordSearch(e.target.value)} placeholder="Buscar..." className="h-6 w-40 rounded border border-input bg-card px-2 text-xs text-foreground focus:ring-2 focus:ring-ring focus:outline-none" />
+                                            <div className="max-h-24 overflow-y-auto bg-card rounded border border-border shadow-md absolute z-10">
+                                              {(agrupCoordSearch.length >= 2 ? servidores.filter(s => s.nome.toLowerCase().includes(agrupCoordSearch.toLowerCase())).slice(0, 5) : servidores.slice(0, 5)).map(s => (
+                                                <button key={s.id} onClick={() => setAgrupamentoCoord(agrup.id, s.id)} className="w-full text-left px-2 py-1 text-xs hover:bg-primary/10 text-foreground">{s.nome}</button>
+                                              ))}
+                                            </div>
+                                            <button onClick={() => { setPickingAgrupCoord(null); setAgrupCoordSearch(""); }} className="text-[10px] text-muted-foreground">Cancelar</button>
+                                          </div>
+                                        ) : (
+                                          <button onClick={() => setPickingAgrupCoord(agrup.id)} className="text-xs text-primary font-medium">+ Coordenador</button>
+                                        )}
+                                        {/* Add unidade to this agrupamento */}
+                                        <select
+                                          className="h-7 rounded border border-input bg-card px-1 text-xs text-foreground"
+                                          value=""
+                                          onChange={e => { if (e.target.value) assignUnidadeToAgrupamento(e.target.value, agrup.id); }}
+                                        >
+                                          <option value="">+ Vincular unidade</option>
+                                          {dirUnidades.filter(u => !(u as any).agrupamento_id).map(u => (
+                                            <option key={u.id} value={u.id}>{u.sigla} — {u.nome}</option>
+                                          ))}
+                                        </select>
+                                        <button onClick={() => deleteAgrupamento(agrup.id)} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
+                                      </div>
+                                    </div>
+                                    {agrupUnidades.length > 0 && (
+                                      <div className="px-4 pb-2 space-y-1">
+                                        {agrupUnidades.map(u => (
+                                          <div key={u.id} className="flex items-center justify-between text-xs py-1 px-2 rounded bg-card/50">
+                                            <span className="font-medium text-foreground">{u.sigla} — {u.nome}</span>
+                                            <button onClick={() => assignUnidadeToAgrupamento(u.id, null)} className="text-muted-foreground hover:text-destructive text-[10px]">desvincular</button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })()}
+
                         {/* Unidades list */}
                         {dirUnidades.map(uni => {
                           const uniExpanded = expanded[uni.id] !== false;
@@ -945,6 +1073,59 @@ function EstruturaContent() {
                                         ) : (
                                           <button onClick={() => setPickingRole({ type: "coordenador", targetId: uni.id, diretoriaId: dir.id, unidadeId: uni.id })} className="text-xs text-primary font-medium hover:text-primary/80 transition-colors">
                                             + Adicionar coordenador(a)
+                                          </button>
+                                        )}
+                                      </div>
+                                    );
+                                  })()}
+                                </div>
+                              )}
+
+                              {/* Coordenador Médico picker */}
+                              {uniExpanded && (
+                                <div className="px-4 pb-3 ml-6">
+                                  {(() => {
+                                    const coordsMedicos = getCoordMedicoByUnidade(uni.id);
+                                    return (
+                                      <div className="space-y-1.5 py-1.5">
+                                        <div className="flex items-center gap-2">
+                                          <Stethoscope className="h-3.5 w-3.5 text-emerald-600" />
+                                          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Coordenador(es) Médico(s):</span>
+                                        </div>
+                                        {coordsMedicos.length > 0 && (
+                                          <div className="flex flex-wrap gap-2">
+                                            {coordsMedicos.map(cm => (
+                                              <div key={cm.id} className="flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-2 py-1">
+                                                <Stethoscope className="h-3 w-3 text-emerald-600" />
+                                                <span className="text-sm font-medium text-foreground">{cm.nome}</span>
+                                                <button onClick={() => removeRole(cm.id, "coordenador_medico")} className="p-0.5 rounded text-muted-foreground hover:text-destructive" title="Remover coord. médico">
+                                                  <X className="h-3 w-3" />
+                                                </button>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+                                        {pickingRole?.type === "coordenador_medico" && pickingRole.targetId === uni.id ? (
+                                          <div className="max-w-sm space-y-1">
+                                            <input
+                                              autoFocus
+                                              value={roleSearch}
+                                              onChange={e => setRoleSearch(e.target.value)}
+                                              placeholder="Buscar servidor..."
+                                              className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                                            />
+                                            <div className="max-h-32 overflow-y-auto bg-card rounded border border-border shadow-md">
+                                              {filteredRoleResults.filter(s => !coordsMedicos.some(c => c.id === s.id)).map(s => (
+                                                <button key={s.id} onClick={() => assignRole(s.id, "coordenador_medico", dir.id, uni.id)} className="w-full text-left px-2 py-1 text-xs hover:bg-primary/10 text-foreground">
+                                                  {s.nome} <span className="text-muted-foreground">({s.matricula})</span>
+                                                </button>
+                                              ))}
+                                            </div>
+                                            <button onClick={() => { setPickingRole(null); setRoleSearch(""); }} className="text-xs text-muted-foreground">Cancelar</button>
+                                          </div>
+                                        ) : (
+                                          <button onClick={() => setPickingRole({ type: "coordenador_medico", targetId: uni.id, diretoriaId: dir.id, unidadeId: uni.id })} className="text-xs text-emerald-600 font-medium hover:text-emerald-500 transition-colors">
+                                            + Adicionar coordenador(a) médico(a)
                                           </button>
                                         )}
                                       </div>
