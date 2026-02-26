@@ -278,6 +278,7 @@ export function HierarchyMonitor({ servidores, diretorias, unidades, coordenacoe
                     ))}
                   </div>
                 )}
+              </div>
             </div>
 
             <div className="flex items-center gap-6">
