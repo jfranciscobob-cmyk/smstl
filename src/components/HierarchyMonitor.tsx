@@ -265,7 +265,19 @@ export function HierarchyMonitor({ servidores, diretorias, unidades, coordenacoe
                     </span>
                   )}
                 </div>
-              </div>
+
+                {/* Diretores das pastas vinculados à Secretaria */}
+                {diretores.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5">
+                    {diretores.map(({ diretor, diretoria }) => (
+                      <span key={diretor.id} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Building2 className="h-3 w-3 text-primary/60" />
+                        <span className="font-medium text-foreground">{diretor.nome}</span>
+                        <span className="text-[10px] text-muted-foreground/70">({diretoria.nome.length > 25 ? diretoria.nome.substring(0, 23) + "…" : diretoria.nome})</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
             </div>
 
             <div className="flex items-center gap-6">
