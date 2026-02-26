@@ -43,6 +43,11 @@ function EstruturaContent() {
   const [assigningSetor, setAssigningSetor] = useState<{ setor_id: string } | null>(null);
   const [setorAssignSearch, setSetorAssignSearch] = useState("");
   const [assignSelectedIds, setAssignSelectedIds] = useState<Set<string>>(new Set());
+  // Alocar para diretoria
+  const [alocandoDiretoria, setAlocandoDiretoria] = useState(false);
+  const [alocDirSearch, setAlocDirSearch] = useState("");
+  const [alocDirSelectedIds, setAlocDirSelectedIds] = useState<Set<string>>(new Set());
+  const [alocDirTargetId, setAlocDirTargetId] = useState<string>("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
