@@ -275,6 +275,15 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
         unidades={unidades}
         coordenacoes={coordenacoes}
       />
+
+      <CreateServidorModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSaved={loadData}
+        diretorias={diretorias}
+        unidades={unidades}
+        coordenacoes={coordenacoes}
+      />
     </div>
   );
 }
