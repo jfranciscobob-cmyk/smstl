@@ -914,6 +914,34 @@ function EstruturaContent() {
                                 </div>
                               )}
 
+                              {/* Funções da unidade */}
+                              {uniExpanded && (
+                                <div className="px-4 pb-3 ml-6">
+                                  <FuncaoList
+                                    funcoes={getFuncoesByUnidade(uni.id)}
+                                    servidores={servidores}
+                                    unidadeId={uni.id}
+                                    onAddFuncao={async (nome, unidadeId) => {
+                                      const { error } = await supabase.from("funcoes").insert({ nome, unidade_id: unidadeId });
+                                      if (!error) loadData();
+                                      else toast({ title: "Erro", description: error.message, variant: "destructive" });
+                                    }}
+                                    onDeleteFuncao={async (id) => {
+                                      await supabase.from("servidores").update({ funcao_id: null } as any).eq("funcao_id", id);
+                                      await supabase.from("funcoes").delete().eq("id", id);
+                                      toast({ title: "Função removida" });
+                                      loadData();
+                                    }}
+                                    onAssignServidor={async (ids, funcaoId) => {
+                                      const { error } = await supabase.from("servidores").update({ funcao_id: funcaoId } as any).in("id", ids);
+                                      if (!error) { toast({ title: `${ids.length} servidor(es) vinculado(s)!` }); loadData(); }
+                                      else toast({ title: "Erro", description: error.message, variant: "destructive" });
+                                    }}
+                                    contextServidores={getServidoresByUnidade(uni.id)}
+                                  />
+                                </div>
+                              )}
+
                               {/* Cargos e servidores da unidade */}
                               {uniExpanded && (
                                 <div className="px-4 pb-3 ml-6">
