@@ -51,7 +51,7 @@ function ServidorMiniCard({ servidor, onEdit }: { servidor: ServidorDB; onEdit?:
         </span>
       )}
       <span className="hidden lg:inline-flex rounded-md bg-secondary px-2 py-0.5 text-[10px] font-medium text-secondary-foreground">
-        {servidor.vinculo.length > 20 ? servidor.vinculo.substring(0, 18) + "…" : servidor.vinculo}
+        {(servidor.vinculo || "").length > 20 ? (servidor.vinculo || "").substring(0, 18) + "…" : (servidor.vinculo || "—")}
       </span>
     </button>
   );
