@@ -52,6 +52,9 @@ function EstruturaContent() {
   const [alocDirSearch, setAlocDirSearch] = useState("");
   const [alocDirSelectedIds, setAlocDirSelectedIds] = useState<Set<string>>(new Set());
   const [alocDirTargetId, setAlocDirTargetId] = useState<string>("");
+  const [newAgrupamento, setNewAgrupamento] = useState<{ nome: string; diretoria_id: string } | null>(null);
+  const [pickingAgrupCoord, setPickingAgrupCoord] = useState<string | null>(null);
+  const [agrupCoordSearch, setAgrupCoordSearch] = useState("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
