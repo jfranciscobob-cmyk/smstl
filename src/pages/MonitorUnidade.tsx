@@ -1274,8 +1274,8 @@ function MonitorContent() {
                   </div>
                 )}
               </div>
-              <div className="overflow-x-auto -mx-5 px-5">
-                <table className="w-full text-xs min-w-[900px]">
+              <div className="overflow-x-auto -mx-3 sm:-mx-5 px-3 sm:px-5">
+                <table className="w-full text-xs min-w-[800px]">
                   <thead>
                     <tr className="border-b border-border text-left">
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Servidor</th>
