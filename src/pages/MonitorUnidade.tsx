@@ -48,6 +48,7 @@ function MonitorContent() {
   const [showBulkEscala, setShowBulkEscala] = useState(false);
   const [bulkEscalas, setBulkEscalas] = useState<Record<string, { inicio1: string; fim1: string; inicio2: string; fim2: string; total: string }>>({});
   const [savingBulk, setSavingBulk] = useState(false);
+  const [expandedSemanalId, setExpandedSemanalId] = useState<string | null>(null);
 
   // Expanded diretorias
   const [expandedDirs, setExpandedDirs] = useState<Record<string, boolean>>({});
