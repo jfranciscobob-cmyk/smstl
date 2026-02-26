@@ -495,20 +495,20 @@ function MonitorContent() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/60 backdrop-blur-md sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link to="/" className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted hover:bg-muted/80 transition-colors">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Link to="/" className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-muted hover:bg-muted/80 transition-colors flex-shrink-0">
               <ArrowLeft className="h-4 w-4 text-foreground" />
             </Link>
-            <div>
-              <h1 className="text-lg font-bold text-foreground">Monitor de Unidade</h1>
-              <p className="text-xs text-muted-foreground">Escalas, atestados, férias e folha em tempo real</p>
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-lg font-bold text-foreground truncate">Monitor de Unidade</h1>
+              <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Escalas, atestados, férias e folha em tempo real</p>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 space-y-6 max-w-6xl">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 max-w-6xl">
         {/* Breadcrumb navigation */}
         <div className="flex items-center gap-2 flex-wrap">
           <button
@@ -907,8 +907,8 @@ function MonitorContent() {
                   </div>
                 )}
               </div>
-              <div className="overflow-x-auto -mx-5 px-5">
-                <table className="w-full text-xs min-w-[900px]">
+              <div className="overflow-x-auto -mx-3 sm:-mx-5 px-3 sm:px-5">
+                <table className="w-full text-xs min-w-[800px]">
                   <thead>
                     <tr className="border-b border-border text-left">
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Servidor</th>
@@ -1274,8 +1274,8 @@ function MonitorContent() {
                   </div>
                 )}
               </div>
-              <div className="overflow-x-auto -mx-5 px-5">
-                <table className="w-full text-xs min-w-[900px]">
+              <div className="overflow-x-auto -mx-3 sm:-mx-5 px-3 sm:px-5">
+                <table className="w-full text-xs min-w-[800px]">
                   <thead>
                     <tr className="border-b border-border text-left">
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Servidor</th>
@@ -1288,10 +1288,8 @@ function MonitorContent() {
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Salário</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">F.Abon.</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Status</th>
-                      {canTransfer && <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap w-8"></th>}
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap w-10">Sem.</th>
-                      <th className="pb-2 font-semibold text-muted-foreground">F.Abon.</th>
-                      <th className="pb-2 font-semibold text-muted-foreground">Status</th>
+                      {canTransfer && <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap w-8"></th>}
                     </tr>
                   </thead>
                   <tbody>
