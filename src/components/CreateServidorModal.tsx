@@ -4,7 +4,8 @@ import type { DiretoriaDB, UnidadeDB, CoordenacaoDB } from "@/hooks/useServidore
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle
 } from "@/components/ui/dialog";
-import { Save, Loader2, UserPlus } from "lucide-react";
+import { Save, Loader2, UserPlus, AlertTriangle } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 
 interface CreateServidorModalProps {
