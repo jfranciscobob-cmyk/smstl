@@ -302,7 +302,52 @@ function MonitorContent() {
     loadData();
   };
 
-  // Contract expiry alerts (temporary contracts)
+  // Bulk férias functions
+  const initBulkFerias = () => {
+    const initial: Record<string, any> = {};
+    filteredServidores.forEach(s => {
+      initial[s.id] = {
+        status: s.ferias_status_gerencial || "",
+        p1_inicio: s.ferias_periodo1_inicio || "",
+        p1_fim: s.ferias_periodo1_fim || "",
+        p2_inicio: s.ferias_periodo2_inicio || "",
+        p2_fim: s.ferias_periodo2_fim || "",
+        total_dias: s.ferias_total_dias?.toString() || "",
+        vencidas: s.ferias_vencidas?.toString() || "",
+      };
+    });
+    setBulkFerias(initial);
+    setShowBulkFerias(true);
+  };
+
+  const saveBulkFerias = async () => {
+    setSavingBulkFerias(true);
+    let count = 0;
+    const entries = Object.entries(bulkFerias);
+    for (let i = 0; i < entries.length; i += 10) {
+      const batch = entries.slice(i, i + 10);
+      const results = await Promise.all(
+        batch.map(([id, f]) =>
+          supabase.from("servidores").update({
+            ferias_status_gerencial: f.status || null,
+            ferias_periodo1_inicio: f.p1_inicio || null,
+            ferias_periodo1_fim: f.p1_fim || null,
+            ferias_periodo2_inicio: f.p2_inicio || null,
+            ferias_periodo2_fim: f.p2_fim || null,
+            ferias_total_dias: f.total_dias ? parseInt(f.total_dias) : null,
+            ferias_vencidas: f.vencidas ? parseInt(f.vencidas) : null,
+          }).eq("id", id)
+        )
+      );
+      for (const r of results) { if (!r.error) count++; }
+    }
+    setSavingBulkFerias(false);
+    toast({ title: `Férias de ${count} servidores atualizadas!` });
+    setShowBulkFerias(false);
+    loadData();
+  };
+
+
   const contractAlerts = useMemo(() => {
     return filteredServidores.filter(s => {
       if (!s.vinculo?.includes("CONTRATO") && !s.vinculo?.includes("TEMPORARIO")) return false;
