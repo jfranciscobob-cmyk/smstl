@@ -64,6 +64,13 @@ function MonitorContent() {
   const [bulkFerias, setBulkFerias] = useState<Record<string, { status: string; p1_inicio: string; p1_fim: string; p2_inicio: string; p2_fim: string; total_dias: string; vencidas: string }>>({});
   const [savingBulkFerias, setSavingBulkFerias] = useState(false);
 
+  // Bulk allocation
+  const [showBulkAlloc, setShowBulkAlloc] = useState(false);
+  const [allocSearch, setAllocSearch] = useState("");
+  const [allocSelectedIds, setAllocSelectedIds] = useState<Set<string>>(new Set());
+  const [allocTargetUnidade, setAllocTargetUnidade] = useState("");
+  const [savingAlloc, setSavingAlloc] = useState(false);
+
   // Expanded diretorias
   const [expandedDirs, setExpandedDirs] = useState<Record<string, boolean>>({});
 
