@@ -294,29 +294,29 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                     </h2>
                     <p className="text-[11px] text-primary-foreground/40">Três Lagoas · Painel Executivo</p>
                   </div>
-                    <div className="flex items-center gap-5 sm:gap-8">
+                    <div className="flex items-center gap-3 sm:gap-5 lg:gap-8 flex-wrap justify-end">
                       <Link to="/monitor" className="text-center hover:opacity-80 transition-opacity">
-                        <p className="text-2xl sm:text-3xl font-extrabold font-mono">{stats.total}</p>
-                        <p className="text-[10px] text-primary-foreground/50 font-medium">Servidores</p>
+                        <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold font-mono">{stats.total}</p>
+                        <p className="text-[9px] sm:text-[10px] text-primary-foreground/50 font-medium">Servidores</p>
                       </Link>
                       <Link to="/monitor?filter=presentes" className="text-center hover:opacity-80 transition-opacity">
-                        <p className="text-2xl sm:text-3xl font-extrabold font-mono text-success">{coberturaGeral}%</p>
-                        <p className="text-[10px] text-primary-foreground/50 font-medium">Cobertura</p>
+                        <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold font-mono text-success">{coberturaGeral}%</p>
+                        <p className="text-[9px] sm:text-[10px] text-primary-foreground/50 font-medium">Cobertura</p>
                       </Link>
-                      <Link to="/estrutura" className="text-center hover:opacity-80 transition-opacity">
-                        <p className="text-2xl sm:text-3xl font-extrabold font-mono">{alocados}<span className="text-base text-primary-foreground/40">/{stats.total}</span></p>
-                        <p className="text-[10px] text-primary-foreground/50 font-medium">Alocados</p>
+                      <Link to="/estrutura" className="text-center hover:opacity-80 transition-opacity hidden sm:block">
+                        <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold font-mono">{alocados}<span className="text-base text-primary-foreground/40">/{stats.total}</span></p>
+                        <p className="text-[9px] sm:text-[10px] text-primary-foreground/50 font-medium">Alocados</p>
                       </Link>
-                      <Link to="/monitor" className="text-center hover:opacity-80 transition-opacity">
-                        <p className="text-2xl sm:text-3xl font-extrabold font-mono">{diretorias.length}</p>
-                        <p className="text-[10px] text-primary-foreground/50 font-medium">Diretorias</p>
+                      <Link to="/monitor" className="text-center hover:opacity-80 transition-opacity hidden sm:block">
+                        <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold font-mono">{diretorias.length}</p>
+                        <p className="text-[9px] sm:text-[10px] text-primary-foreground/50 font-medium">Diretorias</p>
                       </Link>
                       {hasFinancialAccess && (
-                        <div className="text-center hidden sm:block">
-                          <p className="text-2xl sm:text-3xl font-extrabold font-mono">
+                        <div className="text-center hidden lg:block">
+                          <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold font-mono">
                             {folhaTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                           </p>
-                          <p className="text-[10px] text-primary-foreground/50 font-medium">Folha Mensal</p>
+                          <p className="text-[9px] sm:text-[10px] text-primary-foreground/50 font-medium">Folha Mensal</p>
                         </div>
                       )}
                     </div>
