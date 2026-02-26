@@ -104,9 +104,7 @@ export function useCoordenacoes() {
   return useQuery({
     queryKey: ["coordenacoes"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("coordenacoes").select("*").order("nome");
-      if (error) throw error;
-      return data as CoordenacaoDB[];
+      return fetchAll<CoordenacaoDB>("coordenacoes");
     },
   });
 }
