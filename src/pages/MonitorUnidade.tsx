@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { ServidorDB, DiretoriaDB, UnidadeDB, FuncaoDB, AtestadoDB, FaltaAbonadaDB } from "@/hooks/useServidores";
 import { Link, useSearchParams } from "react-router-dom";
@@ -10,6 +10,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO, isWithinInterval, addDays, isBefore, isAfter, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
+import { EscalaSemanalEditor } from "@/components/EscalaSemanalEditor";
 
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -44,6 +45,7 @@ function MonitorContent() {
   const [showBulkEscala, setShowBulkEscala] = useState(false);
   const [bulkEscalas, setBulkEscalas] = useState<Record<string, { inicio1: string; fim1: string; inicio2: string; fim2: string; total: string }>>({});
   const [savingBulk, setSavingBulk] = useState(false);
+  const [expandedSemanalId, setExpandedSemanalId] = useState<string | null>(null);
 
   // Expanded diretorias
   const [expandedDirs, setExpandedDirs] = useState<Record<string, boolean>>({});
@@ -142,7 +144,7 @@ function MonitorContent() {
   const emFerias = filteredServidores.filter(s => s.status_presenca === "ferias").length;
   const afastados = filteredServidores.filter(s => s.status_presenca === "afastado").length;
   const totalHoras = filteredServidores.reduce((sum, s) => sum + (s.escala_total_horas || 0), 0);
-  const totalFolha = filteredServidores.reduce((sum, s) => sum + ((s as any).salario || 0), 0);
+  const totalFolha = filteredServidores.reduce((sum, s) => sum + (s.salario || 0), 0);
 
   const addAtestado = async () => {
     if (!atestadoForm.servidor_id || !atestadoForm.data_inicio || !atestadoForm.data_fim) {
@@ -255,7 +257,7 @@ function MonitorContent() {
 
   // Payroll card for a group of servidores
   const PayrollCard = ({ servs, label }: { servs: ServidorDB[]; label: string }) => {
-    const folha = servs.reduce((sum, s) => sum + ((s as any).salario || 0), 0);
+    const folha = servs.reduce((sum, s) => sum + (s.salario || 0), 0);
     const count = servs.length;
     return (
       <div className="rounded-xl border border-border bg-card p-4">
@@ -274,7 +276,7 @@ function MonitorContent() {
   const UnitSummaryCard = ({ uni }: { uni: UnidadeDB }) => {
     const uniServs = servidores.filter(s => s.unidade_id === uni.id);
     const uniPresentes = uniServs.filter(s => s.status_presenca === "presente").length;
-    const uniFolha = uniServs.reduce((sum, s) => sum + ((s as any).salario || 0), 0);
+    const uniFolha = uniServs.reduce((sum, s) => sum + (s.salario || 0), 0);
     const pct = uniServs.length > 0 ? Math.round((uniPresentes / uniServs.length) * 100) : 0;
     const pctColor = pct >= 80 ? "text-success bg-success/10" : pct >= 50 ? "text-warning bg-warning/10" : "text-destructive bg-destructive/10";
 
@@ -382,7 +384,7 @@ function MonitorContent() {
               </div>
               <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
                 <div className="flex items-center gap-2 text-xs text-primary mb-1"><DollarSign className="h-3.5 w-3.5" /> Folha Total</div>
-                <p className="text-lg font-bold text-foreground font-mono">{formatCurrency(servidores.reduce((s, sv) => s + ((sv as any).salario || 0), 0))}</p>
+                <p className="text-lg font-bold text-foreground font-mono">{formatCurrency(servidores.reduce((s, sv) => s + (sv.salario || 0), 0))}</p>
               </div>
             </div>
 
@@ -393,7 +395,7 @@ function MonitorContent() {
                 {diretorias.map(dir => {
                   const dirServs = servidores.filter(s => s.diretoria_id === dir.id);
                   const dirPresentes = dirServs.filter(s => s.status_presenca === "presente").length;
-                  const dirFolha = dirServs.reduce((sum, s) => sum + ((s as any).salario || 0), 0);
+                  const dirFolha = dirServs.reduce((sum, s) => sum + (s.salario || 0), 0);
                   const dirUnidades = unidades.filter(u => u.diretoria_id === dir.id);
                   const diretor = servidores.find(s => s.diretoria_id === dir.id && s.is_diretor);
 
@@ -428,7 +430,7 @@ function MonitorContent() {
                 {(() => {
                   const semDir = servidores.filter(s => !s.diretoria_id);
                   if (semDir.length === 0) return null;
-                  const folha = semDir.reduce((s, sv) => s + ((sv as any).salario || 0), 0);
+                  const folha = semDir.reduce((s, sv) => s + (sv.salario || 0), 0);
                   return (
                     <div className="rounded-xl border border-dashed border-warning/40 bg-warning/5 p-5">
                       <div className="flex items-center gap-3 mb-3">
@@ -752,7 +754,7 @@ function MonitorContent() {
                     {unidadeFuncoes.map(f => {
                       const fServs = filteredServidores.filter(s => (s as any).funcao_id === f.id);
                       const fPresentes = fServs.filter(s => s.status_presenca === "presente").length;
-                      const fFolha = fServs.reduce((sum, s) => sum + ((s as any).salario || 0), 0);
+                      const fFolha = fServs.reduce((sum, s) => sum + (s.salario || 0), 0);
                       return (
                         <div key={f.id} className="rounded-lg border border-border/50 p-3">
                           <h4 className="text-sm font-bold text-foreground mb-2">{f.nome}</h4>
@@ -801,58 +803,83 @@ function MonitorContent() {
                       <th className="pb-2 font-semibold text-muted-foreground">Salário</th>
                       <th className="pb-2 font-semibold text-muted-foreground">F.Abon.</th>
                       <th className="pb-2 font-semibold text-muted-foreground">Status</th>
+                      <th className="pb-2 font-semibold text-muted-foreground w-10">Sem.</th>
+                      <th className="pb-2 font-semibold text-muted-foreground">F.Abon.</th>
+                      <th className="pb-2 font-semibold text-muted-foreground">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredServidores.map(s => {
                       const faltaInfo = getFaltasNoAno(s.id, s.data_admissao);
                       return (
-                        <tr key={s.id} className="border-b border-border/30 hover:bg-muted/20">
-                          <td className="py-2 font-medium text-foreground">{s.nome}</td>
-                          <td className="py-2 text-muted-foreground">{s.cargo}</td>
-                          <td className="py-2 text-muted-foreground font-mono">{s.data_admissao ? format(parseISO(s.data_admissao), "dd/MM/yyyy") : "—"}</td>
-                          {showBulkEscala && bulkEscalas[s.id] ? (
-                            <>
-                              <td className="py-1">
-                                <div className="flex gap-1">
-                                  <input type="time" value={bulkEscalas[s.id].inicio1} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], inicio1: e.target.value } }))}
-                                    className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
-                                  <input type="time" value={bulkEscalas[s.id].fim1} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], fim1: e.target.value } }))}
-                                    className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
-                                </div>
+                        <React.Fragment key={s.id}>
+                          <tr className="border-b border-border/30 hover:bg-muted/20">
+                            <td className="py-2 font-medium text-foreground">{s.nome}</td>
+                            <td className="py-2 text-muted-foreground">{s.cargo}</td>
+                            <td className="py-2 text-muted-foreground font-mono">{s.data_admissao ? format(parseISO(s.data_admissao), "dd/MM/yyyy") : "—"}</td>
+                            {showBulkEscala && bulkEscalas[s.id] ? (
+                              <>
+                                <td className="py-1">
+                                  <div className="flex gap-1">
+                                    <input type="time" value={bulkEscalas[s.id].inicio1} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], inicio1: e.target.value } }))}
+                                      className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                    <input type="time" value={bulkEscalas[s.id].fim1} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], fim1: e.target.value } }))}
+                                      className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                  </div>
+                                </td>
+                                <td className="py-1">
+                                  <div className="flex gap-1">
+                                    <input type="time" value={bulkEscalas[s.id].inicio2} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], inicio2: e.target.value } }))}
+                                      className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                    <input type="time" value={bulkEscalas[s.id].fim2} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], fim2: e.target.value } }))}
+                                      className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                  </div>
+                                </td>
+                                <td className="py-1">
+                                  <input type="number" value={bulkEscalas[s.id].total} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], total: e.target.value } }))}
+                                    className="w-12 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground text-center focus:ring-1 focus:ring-ring focus:outline-none" placeholder="h" />
+                                </td>
+                              </>
+                            ) : (
+                              <>
+                                <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio1 ? `${s.escala_inicio1}-${s.escala_fim1}` : "—"}</td>
+                                <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio2 ? `${s.escala_inicio2}-${s.escala_fim2}` : "—"}</td>
+                                <td className="py-2 font-mono font-bold text-foreground">{s.escala_total_horas ? `${s.escala_total_horas}h` : "—"}</td>
+                              </>
+                            )}
+                            <td className="py-2 font-mono text-primary">{s.salario > 0 ? formatCurrency(s.salario) : "—"}</td>
+                            <td className="py-2">
+                              <span className={cn("text-xs font-mono font-bold", faltaInfo.usadas >= 5 ? "text-destructive" : faltaInfo.usadas >= 3 ? "text-warning" : "text-muted-foreground")}>{faltaInfo.usadas}/5</span>
+                            </td>
+                            <td className="py-2">
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                s.status_presenca === "presente" ? "bg-success/10 text-success" :
+                                s.status_presenca === "ferias" ? "bg-warning/10 text-warning" :
+                                "bg-destructive/10 text-destructive"
+                              }`}>{s.status_presenca}</span>
+                            </td>
+                            <td className="py-2">
+                              <button
+                                onClick={() => setExpandedSemanalId(expandedSemanalId === s.id ? null : s.id)}
+                                className={cn("text-[10px] font-medium px-1.5 py-0.5 rounded", expandedSemanalId === s.id ? "bg-primary text-primary-foreground" : "text-primary hover:bg-primary/10")}
+                                title="Escala semanal"
+                              >
+                                <Calendar className="h-3 w-3" />
+                              </button>
+                            </td>
+                          </tr>
+                          {expandedSemanalId === s.id && (
+                            <tr>
+                              <td colSpan={10} className="p-2 bg-muted/10">
+                                <EscalaSemanalEditor
+                                  servidorId={s.id}
+                                  servidorNome={s.nome}
+                                  defaultEscala={{ inicio1: s.escala_inicio1 || "", fim1: s.escala_fim1 || "", inicio2: s.escala_inicio2 || "", fim2: s.escala_fim2 || "", total: s.escala_total_horas }}
+                                />
                               </td>
-                              <td className="py-1">
-                                <div className="flex gap-1">
-                                  <input type="time" value={bulkEscalas[s.id].inicio2} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], inicio2: e.target.value } }))}
-                                    className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
-                                  <input type="time" value={bulkEscalas[s.id].fim2} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], fim2: e.target.value } }))}
-                                    className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
-                                </div>
-                              </td>
-                              <td className="py-1">
-                                <input type="number" value={bulkEscalas[s.id].total} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], total: e.target.value } }))}
-                                  className="w-12 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground text-center focus:ring-1 focus:ring-ring focus:outline-none" placeholder="h" />
-                              </td>
-                            </>
-                          ) : (
-                            <>
-                              <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio1 ? `${s.escala_inicio1}-${s.escala_fim1}` : "—"}</td>
-                              <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio2 ? `${s.escala_inicio2}-${s.escala_fim2}` : "—"}</td>
-                              <td className="py-2 font-mono font-bold text-foreground">{s.escala_total_horas ? `${s.escala_total_horas}h` : "—"}</td>
-                            </>
+                            </tr>
                           )}
-                          <td className="py-2 font-mono text-primary">{s.salario > 0 ? formatCurrency(s.salario) : "—"}</td>
-                          <td className="py-2">
-                            <span className={cn("text-xs font-mono font-bold", faltaInfo.usadas >= 5 ? "text-destructive" : faltaInfo.usadas >= 3 ? "text-warning" : "text-muted-foreground")}>{faltaInfo.usadas}/5</span>
-                          </td>
-                          <td className="py-2">
-                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                              s.status_presenca === "presente" ? "bg-success/10 text-success" :
-                              s.status_presenca === "ferias" ? "bg-warning/10 text-warning" :
-                              "bg-destructive/10 text-destructive"
-                            }`}>{s.status_presenca}</span>
-                          </td>
-                        </tr>
+                        </React.Fragment>
                       );
                     })}
                   </tbody>

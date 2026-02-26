@@ -1,0 +1,175 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Save, Loader2, Calendar } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+
+interface EscalaSemanalDB {
+  id: string;
+  servidor_id: string;
+  dia_semana: number;
+  entrada1: string | null;
+  saida1: string | null;
+  entrada2: string | null;
+  saida2: string | null;
+  total_horas: number | null;
+  observacao: string | null;
+}
+
+const DIAS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+
+interface Props {
+  servidorId: string;
+  servidorNome: string;
+  defaultEscala?: { inicio1: string; fim1: string; inicio2: string; fim2: string; total: number | null };
+}
+
+export function EscalaSemanalEditor({ servidorId, servidorNome, defaultEscala }: Props) {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [escalas, setEscalas] = useState<Record<number, { entrada1: string; saida1: string; entrada2: string; saida2: string; total: string; obs: string }>>({});
+
+  useEffect(() => {
+    const init: Record<number, any> = {};
+    for (let i = 0; i < 7; i++) {
+      init[i] = {
+        entrada1: defaultEscala?.inicio1 || "",
+        saida1: defaultEscala?.fim1 || "",
+        entrada2: defaultEscala?.inicio2 || "",
+        saida2: defaultEscala?.fim2 || "",
+        total: defaultEscala?.total?.toString() || "",
+        obs: "",
+      };
+    }
+
+    (async () => {
+      const { data } = await supabase
+        .from("escalas_semanais")
+        .select("*")
+        .eq("servidor_id", servidorId)
+        .order("dia_semana");
+
+      if (data && data.length > 0) {
+        for (const row of data as EscalaSemanalDB[]) {
+          init[row.dia_semana] = {
+            entrada1: row.entrada1 || "",
+            saida1: row.saida1 || "",
+            entrada2: row.entrada2 || "",
+            saida2: row.saida2 || "",
+            total: row.total_horas?.toString() || "",
+            obs: row.observacao || "",
+          };
+        }
+      }
+      setEscalas(init);
+      setLoading(false);
+    })();
+  }, [servidorId]);
+
+  const setDay = (dia: number, key: string, value: string) => {
+    setEscalas(prev => ({ ...prev, [dia]: { ...prev[dia], [key]: value } }));
+  };
+
+  const copyToAll = (fromDia: number) => {
+    const source = escalas[fromDia];
+    if (!source) return;
+    const updated = { ...escalas };
+    for (let i = 0; i < 7; i++) {
+      updated[i] = { ...source };
+    }
+    setEscalas(updated);
+    toast({ title: `Escala de ${DIAS[fromDia]} copiada para todos os dias` });
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    let errors = 0;
+    for (let dia = 0; dia < 7; dia++) {
+      const esc = escalas[dia];
+      if (!esc) continue;
+      const { error } = await supabase
+        .from("escalas_semanais")
+        .upsert({
+          servidor_id: servidorId,
+          dia_semana: dia,
+          entrada1: esc.entrada1 || null,
+          saida1: esc.saida1 || null,
+          entrada2: esc.entrada2 || null,
+          saida2: esc.saida2 || null,
+          total_horas: esc.total ? parseFloat(esc.total) : null,
+          observacao: esc.obs || null,
+        }, { onConflict: "servidor_id,dia_semana" });
+      if (error) errors++;
+    }
+    setSaving(false);
+    if (errors > 0) {
+      toast({ title: "Alguns dias falharam ao salvar", variant: "destructive" });
+    } else {
+      toast({ title: "Escala semanal salva!" });
+    }
+  };
+
+  if (loading) return <div className="flex justify-center py-4"><Loader2 className="h-4 w-4 animate-spin text-primary" /></div>;
+
+  const inputClass = "w-[70px] h-6 rounded border border-input bg-background px-1 text-[10px] text-foreground text-center focus:ring-1 focus:ring-ring focus:outline-none";
+
+  return (
+    <div className="rounded-lg border border-border bg-card/50 p-3 space-y-2">
+      <div className="flex items-center justify-between">
+        <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+          <Calendar className="h-3.5 w-3.5 text-primary" />
+          Escala Semanal — {servidorNome}
+        </h4>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="flex items-center gap-1 h-6 px-2 rounded bg-primary text-primary-foreground text-[10px] font-medium hover:bg-primary/90 disabled:opacity-50"
+        >
+          {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+          Salvar
+        </button>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-[10px]">
+          <thead>
+            <tr className="border-b border-border">
+              <th className="pb-1 text-left font-semibold text-muted-foreground w-12">Dia</th>
+              <th className="pb-1 font-semibold text-muted-foreground">Entrada 1</th>
+              <th className="pb-1 font-semibold text-muted-foreground">Saída 1</th>
+              <th className="pb-1 font-semibold text-muted-foreground">Entrada 2</th>
+              <th className="pb-1 font-semibold text-muted-foreground">Saída 2</th>
+              <th className="pb-1 font-semibold text-muted-foreground">Horas</th>
+              <th className="pb-1 font-semibold text-muted-foreground">Obs</th>
+              <th className="pb-1 w-8"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {DIAS.map((nome, i) => {
+              const esc = escalas[i];
+              if (!esc) return null;
+              const isWeekend = i >= 5;
+              return (
+                <tr key={i} className={cn("border-b border-border/20", isWeekend && "bg-muted/30")}>
+                  <td className="py-1 font-bold text-foreground">{nome}</td>
+                  <td className="py-1"><input type="time" className={inputClass} value={esc.entrada1} onChange={e => setDay(i, "entrada1", e.target.value)} /></td>
+                  <td className="py-1"><input type="time" className={inputClass} value={esc.saida1} onChange={e => setDay(i, "saida1", e.target.value)} /></td>
+                  <td className="py-1"><input type="time" className={inputClass} value={esc.entrada2} onChange={e => setDay(i, "entrada2", e.target.value)} /></td>
+                  <td className="py-1"><input type="time" className={inputClass} value={esc.saida2} onChange={e => setDay(i, "saida2", e.target.value)} /></td>
+                  <td className="py-1"><input type="number" className={cn(inputClass, "w-10")} value={esc.total} onChange={e => setDay(i, "total", e.target.value)} /></td>
+                  <td className="py-1"><input className={cn(inputClass, "w-20 text-left")} value={esc.obs} onChange={e => setDay(i, "obs", e.target.value)} placeholder="Obs" /></td>
+                  <td className="py-1">
+                    <button onClick={() => copyToAll(i)} title={`Copiar ${nome} para todos`} className="text-[9px] text-primary hover:text-primary/80 font-medium">
+                      ⟹
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

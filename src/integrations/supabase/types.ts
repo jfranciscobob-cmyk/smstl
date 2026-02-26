@@ -147,6 +147,56 @@ export type Database = {
         }
         Relationships: []
       }
+      escalas_semanais: {
+        Row: {
+          created_at: string
+          dia_semana: number
+          entrada1: string | null
+          entrada2: string | null
+          id: string
+          observacao: string | null
+          saida1: string | null
+          saida2: string | null
+          servidor_id: string
+          total_horas: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dia_semana: number
+          entrada1?: string | null
+          entrada2?: string | null
+          id?: string
+          observacao?: string | null
+          saida1?: string | null
+          saida2?: string | null
+          servidor_id: string
+          total_horas?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dia_semana?: number
+          entrada1?: string | null
+          entrada2?: string | null
+          id?: string
+          observacao?: string | null
+          saida1?: string | null
+          saida2?: string | null
+          servidor_id?: string
+          total_horas?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escalas_semanais_servidor_id_fkey"
+            columns: ["servidor_id"]
+            isOneToOne: false
+            referencedRelation: "servidores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       faltas_abonadas: {
         Row: {
           created_at: string
