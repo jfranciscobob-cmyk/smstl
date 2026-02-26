@@ -12,6 +12,7 @@ import { CreateServidorModal } from "@/components/CreateServidorModal";
 import { UnidadeServidores } from "@/components/UnidadeServidores";
 import { EditServidorModal } from "@/components/EditServidorModal";
 import { SetorList } from "@/components/SetorList";
+import { FuncaoList } from "@/components/FuncaoList";
 import { Checkbox } from "@/components/ui/checkbox";
 
 function EstruturaContent() {
