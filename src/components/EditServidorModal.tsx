@@ -57,6 +57,7 @@ export function EditServidorModal({
     ferias_vencidas: "" as string,
     observacao: "",
     data_admissao: "",
+    data_encerramento_contrato: "",
     is_diretor: false,
     is_coordenador: false,
   });
