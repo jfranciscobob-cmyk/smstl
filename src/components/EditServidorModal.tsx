@@ -97,6 +97,7 @@ export function EditServidorModal({
         tipo_escala: servidor.tipo_escala || "fixa",
         is_diretor: servidor.is_diretor,
         is_coordenador: servidor.is_coordenador,
+        is_coordenador_medico: (servidor as any).is_coordenador_medico || false,
       });
     }
   }, [servidor]);
