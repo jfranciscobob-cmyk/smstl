@@ -7,9 +7,10 @@ import { ServidorRow } from "@/components/ServidorRow";
 import { Link } from "react-router-dom";
 import { UnidadeSection } from "@/components/UnidadeSection";
 import { EditServidorModal } from "@/components/EditServidorModal";
+import { CreateServidorModal } from "@/components/CreateServidorModal";
 import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB, type CoordenacaoDB } from "@/hooks/useServidores";
 import {
-  Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Search, Filter, LogOut, Loader2, Network
+  Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Search, Filter, LogOut, Loader2, Network, UserPlus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
