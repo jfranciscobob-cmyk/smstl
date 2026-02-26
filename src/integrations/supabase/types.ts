@@ -337,6 +337,7 @@ export type Database = {
           setor: string
           setor_id: string | null
           status_presenca: string
+          tipo_escala: string
           unidade_id: string | null
           updated_at: string
           vinculo: string
@@ -378,6 +379,7 @@ export type Database = {
           setor?: string
           setor_id?: string | null
           status_presenca?: string
+          tipo_escala?: string
           unidade_id?: string | null
           updated_at?: string
           vinculo?: string
@@ -419,6 +421,7 @@ export type Database = {
           setor?: string
           setor_id?: string | null
           status_presenca?: string
+          tipo_escala?: string
           unidade_id?: string | null
           updated_at?: string
           vinculo?: string

@@ -260,11 +260,11 @@ function MonitorContent() {
     const folha = servs.reduce((sum, s) => sum + (s.salario || 0), 0);
     const count = servs.length;
     return (
-      <div className="rounded-xl border border-border bg-card p-4">
+      <div className="rounded-xl border border-border bg-card p-4 min-w-0">
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-          <DollarSign className="h-3.5 w-3.5 text-primary" /> {label}
+          <DollarSign className="h-3.5 w-3.5 text-primary flex-shrink-0" /> <span className="truncate">{label}</span>
         </div>
-        <p className="text-xl font-bold text-foreground font-mono">{formatCurrency(folha)}</p>
+        <p className="text-lg font-bold text-foreground font-mono truncate">{formatCurrency(folha)}</p>
         <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
           <span>{count} servidores</span>
         </div>
