@@ -222,6 +222,54 @@ function MonitorContent() {
     ? filteredServidores.filter(s => s.nome.toLowerCase().includes(atestadoSearch.toLowerCase())).slice(0, 10)
     : filteredServidores.slice(0, 10);
 
+  const filteredAfastamentoServidores = afastamentoSearch.length >= 2
+    ? filteredServidores.filter(s => s.nome.toLowerCase().includes(afastamentoSearch.toLowerCase())).slice(0, 10)
+    : filteredServidores.slice(0, 10);
+
+  // Active afastamentos
+  const activeAfastamentos = useMemo(() => {
+    const srvIds = new Set(filteredServidores.map(s => s.id));
+    return afastamentos.filter(a => {
+      if (!srvIds.has(a.servidor_id)) return false;
+      try {
+        const inicio = parseISO(a.data_inicio);
+        if (a.data_fim) {
+          return isWithinInterval(today, { start: inicio, end: parseISO(a.data_fim) });
+        }
+        return !isAfter(inicio, today); // sem data fim = ainda ativo
+      } catch { return false; }
+    });
+  }, [afastamentos, filteredServidores]);
+
+  const addAfastamento = async () => {
+    if (!afastamentoForm.servidor_id || !afastamentoForm.data_inicio || !afastamentoForm.motivo) {
+      toast({ title: "Preencha servidor, motivo e data de início", variant: "destructive" }); return;
+    }
+    const { error } = await supabase.from("afastamentos").insert({
+      servidor_id: afastamentoForm.servidor_id,
+      motivo: afastamentoForm.motivo,
+      data_inicio: afastamentoForm.data_inicio,
+      data_fim: afastamentoForm.data_fim || null,
+      observacao: afastamentoForm.observacao || null,
+    });
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    // Also update servidor status to afastado
+    await supabase.from("servidores").update({ status_presenca: "afastado" }).eq("id", afastamentoForm.servidor_id);
+    toast({ title: "Afastamento registrado!" });
+    setShowAfastamentoForm(false);
+    setAfastamentoForm({ servidor_id: "", motivo: "Licença para Tratamento de Saúde", data_inicio: "", data_fim: "", observacao: "" });
+    setAfastamentoSearch("");
+    loadData();
+  };
+
+  const finalizarAfastamento = async (afastamentoId: string, servidorId: string) => {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    await supabase.from("afastamentos").update({ data_fim: todayStr }).eq("id", afastamentoId);
+    await supabase.from("servidores").update({ status_presenca: "presente" }).eq("id", servidorId);
+    toast({ title: "Afastamento finalizado, servidor marcado como presente!" });
+    loadData();
+  };
+
   // Bulk escala save
   const initBulkEscalas = () => {
     const initial: Record<string, any> = {};
