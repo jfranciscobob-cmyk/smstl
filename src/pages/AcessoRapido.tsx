@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import type { ServidorDB, DiretoriaDB, UnidadeDB } from "@/hooks/useServidores";
+import type { ServidorDB, DiretoriaDB, UnidadeDB, CoordenadorUnidadeDB } from "@/hooks/useServidores";
 import {
   ArrowLeft, Loader2, Building2, Users, ChevronRight, UserCheck, Shield, Briefcase,
 } from "lucide-react";
@@ -11,6 +11,7 @@ export default function AcessoRapido() {
   const [servidores, setServidores] = useState<ServidorDB[]>([]);
   const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
+  const [coordenadoresUnidades, setCoordenadoresUnidades] = useState<CoordenadorUnidadeDB[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
@@ -25,25 +26,34 @@ export default function AcessoRapido() {
       if (data.length < PAGE) break;
       offset += PAGE;
     }
-    const [d, u] = await Promise.all([
+    const [d, u, cu] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
+      supabase.from("coordenadores_unidades").select("*"),
     ]);
     setServidores(allSrv as ServidorDB[]);
     setDiretorias((d.data ?? []) as DiretoriaDB[]);
     setUnidades((u.data ?? []) as UnidadeDB[]);
+    setCoordenadoresUnidades((cu.data ?? []) as CoordenadorUnidadeDB[]);
     setLoading(false);
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
 
   const diretores = servidores.filter(s => s.is_diretor && s.diretoria_id);
-  const coordenadores = servidores.filter(s => s.is_coordenador && s.unidade_id);
   const secretario = servidores.find(s => s.is_secretario);
   const diretorGeral = servidores.find(s => s.is_diretor_geral);
 
+  // Build coordenadores list from junction table (one entry per servidor+unidade)
+  const coordenadorEntries = useMemo(() => {
+    return coordenadoresUnidades.map(cu => {
+      const servidor = servidores.find(s => s.id === cu.servidor_id);
+      const uni = unidades.find(u => u.id === cu.unidade_id);
+      return servidor && uni ? { servidor, unidade: uni, cuId: cu.id } : null;
+    }).filter(Boolean) as { servidor: ServidorDB; unidade: UnidadeDB; cuId: string }[];
+  }, [coordenadoresUnidades, servidores, unidades]);
+
   const getDiretoriaNome = (id: string | null) => diretorias.find(d => d.id === id)?.nome || "—";
-  const getUnidade = (id: string | null) => unidades.find(u => u.id === id);
 
   if (loading) {
     return (
@@ -170,17 +180,16 @@ export default function AcessoRapido() {
           <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
             <UserCheck className="h-4 w-4 text-primary" /> Coordenadores — Acesso à Unidade
           </h2>
-          {coordenadores.length === 0 ? (
+          {coordenadorEntries.length === 0 ? (
             <p className="text-sm text-muted-foreground italic">Nenhum coordenador atribuído.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {coordenadores.map(coord => {
-                const uni = getUnidade(coord.unidade_id);
-                const uniServs = servidores.filter(s => s.unidade_id === coord.unidade_id).length;
+              {coordenadorEntries.map(({ servidor, unidade, cuId }) => {
+                const uniServs = servidores.filter(s => s.unidade_id === unidade.id).length;
                 return (
                   <Link
-                    key={coord.id}
-                    to={`/monitor?view=unidade&diretoria=${uni?.diretoria_id || ""}&unidade=${coord.unidade_id}`}
+                    key={cuId}
+                    to={`/monitor?view=unidade&diretoria=${unidade.diretoria_id}&unidade=${unidade.id}`}
                     className="rounded-xl border border-border bg-card p-5 hover:shadow-md transition-all hover:border-primary/30 group"
                   >
                     <div className="flex items-center gap-3 mb-3">
@@ -188,14 +197,14 @@ export default function AcessoRapido() {
                         <UserCheck className="h-4 w-4 text-primary" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{coord.nome}</p>
+                        <p className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{servidor.nome}</p>
                         <p className="text-[10px] text-muted-foreground">Coordenador(a)</p>
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Building2 className="h-3 w-3" />
-                        <span className="truncate">{uni ? `${uni.sigla} — ${uni.nome}` : "—"}</span>
+                        <span className="truncate">{unidade.sigla} — {unidade.nome}</span>
                       </div>
                       <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
                     </div>

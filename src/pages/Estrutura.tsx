@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginForm } from "@/components/LoginForm";
 import { supabase } from "@/integrations/supabase/client";
-import type { DiretoriaDB, UnidadeDB, CoordenacaoDB, ServidorDB, SetorDB, FuncaoDB } from "@/hooks/useServidores";
+import type { DiretoriaDB, UnidadeDB, CoordenacaoDB, ServidorDB, SetorDB, FuncaoDB, CoordenadorUnidadeDB } from "@/hooks/useServidores";
 import {
   Building2, Plus, Trash2, Edit2, ChevronDown, ChevronRight, ArrowLeft, Loader2, Shield, X, Check, Network, Users, UserPlus, Crown, Star, Briefcase, Eye
 } from "lucide-react";
@@ -23,6 +23,7 @@ function EstruturaContent() {
   const [servidores, setServidores] = useState<ServidorDB[]>([]);
   const [setores, setSetores] = useState<SetorDB[]>([]);
   const [funcoes, setFuncoes] = useState<FuncaoDB[]>([]);
+  const [coordenadoresUnidades, setCoordenadoresUnidades] = useState<CoordenadorUnidadeDB[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
@@ -53,12 +54,13 @@ function EstruturaContent() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [d, u, c, st, fc] = await Promise.all([
+    const [d, u, c, st, fc, cu] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenacoes").select("*").order("nome"),
       supabase.from("setores").select("*").order("nome"),
       supabase.from("funcoes").select("*").order("nome"),
+      supabase.from("coordenadores_unidades").select("*"),
     ]);
     // Fetch all servidores with pagination (bypass 1000 limit)
     const selectCols = "id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, setor_id, funcao_id, is_diretor, is_coordenador, is_secretario, is_diretor_geral";
@@ -82,6 +84,7 @@ function EstruturaContent() {
     setCoordenacoes((c.data ?? []) as CoordenacaoDB[]);
     setSetores((st.data ?? []) as SetorDB[]);
     setFuncoes((fc.data ?? []) as FuncaoDB[]);
+    setCoordenadoresUnidades((cu.data ?? []) as CoordenadorUnidadeDB[]);
     setServidores(allServidores as ServidorDB[]);
     setLoading(false);
   }, []);
@@ -170,7 +173,6 @@ function EstruturaContent() {
   };
 
   const deleteSetor = async (id: string) => {
-    // Unlink servidores first
     await supabase.from("servidores").update({ setor_id: null }).eq("setor_id", id);
     await supabase.from("setores").delete().eq("id", id);
     toast({ title: "Setor removido" });
@@ -216,8 +218,13 @@ function EstruturaContent() {
   const getServidoresByUnidade = (unidadeId: string) => servidores.filter(s => s.unidade_id === unidadeId);
   const getServidoresByCoord = (coordId: string) => servidores.filter(s => s.coordenacao_id === coordId);
   const getDiretor = (diretoriaId: string) => servidores.find(s => s.diretoria_id === diretoriaId && s.is_diretor);
-  const getCoordenador = (coordId: string) => servidores.find(s => s.coordenacao_id === coordId && s.is_coordenador);
-  const getCoordenadorByUnidade = (unidadeId: string) => servidores.find(s => s.unidade_id === unidadeId && s.is_coordenador);
+
+  // Coordenador now uses junction table - supports multiple coordinators per unidade
+  const getCoordenadorByUnidade = (unidadeId: string): ServidorDB[] => {
+    const cuEntries = coordenadoresUnidades.filter(cu => cu.unidade_id === unidadeId);
+    return cuEntries.map(cu => servidores.find(s => s.id === cu.servidor_id)).filter(Boolean) as ServidorDB[];
+  };
+
   const getSecretario = () => servidores.find(s => s.is_secretario);
   const getDiretorGeral = () => servidores.find(s => (s as any).is_diretor_geral);
 
@@ -238,15 +245,21 @@ function EstruturaContent() {
     : servidores.slice(0, 8);
 
   const assignRole = async (servidorId: string, type: "diretor" | "coordenador" | "secretario" | "diretor_geral", diretoriaId?: string, unidadeId?: string, coordId?: string) => {
-    const updateData: any = type === "diretor"
-      ? { is_diretor: true, diretoria_id: diretoriaId }
-      : type === "coordenador"
-      ? { is_coordenador: true, coordenacao_id: coordId, unidade_id: unidadeId, diretoria_id: diretoriaId }
-      : type === "diretor_geral"
-      ? { is_diretor_geral: true }
-      : { is_secretario: true };
-    const { error } = await supabase.from("servidores").update(updateData).eq("id", servidorId);
-    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    if (type === "coordenador" && unidadeId) {
+      // Use junction table for coordenador
+      const { error } = await supabase.from("coordenadores_unidades").insert({ servidor_id: servidorId, unidade_id: unidadeId });
+      if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+      // Also update servidor's is_coordenador flag for backward compat
+      await supabase.from("servidores").update({ is_coordenador: true, unidade_id: unidadeId, diretoria_id: diretoriaId }).eq("id", servidorId);
+    } else {
+      const updateData: any = type === "diretor"
+        ? { is_diretor: true, diretoria_id: diretoriaId }
+        : type === "diretor_geral"
+        ? { is_diretor_geral: true }
+        : { is_secretario: true };
+      const { error } = await supabase.from("servidores").update(updateData).eq("id", servidorId);
+      if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    }
     const labels: Record<string, string> = { diretor: "Diretor(a) definido!", coordenador: "Coordenador(a) definido!", secretario: "Secretário(a) definido!", diretor_geral: "Diretor(a) Geral definido!" };
     toast({ title: labels[type] });
     setPickingRole(null);
@@ -254,9 +267,19 @@ function EstruturaContent() {
     loadData();
   };
 
-  const removeRole = async (servidorId: string, type: "diretor" | "coordenador" | "secretario" | "diretor_geral") => {
-    const updateData = type === "diretor" ? { is_diretor: false } : type === "coordenador" ? { is_coordenador: false } : type === "diretor_geral" ? { is_diretor_geral: false } : { is_secretario: false };
-    await supabase.from("servidores").update(updateData).eq("id", servidorId);
+  const removeRole = async (servidorId: string, type: "diretor" | "coordenador" | "secretario" | "diretor_geral", unidadeId?: string) => {
+    if (type === "coordenador" && unidadeId) {
+      // Remove from junction table for this specific unidade
+      await supabase.from("coordenadores_unidades").delete().eq("servidor_id", servidorId).eq("unidade_id", unidadeId);
+      // Check if still coordinator of any other unidade
+      const { data: remaining } = await supabase.from("coordenadores_unidades").select("id").eq("servidor_id", servidorId);
+      if (!remaining || remaining.length === 0) {
+        await supabase.from("servidores").update({ is_coordenador: false }).eq("id", servidorId);
+      }
+    } else {
+      const updateData = type === "diretor" ? { is_diretor: false } : type === "diretor_geral" ? { is_diretor_geral: false } : { is_secretario: false };
+      await supabase.from("servidores").update(updateData).eq("id", servidorId);
+    }
     const labels: Record<string, string> = { diretor: "Diretor removido", coordenador: "Coordenador removido", secretario: "Secretário removido", diretor_geral: "Diretor Geral removido" };
     toast({ title: labels[type] });
     loadData();
@@ -650,27 +673,25 @@ function EstruturaContent() {
                       </button>
                       <div className="flex items-center gap-1">
                         <button
-                          onClick={() => { setEditingId(dir.id); setEditingValue(dir.nome); }}
-                          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                          title="Renomear"
+                          onClick={() => setCreateServidorTarget({ diretoria_id: dir.id })}
+                          className="p-1.5 rounded text-primary hover:bg-primary/10 transition-colors" title="Novo servidor"
                         >
-                          <Edit2 className="h-4 w-4" />
+                          <UserPlus className="h-3.5 w-3.5" />
                         </button>
-                        <button
-                          onClick={() => deleteDiretoria(dir.id)}
-                          className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                          title="Excluir"
-                        >
-                          <Trash2 className="h-4 w-4" />
+                        <button onClick={() => { setEditingId(dir.id); setEditingValue(dir.nome); }} className="p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => deleteDiretoria(dir.id)} className="p-1.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
+                          <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     </div>
 
-                    {/* Diretor section */}
-                    {(() => {
+                    {/* Diretor picker */}
+                    {isExpanded && (() => {
                       const diretor = getDiretor(dir.id);
                       return (
-                        <div className="px-5 py-2 border-t border-border/30 bg-muted/10 flex items-center gap-3 flex-wrap">
+                        <div className="px-5 py-3 border-t border-border/30 bg-muted/10 flex items-center gap-3 flex-wrap">
                           <Crown className="h-4 w-4 text-amber-500" />
                           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Diretor(a):</span>
                           {diretor ? (
@@ -869,24 +890,31 @@ function EstruturaContent() {
                                 </div>
                               )}
 
-                              {/* Coordenador picker */}
+                              {/* Coordenador picker - now supports multiple */}
                               {uniExpanded && (
                                 <div className="px-4 pb-3 pt-2 space-y-2 ml-6">
                                   {(() => {
-                                    const coordenador = getCoordenadorByUnidade(uni.id);
+                                    const coordenadores = getCoordenadorByUnidade(uni.id);
                                     return (
-                                      <div className="flex items-center gap-2 flex-wrap py-1.5">
-                                        <Star className="h-3.5 w-3.5 text-amber-500" />
-                                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Coordenador(a):</span>
-                                        {coordenador ? (
-                                          <div className="flex items-center gap-2">
-                                            <span className="text-sm font-medium text-foreground">{coordenador.nome}</span>
-                                            <button onClick={() => removeRole(coordenador.id, "coordenador")} className="p-1 rounded text-muted-foreground hover:text-destructive" title="Remover coordenador">
-                                              <X className="h-3 w-3" />
-                                            </button>
+                                      <div className="space-y-1.5 py-1.5">
+                                        <div className="flex items-center gap-2">
+                                          <Star className="h-3.5 w-3.5 text-amber-500" />
+                                          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Coordenador(es):</span>
+                                        </div>
+                                        {coordenadores.length > 0 && (
+                                          <div className="flex flex-wrap gap-2">
+                                            {coordenadores.map(coord => (
+                                              <div key={coord.id} className="flex items-center gap-1.5 rounded-md bg-accent/50 px-2 py-1">
+                                                <span className="text-sm font-medium text-foreground">{coord.nome}</span>
+                                                <button onClick={() => removeRole(coord.id, "coordenador", uni.id)} className="p-0.5 rounded text-muted-foreground hover:text-destructive" title="Remover coordenador">
+                                                  <X className="h-3 w-3" />
+                                                </button>
+                                              </div>
+                                            ))}
                                           </div>
-                                        ) : pickingRole?.type === "coordenador" && pickingRole.targetId === uni.id ? (
-                                          <div className="flex-1 max-w-sm space-y-1">
+                                        )}
+                                        {pickingRole?.type === "coordenador" && pickingRole.targetId === uni.id ? (
+                                          <div className="max-w-sm space-y-1">
                                             <input
                                               autoFocus
                                               value={roleSearch}
@@ -895,7 +923,7 @@ function EstruturaContent() {
                                               className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
                                             />
                                             <div className="max-h-32 overflow-y-auto bg-card rounded border border-border shadow-md">
-                                              {filteredRoleResults.map(s => (
+                                              {filteredRoleResults.filter(s => !coordenadores.some(c => c.id === s.id)).map(s => (
                                                 <button key={s.id} onClick={() => assignRole(s.id, "coordenador", dir.id, uni.id)} className="w-full text-left px-2 py-1 text-xs hover:bg-primary/10 text-foreground">
                                                   {s.nome} <span className="text-muted-foreground">({s.matricula})</span>
                                                 </button>
@@ -905,7 +933,7 @@ function EstruturaContent() {
                                           </div>
                                         ) : (
                                           <button onClick={() => setPickingRole({ type: "coordenador", targetId: uni.id, diretoriaId: dir.id, unidadeId: uni.id })} className="text-xs text-primary font-medium hover:text-primary/80 transition-colors">
-                                            + Definir coordenador(a)
+                                            + Adicionar coordenador(a)
                                           </button>
                                         )}
                                       </div>

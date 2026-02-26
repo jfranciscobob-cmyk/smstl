@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
-import type { ServidorDB, DiretoriaDB, UnidadeDB, CoordenacaoDB } from "@/hooks/useServidores";
+import { useState, useMemo, useEffect } from "react";
+import type { ServidorDB, DiretoriaDB, UnidadeDB, CoordenacaoDB, CoordenadorUnidadeDB } from "@/hooks/useServidores";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Shield, Building2, ChevronDown, ChevronRight, Crown, Users,
   AlertTriangle, CheckCircle, Palmtree, Star, MapPin, Briefcase
@@ -77,11 +78,11 @@ function getStats(servidores: ServidorDB[]) {
   return { total, presentes, ferias, afastados, ausentes, funcoesCriticas };
 }
 
-function UnidadeCard({ unidade, servidores, coordenacoes, coordenador }: {
+function UnidadeCard({ unidade, servidores, coordenacoes, coordenadores }: {
   unidade: UnidadeDB;
   servidores: ServidorDB[];
   coordenacoes: CoordenacaoDB[];
-  coordenador?: ServidorDB;
+  coordenadores: ServidorDB[];
 }) {
   const stats = getStats(servidores);
 
@@ -107,17 +108,20 @@ function UnidadeCard({ unidade, servidores, coordenacoes, coordenador }: {
         <CoverageIndicator presentes={stats.presentes} total={stats.total} />
       </div>
 
-      {coordenador && (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Star className="h-3 w-3 text-amber-500" />
-          <span className="font-medium text-foreground">{coordenador.nome}</span>
+      {coordenadores.length > 0 && (
+        <div className="space-y-1">
+          {coordenadores.map(coord => (
+            <div key={coord.id} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Star className="h-3 w-3 text-amber-500" />
+              <span className="font-medium text-foreground">{coord.nome}</span>
+            </div>
+          ))}
         </div>
       )}
 
       <StatusBar {...stats} />
       <StatusCounts {...stats} />
 
-      {/* Cargo breakdown */}
       {topCargos.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {topCargos.map(([cargo, count]) => (
@@ -143,17 +147,23 @@ function UnidadeCard({ unidade, servidores, coordenacoes, coordenador }: {
   );
 }
 
-function DiretoriaCard({ diretoria, servidores, unidades, coordenacoes }: {
+function DiretoriaCard({ diretoria, servidores, unidades, coordenacoes, coordenadoresUnidades }: {
   diretoria: DiretoriaDB;
   servidores: ServidorDB[];
   unidades: UnidadeDB[];
   coordenacoes: CoordenacaoDB[];
+  coordenadoresUnidades: CoordenadorUnidadeDB[];
 }) {
   const [expanded, setExpanded] = useState(true);
   const dirServidores = servidores.filter(s => s.diretoria_id === diretoria.id);
   const dirUnidades = unidades.filter(u => u.diretoria_id === diretoria.id);
   const stats = getStats(dirServidores);
   const diretor = servidores.find(s => s.diretoria_id === diretoria.id && s.is_diretor);
+
+  const getCoordenadoresByUnidade = (unidadeId: string): ServidorDB[] => {
+    const cuEntries = coordenadoresUnidades.filter(cu => cu.unidade_id === unidadeId);
+    return cuEntries.map(cu => servidores.find(s => s.id === cu.servidor_id)).filter(Boolean) as ServidorDB[];
+  };
 
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
@@ -200,14 +210,14 @@ function DiretoriaCard({ diretoria, servidores, unidades, coordenacoes }: {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 pt-3 ml-4 border-l-2 border-primary/20">
           {dirUnidades.map(uni => {
             const uniServidores = servidores.filter(s => s.unidade_id === uni.id);
-            const coordenador = servidores.find(s => s.unidade_id === uni.id && s.is_coordenador);
+            const coordenadores = getCoordenadoresByUnidade(uni.id);
             return (
               <UnidadeCard
                 key={uni.id}
                 unidade={uni}
                 servidores={uniServidores}
                 coordenacoes={coordenacoes.filter(c => c.unidade_id === uni.id)}
-                coordenador={coordenador}
+                coordenadores={coordenadores}
               />
             );
           })}
@@ -224,6 +234,14 @@ function DiretoriaCard({ diretoria, servidores, unidades, coordenacoes }: {
 }
 
 export function HierarchyMonitor({ servidores, diretorias, unidades, coordenacoes }: HierarchyMonitorProps) {
+  const [coordenadoresUnidades, setCoordenadoresUnidades] = useState<CoordenadorUnidadeDB[]>([]);
+
+  useEffect(() => {
+    supabase.from("coordenadores_unidades").select("*").then(({ data }) => {
+      setCoordenadoresUnidades((data ?? []) as CoordenadorUnidadeDB[]);
+    });
+  }, [servidores]); // refresh when servidores change
+
   const globalStats = useMemo(() => getStats(servidores), [servidores]);
   const secretario = servidores.find(s => s.is_secretario);
   const diretorGeral = servidores.find(s => (s as any).is_diretor_geral);
@@ -338,6 +356,7 @@ export function HierarchyMonitor({ servidores, diretorias, unidades, coordenacoe
             servidores={servidores}
             unidades={unidades}
             coordenacoes={coordenacoes}
+            coordenadoresUnidades={coordenadoresUnidades}
           />
         ))}
 

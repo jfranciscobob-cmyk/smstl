@@ -81,6 +81,13 @@ export interface FuncaoDB {
   updated_at: string;
 }
 
+export interface CoordenadorUnidadeDB {
+  id: string;
+  servidor_id: string;
+  unidade_id: string;
+  created_at: string;
+}
+
 export interface AtestadoDB {
   id: string;
   servidor_id: string;
