@@ -533,6 +533,22 @@ function MonitorContent() {
           )}
         </div>
 
+        {/* Active filter banner */}
+        {activeFilter && (
+          <div className="flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5">
+            <span className="text-xs font-semibold text-primary">
+              Filtro ativo: <span className="uppercase">{activeFilter.replace("_", " ")}</span>
+            </span>
+            <span className="text-xs text-muted-foreground">({filteredServidores.length} servidores)</span>
+            <button
+              onClick={() => { const p = new URLSearchParams(searchParams); p.delete("filter"); setSearchParams(p); }}
+              className="ml-auto flex items-center gap-1 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors"
+            >
+              <X className="h-3 w-3" /> Limpar filtro
+            </button>
+          </div>
+        )}
+
         {/* ═══ VISÃO GERAL ═══ */}
         {viewMode === "tudo" && !selectedDiretoriaId && (
           <div className="space-y-6">
