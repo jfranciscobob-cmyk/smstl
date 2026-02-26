@@ -174,6 +174,7 @@ export type Database = {
           matricula: string
           nome: string
           observacao: string | null
+          salario: number | null
           setor: string
           setor_id: string | null
           status_presenca: string
@@ -211,6 +212,7 @@ export type Database = {
           matricula: string
           nome: string
           observacao?: string | null
+          salario?: number | null
           setor?: string
           setor_id?: string | null
           status_presenca?: string
@@ -248,6 +250,7 @@ export type Database = {
           matricula?: string
           nome?: string
           observacao?: string | null
+          salario?: number | null
           setor?: string
           setor_id?: string | null
           status_presenca?: string

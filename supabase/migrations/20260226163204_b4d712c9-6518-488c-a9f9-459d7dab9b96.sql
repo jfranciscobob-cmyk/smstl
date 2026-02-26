@@ -1,0 +1,1 @@
+ALTER TABLE public.servidores ADD COLUMN IF NOT EXISTS salario numeric(12,2) DEFAULT 0;
