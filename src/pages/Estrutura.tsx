@@ -441,24 +441,45 @@ function EstruturaContent() {
                     placeholder="Buscar servidor por nome ou matrícula..."
                     className="w-full h-8 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
                   />
-                  <div className="max-h-40 overflow-y-auto bg-card rounded border border-border shadow-md">
+                  <div className="max-h-48 overflow-y-auto bg-card rounded border border-border shadow-md">
                     {filteredSecAssign.map(s => (
-                      <button
+                      <label
                         key={s.id}
-                        onClick={async () => {
-                          await supabase.from("servidores").update({ diretoria_id: null, unidade_id: null, coordenacao_id: null }).eq("id", s.id);
-                          setAssigningSecretaria(false);
-                          setSecAssignSearch("");
-                          loadData();
-                        }}
-                        className="w-full text-left px-2 py-1.5 text-xs hover:bg-primary/10 text-foreground"
+                        className="flex items-center gap-2 w-full px-2 py-1.5 text-xs hover:bg-primary/10 text-foreground cursor-pointer"
                       >
+                        <Checkbox
+                          checked={secSelectedIds.has(s.id)}
+                          onCheckedChange={() => {
+                            setSecSelectedIds(prev => {
+                              const next = new Set(prev);
+                              if (next.has(s.id)) next.delete(s.id); else next.add(s.id);
+                              return next;
+                            });
+                          }}
+                        />
                         <span className="font-medium">{s.nome}</span>
-                        <span className="text-muted-foreground ml-2">({s.cargo})</span>
-                      </button>
+                        <span className="text-muted-foreground">({s.cargo})</span>
+                      </label>
                     ))}
                   </div>
-                  <button onClick={() => { setAssigningSecretaria(false); setSecAssignSearch(""); }} className="text-xs text-muted-foreground">Cancelar</button>
+                  <div className="flex items-center gap-2">
+                    {secSelectedIds.size > 0 && (
+                      <button
+                        onClick={async () => {
+                          await supabase.from("servidores").update({ diretoria_id: null, unidade_id: null, coordenacao_id: null }).in("id", Array.from(secSelectedIds));
+                          toast({ title: `${secSelectedIds.size} servidor(es) movido(s) para o gabinete!` });
+                          setAssigningSecretaria(false);
+                          setSecAssignSearch("");
+                          setSecSelectedIds(new Set());
+                          loadData();
+                        }}
+                        className="flex items-center gap-1 h-7 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
+                      >
+                        <Check className="h-3 w-3" /> Vincular {secSelectedIds.size} servidor(es)
+                      </button>
+                    )}
+                    <button onClick={() => { setAssigningSecretaria(false); setSecAssignSearch(""); setSecSelectedIds(new Set()); }} className="text-xs text-muted-foreground">Cancelar</button>
+                  </div>
                 </div>
               )}
 
