@@ -1288,6 +1288,7 @@ function MonitorContent() {
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Salário</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">F.Abon.</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Status</th>
+                      {canTransfer && <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap w-8"></th>}
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap w-10">Sem.</th>
                       <th className="pb-2 font-semibold text-muted-foreground">F.Abon.</th>
                       <th className="pb-2 font-semibold text-muted-foreground">Status</th>
