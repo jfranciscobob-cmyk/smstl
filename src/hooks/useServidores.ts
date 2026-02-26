@@ -31,6 +31,7 @@ export interface ServidorDB {
   coordenacao_id: string | null;
   is_diretor: boolean;
   is_coordenador: boolean;
+  is_secretario: boolean;
   created_at: string;
   updated_at: string;
 }

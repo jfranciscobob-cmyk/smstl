@@ -28,7 +28,7 @@ function EstruturaContent() {
   const [createServidorTarget, setCreateServidorTarget] = useState<{ diretoria_id?: string; unidade_id?: string; coordenacao_id?: string } | null>(null);
   const [assigningTo, setAssigningTo] = useState<{ type: "unidade" | "coordenacao"; id: string; diretoria_id: string } | null>(null);
   const [assignSearch, setAssignSearch] = useState("");
-  const [pickingRole, setPickingRole] = useState<{ type: "diretor" | "coordenador"; targetId: string; diretoriaId?: string; unidadeId?: string } | null>(null);
+  const [pickingRole, setPickingRole] = useState<{ type: "diretor" | "coordenador" | "secretario"; targetId: string; diretoriaId?: string; unidadeId?: string } | null>(null);
   const [roleSearch, setRoleSearch] = useState("");
 
   const loadData = useCallback(async () => {
@@ -37,7 +37,7 @@ function EstruturaContent() {
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenacoes").select("*").order("nome"),
-      supabase.from("servidores").select("id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id").order("nome").limit(2000),
+      supabase.from("servidores").select("id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, is_diretor, is_coordenador, is_secretario").order("nome").limit(5000),
     ]);
     setDiretorias((d.data ?? []) as DiretoriaDB[]);
     setUnidades((u.data ?? []) as UnidadeDB[]);
@@ -121,6 +121,7 @@ function EstruturaContent() {
   const getDiretor = (diretoriaId: string) => servidores.find(s => s.diretoria_id === diretoriaId && s.is_diretor);
   const getCoordenador = (coordId: string) => servidores.find(s => s.coordenacao_id === coordId && s.is_coordenador);
   const getCoordenadorByUnidade = (unidadeId: string) => servidores.find(s => s.unidade_id === unidadeId && s.is_coordenador);
+  const getSecretario = () => servidores.find(s => s.is_secretario);
 
   const filteredAssignResults = assignSearch.length >= 2
     ? servidores.filter(s => s.nome.toLowerCase().includes(assignSearch.toLowerCase()) || s.matricula.includes(assignSearch)).slice(0, 8)
@@ -130,22 +131,26 @@ function EstruturaContent() {
     ? servidores.filter(s => s.nome.toLowerCase().includes(roleSearch.toLowerCase()) || s.matricula.includes(roleSearch)).slice(0, 8)
     : servidores.slice(0, 8);
 
-  const assignRole = async (servidorId: string, type: "diretor" | "coordenador", diretoriaId?: string, unidadeId?: string, coordId?: string) => {
+  const assignRole = async (servidorId: string, type: "diretor" | "coordenador" | "secretario", diretoriaId?: string, unidadeId?: string, coordId?: string) => {
     const updateData: any = type === "diretor"
       ? { is_diretor: true, diretoria_id: diretoriaId }
-      : { is_coordenador: true, coordenacao_id: coordId, unidade_id: unidadeId, diretoria_id: diretoriaId };
+      : type === "coordenador"
+      ? { is_coordenador: true, coordenacao_id: coordId, unidade_id: unidadeId, diretoria_id: diretoriaId }
+      : { is_secretario: true };
     const { error } = await supabase.from("servidores").update(updateData).eq("id", servidorId);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    toast({ title: type === "diretor" ? "Diretor(a) definido!" : "Coordenador(a) definido!" });
+    const labels = { diretor: "Diretor(a) definido!", coordenador: "Coordenador(a) definido!", secretario: "Secretário(a) definido!" };
+    toast({ title: labels[type] });
     setPickingRole(null);
     setRoleSearch("");
     loadData();
   };
 
-  const removeRole = async (servidorId: string, type: "diretor" | "coordenador") => {
-    const updateData = type === "diretor" ? { is_diretor: false } : { is_coordenador: false };
+  const removeRole = async (servidorId: string, type: "diretor" | "coordenador" | "secretario") => {
+    const updateData = type === "diretor" ? { is_diretor: false } : type === "coordenador" ? { is_coordenador: false } : { is_secretario: false };
     await supabase.from("servidores").update(updateData).eq("id", servidorId);
-    toast({ title: type === "diretor" ? "Diretor removido" : "Coordenador removido" });
+    const labels = { diretor: "Diretor removido", coordenador: "Coordenador removido", secretario: "Secretário removido" };
+    toast({ title: labels[type] });
     loadData();
   };
 
@@ -211,276 +216,334 @@ function EstruturaContent() {
           </div>
         </div>
 
-        {/* Hierarchy */}
-        {diretorias.length === 0 && (
-          <div className="glass-card rounded-xl p-12 text-center">
-            <Building2 className="mx-auto h-12 w-12 text-muted-foreground/40" />
-            <h3 className="mt-4 text-lg font-semibold text-foreground">Nenhuma diretoria cadastrada</h3>
-            <p className="mt-2 text-sm text-muted-foreground">Crie a primeira diretoria acima para começar a montar a hierarquia.</p>
-          </div>
-        )}
-
-        {diretorias.map(dir => {
-          const dirUnidades = unidades.filter(u => u.diretoria_id === dir.id);
-          const isExpanded = expanded[dir.id] !== false;
-
-          return (
-            <div key={dir.id} className="glass-card rounded-xl overflow-hidden">
-              {/* Diretoria header */}
-              <div className="flex items-center justify-between px-5 py-4 bg-primary/5">
-                <button onClick={() => toggleExpand(dir.id)} className="flex items-center gap-3 flex-1 text-left">
-                  {isExpanded ? <ChevronDown className="h-5 w-5 text-primary" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
-                  <Building2 className="h-5 w-5 text-primary" />
-                  {editingId === dir.id ? (
-                    <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                      <input
-                        autoFocus
-                        value={editingValue}
-                        onChange={e => setEditingValue(e.target.value)}
-                        onKeyDown={e => e.key === "Enter" && saveRename("diretorias", dir.id)}
-                        className="h-8 rounded border border-input bg-card px-3 text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none"
-                      />
-                      <button onClick={() => saveRename("diretorias", dir.id)} className="text-primary hover:text-primary/80"><Check className="h-4 w-4" /></button>
-                      <button onClick={() => setEditingId(null)} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
-                    </div>
-                  ) : (
-                    <div>
-                      <h3 className="text-base font-bold text-foreground">{dir.nome}</h3>
-                      <p className="text-xs text-muted-foreground">{dirUnidades.length} unidade(s)</p>
-                    </div>
-                  )}
-                </button>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => { setEditingId(dir.id); setEditingValue(dir.nome); }}
-                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                    title="Renomear"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => deleteDiretoria(dir.id)}
-                    className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                    title="Excluir"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
+        {/* Secretaria root card */}
+        <div className="glass-card rounded-xl overflow-hidden border-2 border-primary/20">
+          {/* Secretaria header */}
+          <div className="flex items-center justify-between px-5 py-4 bg-primary/10">
+            <button onClick={() => toggleExpand("secretaria")} className="flex items-center gap-3 flex-1 text-left">
+              {expanded["secretaria"] !== false ? <ChevronDown className="h-5 w-5 text-primary" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+              <Shield className="h-6 w-6 text-primary" />
+              <div>
+                <h2 className="text-lg font-bold text-foreground">Secretaria Municipal de Saúde</h2>
+                <p className="text-xs text-muted-foreground">{diretorias.length} diretoria(s) · {servidores.length} servidores</p>
               </div>
+            </button>
+          </div>
 
-              {/* Diretor section */}
-              {(() => {
-                const diretor = getDiretor(dir.id);
+          {/* Secretário picker */}
+          {(() => {
+            const secretario = getSecretario();
+            return (
+              <div className="px-5 py-3 border-t border-border/30 bg-muted/10 flex items-center gap-3 flex-wrap">
+                <Crown className="h-4 w-4 text-primary" />
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Secretário(a):</span>
+                {secretario ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-foreground">{secretario.nome}</span>
+                    <button onClick={() => removeRole(secretario.id, "secretario")} className="p-1 rounded text-muted-foreground hover:text-destructive" title="Remover secretário">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : pickingRole?.type === "secretario" ? (
+                  <div className="flex-1 max-w-sm space-y-1">
+                    <input
+                      autoFocus
+                      value={roleSearch}
+                      onChange={e => setRoleSearch(e.target.value)}
+                      placeholder="Buscar servidor..."
+                      className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                    />
+                    <div className="max-h-32 overflow-y-auto bg-card rounded border border-border shadow-md">
+                      {filteredRoleResults.map(s => (
+                        <button key={s.id} onClick={() => assignRole(s.id, "secretario")} className="w-full text-left px-2 py-1 text-xs hover:bg-primary/10 text-foreground">
+                          {s.nome} <span className="text-muted-foreground">({s.matricula})</span>
+                        </button>
+                      ))}
+                    </div>
+                    <button onClick={() => { setPickingRole(null); setRoleSearch(""); }} className="text-xs text-muted-foreground">Cancelar</button>
+                  </div>
+                ) : (
+                  <button onClick={() => setPickingRole({ type: "secretario", targetId: "secretaria" })} className="text-xs text-primary font-medium hover:text-primary/80 transition-colors">
+                    + Definir secretário(a)
+                  </button>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Diretorias nested inside */}
+          {expanded["secretaria"] !== false && (
+            <div className="px-4 pb-4 pt-2 space-y-4">
+              {diretorias.length === 0 && (
+                <div className="rounded-lg p-8 text-center bg-muted/20">
+                  <Building2 className="mx-auto h-10 w-10 text-muted-foreground/40" />
+                  <h3 className="mt-3 text-base font-semibold text-foreground">Nenhuma diretoria cadastrada</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">Crie a primeira diretoria acima.</p>
+                </div>
+              )}
+
+              {diretorias.map(dir => {
+                const dirUnidades = unidades.filter(u => u.diretoria_id === dir.id);
+                const isExpanded = expanded[dir.id] !== false;
+
                 return (
-                  <div className="px-5 py-2 border-t border-border/30 bg-muted/10 flex items-center gap-3 flex-wrap">
-                    <Crown className="h-4 w-4 text-amber-500" />
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Diretor(a):</span>
-                    {diretor ? (
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-foreground">{diretor.nome}</span>
-                        <button onClick={() => removeRole(diretor.id, "diretor")} className="p-1 rounded text-muted-foreground hover:text-destructive" title="Remover diretor">
-                          <X className="h-3 w-3" />
+                  <div key={dir.id} className="border border-border/50 rounded-xl overflow-hidden">
+                    {/* Diretoria header */}
+                    <div className="flex items-center justify-between px-5 py-4 bg-primary/5">
+                      <button onClick={() => toggleExpand(dir.id)} className="flex items-center gap-3 flex-1 text-left">
+                        {isExpanded ? <ChevronDown className="h-5 w-5 text-primary" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+                        <Building2 className="h-5 w-5 text-primary" />
+                        {editingId === dir.id ? (
+                          <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                            <input
+                              autoFocus
+                              value={editingValue}
+                              onChange={e => setEditingValue(e.target.value)}
+                              onKeyDown={e => e.key === "Enter" && saveRename("diretorias", dir.id)}
+                              className="h-8 rounded border border-input bg-card px-3 text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                            />
+                            <button onClick={() => saveRename("diretorias", dir.id)} className="text-primary hover:text-primary/80"><Check className="h-4 w-4" /></button>
+                            <button onClick={() => setEditingId(null)} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+                          </div>
+                        ) : (
+                          <div>
+                            <h3 className="text-base font-bold text-foreground">{dir.nome}</h3>
+                            <p className="text-xs text-muted-foreground">{dirUnidades.length} unidade(s)</p>
+                          </div>
+                        )}
+                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => { setEditingId(dir.id); setEditingValue(dir.nome); }}
+                          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                          title="Renomear"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteDiretoria(dir.id)}
+                          className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          title="Excluir"
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
-                    ) : pickingRole?.type === "diretor" && pickingRole.targetId === dir.id ? (
-                      <div className="flex-1 max-w-sm space-y-1">
-                        <input
-                          autoFocus
-                          value={roleSearch}
-                          onChange={e => setRoleSearch(e.target.value)}
-                          placeholder="Buscar servidor..."
-                          className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
-                        />
-                        <div className="max-h-32 overflow-y-auto bg-card rounded border border-border shadow-md">
-                          {filteredRoleResults.map(s => (
-                            <button key={s.id} onClick={() => assignRole(s.id, "diretor", dir.id)} className="w-full text-left px-2 py-1 text-xs hover:bg-primary/10 text-foreground">
-                              {s.nome} <span className="text-muted-foreground">({s.matricula})</span>
+                    </div>
+
+                    {/* Diretor section */}
+                    {(() => {
+                      const diretor = getDiretor(dir.id);
+                      return (
+                        <div className="px-5 py-2 border-t border-border/30 bg-muted/10 flex items-center gap-3 flex-wrap">
+                          <Crown className="h-4 w-4 text-amber-500" />
+                          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Diretor(a):</span>
+                          {diretor ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-foreground">{diretor.nome}</span>
+                              <button onClick={() => removeRole(diretor.id, "diretor")} className="p-1 rounded text-muted-foreground hover:text-destructive" title="Remover diretor">
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ) : pickingRole?.type === "diretor" && pickingRole.targetId === dir.id ? (
+                            <div className="flex-1 max-w-sm space-y-1">
+                              <input
+                                autoFocus
+                                value={roleSearch}
+                                onChange={e => setRoleSearch(e.target.value)}
+                                placeholder="Buscar servidor..."
+                                className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                              />
+                              <div className="max-h-32 overflow-y-auto bg-card rounded border border-border shadow-md">
+                                {filteredRoleResults.map(s => (
+                                  <button key={s.id} onClick={() => assignRole(s.id, "diretor", dir.id)} className="w-full text-left px-2 py-1 text-xs hover:bg-primary/10 text-foreground">
+                                    {s.nome} <span className="text-muted-foreground">({s.matricula})</span>
+                                  </button>
+                                ))}
+                              </div>
+                              <button onClick={() => { setPickingRole(null); setRoleSearch(""); }} className="text-xs text-muted-foreground">Cancelar</button>
+                            </div>
+                          ) : (
+                            <button onClick={() => setPickingRole({ type: "diretor", targetId: dir.id })} className="text-xs text-primary font-medium hover:text-primary/80 transition-colors">
+                              + Definir diretor(a)
                             </button>
-                          ))}
+                          )}
                         </div>
-                        <button onClick={() => { setPickingRole(null); setRoleSearch(""); }} className="text-xs text-muted-foreground">Cancelar</button>
+                      );
+                    })()}
+
+                    {isExpanded && (
+                      <div className="px-5 pb-4 space-y-3 pt-3">
+                        {/* Add Unidade */}
+                        {newUnidade?.diretoria_id === dir.id ? (
+                          <div className="flex gap-2 items-center bg-muted/30 rounded-lg p-3">
+                            <input
+                              autoFocus
+                              value={newUnidade.sigla}
+                              onChange={e => setNewUnidade({ ...newUnidade, sigla: e.target.value })}
+                              placeholder="Sigla (ex: CRA)"
+                              className="w-24 h-9 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                            />
+                            <input
+                              value={newUnidade.nome}
+                              onChange={e => setNewUnidade({ ...newUnidade, nome: e.target.value })}
+                              onKeyDown={e => e.key === "Enter" && addUnidade()}
+                              placeholder="Nome completo da unidade..."
+                              className="flex-1 h-9 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                            />
+                            <button onClick={addUnidade} className="h-9 px-3 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
+                              <Check className="h-4 w-4" />
+                            </button>
+                            <button onClick={() => setNewUnidade(null)} className="h-9 px-2 rounded-lg text-muted-foreground hover:text-foreground">
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setNewUnidade({ nome: "", sigla: "", diretoria_id: dir.id })}
+                            className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                          >
+                            <Plus className="h-4 w-4" /> Adicionar unidade
+                          </button>
+                        )}
+
+                        {/* Unidades list */}
+                        {dirUnidades.map(uni => {
+                          const uniExpanded = expanded[uni.id] !== false;
+
+                          return (
+                            <div key={uni.id} className="border border-border/50 rounded-lg overflow-hidden">
+                              <div className="flex items-center justify-between px-4 py-3 bg-muted/20">
+                                <button onClick={() => toggleExpand(uni.id)} className="flex items-center gap-2 flex-1 text-left">
+                                  {uniExpanded ? <ChevronDown className="h-4 w-4 text-primary" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                                  {editingId === uni.id ? (
+                                    <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                                      <input
+                                        autoFocus
+                                        value={editingValue}
+                                        onChange={e => setEditingValue(e.target.value)}
+                                        onKeyDown={e => e.key === "Enter" && saveRename("unidades", uni.id)}
+                                        className="h-7 rounded border border-input bg-card px-2 text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                                      />
+                                      <button onClick={() => saveRename("unidades", uni.id)} className="text-primary"><Check className="h-3.5 w-3.5" /></button>
+                                      <button onClick={() => setEditingId(null)} className="text-muted-foreground"><X className="h-3.5 w-3.5" /></button>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm font-bold text-foreground">{uni.sigla}</span>
+                                      <span className="text-sm text-muted-foreground">— {uni.nome}</span>
+                                      <span className="flex items-center gap-1 text-xs font-medium text-primary ml-2">
+                                        <Users className="h-3 w-3" />
+                                        {getServidoresByUnidade(uni.id).length} servidores
+                                      </span>
+                                    </div>
+                                  )}
+                                </button>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => setCreateServidorTarget({ diretoria_id: dir.id, unidade_id: uni.id })}
+                                    className="p-1.5 rounded text-primary hover:bg-primary/10 transition-colors" title="Novo servidor nesta unidade"
+                                  >
+                                    <UserPlus className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => setAssigningTo({ type: "unidade", id: uni.id, diretoria_id: dir.id })}
+                                    className="p-1.5 rounded text-primary hover:bg-primary/10 transition-colors" title="Vincular servidor existente"
+                                  >
+                                    <Users className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button onClick={() => { setEditingId(uni.id); setEditingValue(uni.nome); }} className="p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                                    <Edit2 className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button onClick={() => deleteUnidade(uni.id)} className="p-1.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Assign to unidade dropdown */}
+                              {assigningTo?.type === "unidade" && assigningTo.id === uni.id && (
+                                <div className="px-5 py-3 border-t border-border/30 space-y-2">
+                                  <input
+                                    autoFocus
+                                    value={assignSearch}
+                                    onChange={e => setAssignSearch(e.target.value)}
+                                    placeholder="Buscar servidor por nome ou matrícula..."
+                                    className="w-full h-8 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                                  />
+                                  <div className="max-h-40 overflow-y-auto space-y-1">
+                                    {filteredAssignResults.map(s => (
+                                      <button
+                                        key={s.id}
+                                        onClick={() => assignServidor(s.id, assigningTo.diretoria_id, uni.id)}
+                                        className="w-full text-left px-2 py-1.5 rounded text-xs hover:bg-primary/10 transition-colors text-foreground"
+                                      >
+                                        <span className="font-medium">{s.nome}</span>
+                                        <span className="text-muted-foreground ml-2">({s.matricula})</span>
+                                      </button>
+                                    ))}
+                                    {filteredAssignResults.length === 0 && (
+                                      <p className="text-xs text-muted-foreground py-1 px-2">Nenhum servidor encontrado</p>
+                                    )}
+                                  </div>
+                                  <button onClick={() => { setAssigningTo(null); setAssignSearch(""); }} className="text-xs text-muted-foreground hover:text-foreground">Cancelar</button>
+                                </div>
+                              )}
+
+                              {/* Coordenador picker */}
+                              {uniExpanded && (
+                                <div className="px-4 pb-3 pt-2 space-y-2 ml-6">
+                                  {(() => {
+                                    const coordenador = getCoordenadorByUnidade(uni.id);
+                                    return (
+                                      <div className="flex items-center gap-2 flex-wrap py-1.5">
+                                        <Star className="h-3.5 w-3.5 text-amber-500" />
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Coordenador(a):</span>
+                                        {coordenador ? (
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-sm font-medium text-foreground">{coordenador.nome}</span>
+                                            <button onClick={() => removeRole(coordenador.id, "coordenador")} className="p-1 rounded text-muted-foreground hover:text-destructive" title="Remover coordenador">
+                                              <X className="h-3 w-3" />
+                                            </button>
+                                          </div>
+                                        ) : pickingRole?.type === "coordenador" && pickingRole.targetId === uni.id ? (
+                                          <div className="flex-1 max-w-sm space-y-1">
+                                            <input
+                                              autoFocus
+                                              value={roleSearch}
+                                              onChange={e => setRoleSearch(e.target.value)}
+                                              placeholder="Buscar servidor..."
+                                              className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                                            />
+                                            <div className="max-h-32 overflow-y-auto bg-card rounded border border-border shadow-md">
+                                              {filteredRoleResults.map(s => (
+                                                <button key={s.id} onClick={() => assignRole(s.id, "coordenador", dir.id, uni.id)} className="w-full text-left px-2 py-1 text-xs hover:bg-primary/10 text-foreground">
+                                                  {s.nome} <span className="text-muted-foreground">({s.matricula})</span>
+                                                </button>
+                                              ))}
+                                            </div>
+                                            <button onClick={() => { setPickingRole(null); setRoleSearch(""); }} className="text-xs text-muted-foreground">Cancelar</button>
+                                          </div>
+                                        ) : (
+                                          <button onClick={() => setPickingRole({ type: "coordenador", targetId: uni.id, diretoriaId: dir.id, unidadeId: uni.id })} className="text-xs text-primary font-medium hover:text-primary/80 transition-colors">
+                                            + Definir coordenador(a)
+                                          </button>
+                                        )}
+                                      </div>
+                                    );
+                                  })()}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
-                    ) : (
-                      <button onClick={() => setPickingRole({ type: "diretor", targetId: dir.id })} className="text-xs text-primary font-medium hover:text-primary/80 transition-colors">
-                        + Definir diretor(a)
-                      </button>
                     )}
                   </div>
                 );
-              })()}
-
-              {isExpanded && (
-                <div className="px-5 pb-4 space-y-3 pt-3">
-                  {/* Add Unidade */}
-                  {newUnidade?.diretoria_id === dir.id ? (
-                    <div className="flex gap-2 items-center bg-muted/30 rounded-lg p-3">
-                      <input
-                        autoFocus
-                        value={newUnidade.sigla}
-                        onChange={e => setNewUnidade({ ...newUnidade, sigla: e.target.value })}
-                        placeholder="Sigla (ex: CRA)"
-                        className="w-24 h-9 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
-                      />
-                      <input
-                        value={newUnidade.nome}
-                        onChange={e => setNewUnidade({ ...newUnidade, nome: e.target.value })}
-                        onKeyDown={e => e.key === "Enter" && addUnidade()}
-                        placeholder="Nome completo da unidade..."
-                        className="flex-1 h-9 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
-                      />
-                      <button onClick={addUnidade} className="h-9 px-3 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
-                        <Check className="h-4 w-4" />
-                      </button>
-                      <button onClick={() => setNewUnidade(null)} className="h-9 px-2 rounded-lg text-muted-foreground hover:text-foreground">
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setNewUnidade({ nome: "", sigla: "", diretoria_id: dir.id })}
-                      className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-                    >
-                      <Plus className="h-4 w-4" /> Adicionar unidade
-                    </button>
-                  )}
-
-                  {/* Unidades list */}
-                  {dirUnidades.map(uni => {
-                    const uniCoords = coordenacoes.filter(c => c.unidade_id === uni.id);
-                    const uniExpanded = expanded[uni.id] !== false;
-
-                    return (
-                      <div key={uni.id} className="border border-border/50 rounded-lg overflow-hidden">
-                        <div className="flex items-center justify-between px-4 py-3 bg-muted/20">
-                          <button onClick={() => toggleExpand(uni.id)} className="flex items-center gap-2 flex-1 text-left">
-                            {uniExpanded ? <ChevronDown className="h-4 w-4 text-primary" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-                            {editingId === uni.id ? (
-                              <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                                <input
-                                  autoFocus
-                                  value={editingValue}
-                                  onChange={e => setEditingValue(e.target.value)}
-                                  onKeyDown={e => e.key === "Enter" && saveRename("unidades", uni.id)}
-                                  className="h-7 rounded border border-input bg-card px-2 text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none"
-                                />
-                                <button onClick={() => saveRename("unidades", uni.id)} className="text-primary"><Check className="h-3.5 w-3.5" /></button>
-                                <button onClick={() => setEditingId(null)} className="text-muted-foreground"><X className="h-3.5 w-3.5" /></button>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-bold text-foreground">{uni.sigla}</span>
-                                <span className="text-sm text-muted-foreground">— {uni.nome}</span>
-                                <span className="text-xs text-muted-foreground">({uniCoords.length} coord.)</span>
-                                <span className="flex items-center gap-1 text-xs font-medium text-primary ml-2">
-                                  <Users className="h-3 w-3" />
-                                  {getServidoresByUnidade(uni.id).length} servidores
-                                </span>
-                              </div>
-                            )}
-                          </button>
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() => setCreateServidorTarget({ diretoria_id: dir.id, unidade_id: uni.id })}
-                              className="p-1.5 rounded text-primary hover:bg-primary/10 transition-colors" title="Novo servidor nesta unidade"
-                            >
-                              <UserPlus className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              onClick={() => setAssigningTo({ type: "unidade", id: uni.id, diretoria_id: dir.id })}
-                              className="p-1.5 rounded text-primary hover:bg-primary/10 transition-colors" title="Vincular servidor existente"
-                            >
-                              <Users className="h-3.5 w-3.5" />
-                            </button>
-                            <button onClick={() => { setEditingId(uni.id); setEditingValue(uni.nome); }} className="p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-                              <Edit2 className="h-3.5 w-3.5" />
-                            </button>
-                            <button onClick={() => deleteUnidade(uni.id)} className="p-1.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Assign to unidade dropdown */}
-                        {assigningTo?.type === "unidade" && assigningTo.id === uni.id && (
-                          <div className="px-5 py-3 border-t border-border/30 space-y-2">
-                            <input
-                              autoFocus
-                              value={assignSearch}
-                              onChange={e => setAssignSearch(e.target.value)}
-                              placeholder="Buscar servidor por nome ou matrícula..."
-                              className="w-full h-8 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
-                            />
-                            <div className="max-h-40 overflow-y-auto space-y-1">
-                              {filteredAssignResults.map(s => (
-                                <button
-                                  key={s.id}
-                                  onClick={() => assignServidor(s.id, assigningTo.diretoria_id, uni.id)}
-                                  className="w-full text-left px-2 py-1.5 rounded text-xs hover:bg-primary/10 transition-colors text-foreground"
-                                >
-                                  <span className="font-medium">{s.nome}</span>
-                                  <span className="text-muted-foreground ml-2">({s.matricula})</span>
-                                </button>
-                              ))}
-                              {filteredAssignResults.length === 0 && (
-                                <p className="text-xs text-muted-foreground py-1 px-2">Nenhum servidor encontrado</p>
-                              )}
-                            </div>
-                            <button onClick={() => { setAssigningTo(null); setAssignSearch(""); }} className="text-xs text-muted-foreground hover:text-foreground">Cancelar</button>
-                          </div>
-                        )}
-
-                        {uniExpanded && (
-                          <div className="px-4 pb-3 pt-2 space-y-2 ml-6">
-                            {/* Coordenador picker - same pattern as diretor */}
-                            {(() => {
-                              const coordenador = getCoordenadorByUnidade(uni.id);
-                              return (
-                                <div className="flex items-center gap-2 flex-wrap py-1.5">
-                                  <Star className="h-3.5 w-3.5 text-amber-500" />
-                                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Coordenador(a):</span>
-                                  {coordenador ? (
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-sm font-medium text-foreground">{coordenador.nome}</span>
-                                      <button onClick={() => removeRole(coordenador.id, "coordenador")} className="p-1 rounded text-muted-foreground hover:text-destructive" title="Remover coordenador">
-                                        <X className="h-3 w-3" />
-                                      </button>
-                                    </div>
-                                  ) : pickingRole?.type === "coordenador" && pickingRole.targetId === uni.id ? (
-                                    <div className="flex-1 max-w-sm space-y-1">
-                                      <input
-                                        autoFocus
-                                        value={roleSearch}
-                                        onChange={e => setRoleSearch(e.target.value)}
-                                        placeholder="Buscar servidor..."
-                                        className="w-full h-7 rounded border border-input bg-card px-2 text-xs text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
-                                      />
-                                      <div className="max-h-32 overflow-y-auto bg-card rounded border border-border shadow-md">
-                                        {filteredRoleResults.map(s => (
-                                          <button key={s.id} onClick={() => assignRole(s.id, "coordenador", dir.id, uni.id)} className="w-full text-left px-2 py-1 text-xs hover:bg-primary/10 text-foreground">
-                                            {s.nome} <span className="text-muted-foreground">({s.matricula})</span>
-                                          </button>
-                                        ))}
-                                      </div>
-                                      <button onClick={() => { setPickingRole(null); setRoleSearch(""); }} className="text-xs text-muted-foreground">Cancelar</button>
-                                    </div>
-                                  ) : (
-                                    <button onClick={() => setPickingRole({ type: "coordenador", targetId: uni.id, diretoriaId: dir.id, unidadeId: uni.id })} className="text-xs text-primary font-medium hover:text-primary/80 transition-colors">
-                                      + Definir coordenador(a)
-                                    </button>
-                                  )}
-                                </div>
-                              );
-                            })()}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              })}
             </div>
-          );
-        })}
+          )}
+        </div>
       </main>
 
       <CreateServidorModal

@@ -91,6 +91,7 @@ export type Database = {
           id: string
           is_coordenador: boolean
           is_diretor: boolean
+          is_secretario: boolean
           local_trabalho: string
           matricula: string
           nome: string
@@ -124,6 +125,7 @@ export type Database = {
           id?: string
           is_coordenador?: boolean
           is_diretor?: boolean
+          is_secretario?: boolean
           local_trabalho?: string
           matricula: string
           nome: string
@@ -157,6 +159,7 @@ export type Database = {
           id?: string
           is_coordenador?: boolean
           is_diretor?: boolean
+          is_secretario?: boolean
           local_trabalho?: string
           matricula?: string
           nome?: string
