@@ -612,6 +612,22 @@ function EstruturaContent() {
                           </button>
                         )}
 
+                        {/* Setores da Diretoria */}
+                        <SetorList
+                          setores={getSetoresByDiretoria(dir.id)}
+                          servidores={servidores}
+                          diretoriaId={dir.id}
+                          onAddSetor={(nome, cargo, dirId) => {
+                            supabase.from("setores").insert({ nome, cargo_gestao: cargo || null, diretoria_id: dirId }).then(({ error }) => {
+                              if (!error) loadData();
+                            });
+                          }}
+                          onDeleteSetor={deleteSetor}
+                          onAssignServidor={assignServidorToSetor}
+                          onSetResponsavel={setResponsavelSetor}
+                          allServidores={servidores}
+                        />
+
                         {/* Unidades list */}
                         {dirUnidades.map(uni => {
                           const uniExpanded = expanded[uni.id] !== false;
