@@ -1,8 +1,7 @@
 import { cn } from "@/lib/utils";
-import type { StatusPresenca } from "@/types/servidor";
 import { CheckCircle, XCircle, Palmtree, AlertTriangle, Clock } from "lucide-react";
 
-const statusConfig: Record<StatusPresenca, { label: string; icon: typeof CheckCircle; className: string }> = {
+const statusConfig: Record<string, { label: string; icon: typeof CheckCircle; className: string }> = {
   presente: { label: "Presente", icon: CheckCircle, className: "bg-status-present/10 text-status-present" },
   ausente: { label: "Ausente", icon: XCircle, className: "bg-status-absent/10 text-status-absent" },
   ferias: { label: "Férias", icon: Palmtree, className: "bg-status-vacation/10 text-status-vacation" },
@@ -10,8 +9,8 @@ const statusConfig: Record<StatusPresenca, { label: string; icon: typeof CheckCi
   licenca: { label: "Licença", icon: Clock, className: "bg-status-leave/10 text-status-leave" },
 };
 
-export function StatusBadge({ status }: { status: StatusPresenca }) {
-  const config = statusConfig[status];
+export function StatusBadge({ status }: { status: string }) {
+  const config = statusConfig[status] ?? statusConfig.presente;
   const Icon = config.icon;
 
   return (
