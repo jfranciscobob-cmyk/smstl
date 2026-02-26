@@ -149,10 +149,10 @@ function EstruturaContent() {
     loadData();
   };
 
-  const removeRole = async (servidorId: string, type: "diretor" | "coordenador" | "secretario") => {
-    const updateData = type === "diretor" ? { is_diretor: false } : type === "coordenador" ? { is_coordenador: false } : { is_secretario: false };
+  const removeRole = async (servidorId: string, type: "diretor" | "coordenador" | "secretario" | "diretor_geral") => {
+    const updateData = type === "diretor" ? { is_diretor: false } : type === "coordenador" ? { is_coordenador: false } : type === "diretor_geral" ? { is_diretor_geral: false } : { is_secretario: false };
     await supabase.from("servidores").update(updateData).eq("id", servidorId);
-    const labels = { diretor: "Diretor removido", coordenador: "Coordenador removido", secretario: "Secretário removido" };
+    const labels: Record<string, string> = { diretor: "Diretor removido", coordenador: "Coordenador removido", secretario: "Secretário removido", diretor_geral: "Diretor Geral removido" };
     toast({ title: labels[type] });
     loadData();
   };
