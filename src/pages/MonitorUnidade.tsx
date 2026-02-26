@@ -608,7 +608,7 @@ function MonitorContent() {
                         <span><Users className="h-3 w-3 inline mr-1" />{semDir.length}</span>
                         <span className="text-success"><CheckCircle className="h-3 w-3 inline mr-1" />{semDir.filter(s => s.status_presenca === "presente").length}</span>
                       </div>
-                      {folha > 0 && <p className="mt-2 text-xs font-mono font-bold text-warning">{formatCurrency(folha)}</p>}
+                      {hasFinancialAccess && folha > 0 && <p className="mt-2 text-xs font-mono font-bold text-warning">{formatCurrency(folha)}</p>}
                     </div>
                   );
                 })()}
