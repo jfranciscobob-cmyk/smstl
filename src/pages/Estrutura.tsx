@@ -325,6 +325,67 @@ function EstruturaContent() {
             );
           })()}
 
+          {/* Servidores da Secretaria (sem diretoria) */}
+          {expanded["secretaria"] !== false && (
+            <div className="px-5 py-3 border-t border-border/30">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <Users className="h-3.5 w-3.5" /> Servidores do Gabinete ({secretariaServidores.length})
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCreateServidorTarget({})}
+                    className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80 transition-colors"
+                  >
+                    <UserPlus className="h-3.5 w-3.5" /> Novo
+                  </button>
+                  <button
+                    onClick={() => setAssigningSecretaria(true)}
+                    className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80 transition-colors"
+                  >
+                    <Users className="h-3.5 w-3.5" /> Vincular
+                  </button>
+                </div>
+              </div>
+
+              {assigningSecretaria && (
+                <div className="mb-3 space-y-2 max-w-md">
+                  <input
+                    autoFocus
+                    value={secAssignSearch}
+                    onChange={e => setSecAssignSearch(e.target.value)}
+                    placeholder="Buscar servidor por nome ou matrícula..."
+                    className="w-full h-8 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                  />
+                  <div className="max-h-40 overflow-y-auto bg-card rounded border border-border shadow-md">
+                    {filteredSecAssign.map(s => (
+                      <button
+                        key={s.id}
+                        onClick={async () => {
+                          await supabase.from("servidores").update({ diretoria_id: null, unidade_id: null, coordenacao_id: null }).eq("id", s.id);
+                          setAssigningSecretaria(false);
+                          setSecAssignSearch("");
+                          loadData();
+                        }}
+                        className="w-full text-left px-2 py-1.5 text-xs hover:bg-primary/10 text-foreground"
+                      >
+                        <span className="font-medium">{s.nome}</span>
+                        <span className="text-muted-foreground ml-2">({s.cargo})</span>
+                      </button>
+                    ))}
+                  </div>
+                  <button onClick={() => { setAssigningSecretaria(false); setSecAssignSearch(""); }} className="text-xs text-muted-foreground">Cancelar</button>
+                </div>
+              )}
+
+              <UnidadeServidores
+                servidores={secretariaServidores}
+                onEditServidor={setEditingServidor}
+                defaultExpanded={secretariaServidores.length <= 30}
+              />
+            </div>
+          )}
+
           {/* Diretorias nested inside */}
           {expanded["secretaria"] !== false && (
             <div className="px-4 pb-4 pt-2 space-y-4">
