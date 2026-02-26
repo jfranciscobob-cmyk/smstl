@@ -156,235 +156,233 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
         {/* Dashboard content when data exists */}
         {servidores.length > 0 && !isLoading && (
           <>
-            {/* Stats grid */}
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-              <StatCard
-                title="Total Servidores"
-                value={stats.total}
-                icon={<Users className="h-5 w-5" />}
-                subtitle={`${diretorias.length} diretorias · ${unidades.length} unidades`}
-              />
-              <StatCard
-                title="Presentes"
-                value={stats.presentes}
-                icon={<CheckCircle className="h-5 w-5" />}
-                variant="success"
-                subtitle={stats.total > 0 ? `${Math.round((stats.presentes / stats.total) * 100)}% do efetivo` : "—"}
-              />
-              <StatCard
-                title="Em Férias"
-                value={stats.ferias}
-                icon={<Palmtree className="h-5 w-5" />}
-                variant="warning"
-                subtitle={stats.total > 0 ? `${Math.round((stats.ferias / stats.total) * 100)}% do efetivo` : "—"}
-              />
-              <StatCard
-                title="Afastados"
-                value={stats.afastados}
-                icon={<AlertTriangle className="h-5 w-5" />}
-                variant="danger"
-                subtitle={stats.total > 0 ? `${Math.round((stats.afastados / stats.total) * 100)}% do efetivo` : "—"}
-              />
-              <StatCard
-                title="Funções Críticas"
-                value={stats.funcoesCriticas}
-                icon={<Shield className="h-5 w-5" />}
-                variant="info"
-                subtitle="Cobertura necessária"
-              />
-            </div>
-
-            {/* Charts + quick actions row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-2">
-                <VinculoChart servidores={servidores} />
+            {/* View Tabs */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex rounded-xl border border-border overflow-hidden bg-card">
+                <button
+                  onClick={() => setView("monitor")}
+                  className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold transition-all ${view === "monitor" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+                >
+                  <Eye className="h-4 w-4" /> Monitoramento
+                </button>
+                <button
+                  onClick={() => setView("hierarchy")}
+                  className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold transition-all ${view === "hierarchy" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+                >
+                  <Building2 className="h-4 w-4" /> Por Diretoria
+                </button>
+                <button
+                  onClick={() => setView("list")}
+                  className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold transition-all ${view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+                >
+                  <ClipboardList className="h-4 w-4" /> Lista
+                </button>
               </div>
-              <div className="space-y-4">
-                {/* Quick actions */}
-                <div className="rounded-xl border border-border bg-card p-5">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-                    Ações Rápidas
-                  </h3>
-                  <div className="space-y-2">
-                    <Link
-                      to="/estrutura"
-                      className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors group"
-                    >
-                      <span className="flex items-center gap-3">
-                        <Network className="h-4 w-4 text-primary" />
-                        Gerenciar Estrutura
-                      </span>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                    </Link>
-                    <button
-                      onClick={() => setShowCreateModal(true)}
-                      className="w-full flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors group"
-                    >
-                      <span className="flex items-center gap-3">
-                        <UserPlus className="h-4 w-4 text-primary" />
-                        Novo Servidor
-                      </span>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                    </button>
-                  </div>
-                </div>
 
-                {/* Resumo rápido */}
-                <div className="rounded-xl border border-border bg-card p-5">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-                    Resumo
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Concursados</span>
-                      <span className="text-sm font-mono font-bold text-foreground">{stats.concursados.toLocaleString("pt-BR")}</span>
-                    </div>
-                    <div className="h-px bg-border" />
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Contratados</span>
-                      <span className="text-sm font-mono font-bold text-foreground">{stats.contratados.toLocaleString("pt-BR")}</span>
-                    </div>
-                    <div className="h-px bg-border" />
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Diretorias</span>
-                      <span className="text-sm font-mono font-bold text-foreground">{diretorias.length}</span>
-                    </div>
-                    <div className="h-px bg-border" />
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Unidades</span>
-                      <span className="text-sm font-mono font-bold text-foreground">{unidades.length}</span>
-                    </div>
-                  </div>
-                </div>
+              <div className="flex-1" />
 
-                {/* Import */}
-                <div className="rounded-xl border border-dashed border-border bg-card/50 p-5">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                    Importação
-                  </h3>
-                  <ImportCSVButton onComplete={loadData} />
-                </div>
+              {/* Stats summary pills */}
+              <div className="flex items-center gap-2 text-xs">
+                <span className="flex items-center gap-1.5 rounded-lg bg-card border border-border px-3 py-2 font-mono font-bold text-foreground">
+                  <Users className="h-3.5 w-3.5 text-primary" /> {stats.total.toLocaleString("pt-BR")}
+                </span>
+                <span className="flex items-center gap-1.5 rounded-lg bg-success/10 border border-success/20 px-3 py-2 font-mono font-bold text-success">
+                  <CheckCircle className="h-3.5 w-3.5" /> {stats.presentes.toLocaleString("pt-BR")}
+                </span>
+                <span className="flex items-center gap-1.5 rounded-lg bg-warning/10 border border-warning/20 px-3 py-2 font-mono font-bold text-warning">
+                  <Palmtree className="h-3.5 w-3.5" /> {stats.ferias}
+                </span>
+                <span className="flex items-center gap-1.5 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 font-mono font-bold text-destructive">
+                  <AlertTriangle className="h-3.5 w-3.5" /> {stats.afastados}
+                </span>
               </div>
             </div>
 
-            {/* Search & Filters */}
-            <div className="rounded-xl border border-border bg-card p-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="relative flex-1 max-w-lg">
-                  <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <input
-                    type="text"
-                    placeholder="Buscar por nome, cargo ou setor..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="h-11 w-full rounded-lg border border-input bg-background pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+            {/* MONITOR VIEW */}
+            {view === "monitor" && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <HierarchyMonitor
+                    servidores={servidores}
+                    diretorias={diretorias}
+                    unidades={unidades}
+                    coordenacoes={coordenacoes}
                   />
                 </div>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {statusFilters.map(({ key, label, count }) => (
-                    <button
-                      key={key}
-                      onClick={() => setFilterStatus(key)}
-                      className={`rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
-                        filterStatus === key
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
-                      }`}
-                    >
-                      {label}
-                      <span className={`ml-1.5 font-mono ${filterStatus === key ? "text-primary-foreground/70" : "text-muted-foreground/60"}`}>
-                        {count}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-                <div className="flex rounded-lg border border-border overflow-hidden">
-                  <button
-                    onClick={() => setView("hierarchy")}
-                    className={`px-3.5 py-2.5 text-xs font-medium transition-all ${view === "hierarchy" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:bg-muted"}`}
-                  >
-                    <Building2 className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => setView("list")}
-                    className={`px-3.5 py-2.5 text-xs font-medium transition-all ${view === "list" ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:bg-muted"}`}
-                  >
-                    <ClipboardList className="h-4 w-4" />
-                  </button>
+                <div className="space-y-4">
+                  <VinculoChart servidores={servidores} />
+
+                  {/* Quick actions */}
+                  <div className="rounded-xl border border-border bg-card p-5">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+                      Ações Rápidas
+                    </h3>
+                    <div className="space-y-2">
+                      <Link
+                        to="/estrutura"
+                        className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors group"
+                      >
+                        <span className="flex items-center gap-3">
+                          <Network className="h-4 w-4 text-primary" />
+                          Gerenciar Estrutura
+                        </span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                      </Link>
+                      <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="w-full flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors group"
+                      >
+                        <span className="flex items-center gap-3">
+                          <UserPlus className="h-4 w-4 text-primary" />
+                          Novo Servidor
+                        </span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Resumo */}
+                  <div className="rounded-xl border border-border bg-card p-5">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Resumo</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Concursados</span>
+                        <span className="text-sm font-mono font-bold text-foreground">{stats.concursados.toLocaleString("pt-BR")}</span>
+                      </div>
+                      <div className="h-px bg-border" />
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Contratados</span>
+                        <span className="text-sm font-mono font-bold text-foreground">{stats.contratados.toLocaleString("pt-BR")}</span>
+                      </div>
+                      <div className="h-px bg-border" />
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Diretorias</span>
+                        <span className="text-sm font-mono font-bold text-foreground">{diretorias.length}</span>
+                      </div>
+                      <div className="h-px bg-border" />
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Unidades</span>
+                        <span className="text-sm font-mono font-bold text-foreground">{unidades.length}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-dashed border-border bg-card/50 p-5">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Importação</h3>
+                    <ImportCSVButton onComplete={loadData} />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Server list */}
-            {view === "hierarchy" ? (
-              <div className="space-y-6">
-                {diretorias.map((dir) => {
-                  const dirUnidades = unidades.filter((u) => u.diretoria_id === dir.id);
-                  const dirServidor = servidores.find((s) => s.diretoria_id === dir.id && s.is_diretor);
-                  return (
-                    <div key={dir.id} className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-1 rounded-full gradient-primary" />
-                        <div>
-                          <h2 className="text-lg font-bold text-foreground">{dir.nome}</h2>
-                          {dirServidor && (
-                            <p className="text-xs text-muted-foreground">
-                              Diretor(a): <span className="font-semibold text-foreground">{dirServidor.nome}</span>
-                            </p>
+            {/* HIERARCHY / LIST VIEWS */}
+            {(view === "hierarchy" || view === "list") && (
+              <>
+                {/* Search & Filters */}
+                <div className="rounded-xl border border-border bg-card p-5">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="relative flex-1 max-w-lg">
+                      <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        type="text"
+                        placeholder="Buscar por nome, cargo ou setor..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="h-11 w-full rounded-lg border border-input bg-background pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {statusFilters.map(({ key, label, count }) => (
+                        <button
+                          key={key}
+                          onClick={() => setFilterStatus(key)}
+                          className={`rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
+                            filterStatus === key
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+                          }`}
+                        >
+                          {label}
+                          <span className={`ml-1.5 font-mono ${filterStatus === key ? "text-primary-foreground/70" : "text-muted-foreground/60"}`}>
+                            {count}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {view === "hierarchy" ? (
+                  <div className="space-y-6">
+                    {diretorias.map((dir) => {
+                      const dirUnidades = unidades.filter((u) => u.diretoria_id === dir.id);
+                      const dirServidor = servidores.find((s) => s.diretoria_id === dir.id && s.is_diretor);
+                      return (
+                        <div key={dir.id} className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-1 rounded-full gradient-primary" />
+                            <div>
+                              <h2 className="text-lg font-bold text-foreground">{dir.nome}</h2>
+                              {dirServidor && (
+                                <p className="text-xs text-muted-foreground">
+                                  Diretor(a): <span className="font-semibold text-foreground">{dirServidor.nome}</span>
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="grid gap-3 pl-4 border-l-2 border-border ml-1">
+                            {dirUnidades.map((unidade) => (
+                              <UnidadeSection
+                                key={unidade.id}
+                                unidade={unidade}
+                                coordenacoes={coordenacoes.filter((c) => c.unidade_id === unidade.id)}
+                                servidores={filteredServidores.filter((s) => s.unidade_id === unidade.id)}
+                                onEditServidor={setEditingServidor}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {filteredServidores.filter((s) => !s.diretoria_id).length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-1 rounded-full bg-muted-foreground/30" />
+                          <h2 className="text-lg font-bold text-foreground">Sem Diretoria</h2>
+                        </div>
+                        <div className="rounded-xl border border-border bg-card overflow-hidden divide-y divide-border/50">
+                          {filteredServidores.filter((s) => !s.diretoria_id).slice(0, 50).map((servidor) => (
+                            <ServidorRow key={servidor.id} servidor={servidor} onEdit={setEditingServidor} />
+                          ))}
+                          {filteredServidores.filter((s) => !s.diretoria_id).length > 50 && (
+                            <div className="px-5 py-3 text-center text-xs text-muted-foreground">
+                              Mostrando 50 de {filteredServidores.filter((s) => !s.diretoria_id).length} servidores
+                            </div>
                           )}
                         </div>
                       </div>
-                      <div className="grid gap-3 pl-4 border-l-2 border-border ml-1">
-                        {dirUnidades.map((unidade) => (
-                          <UnidadeSection
-                            key={unidade.id}
-                            unidade={unidade}
-                            coordenacoes={coordenacoes.filter((c) => c.unidade_id === unidade.id)}
-                            servidores={filteredServidores.filter((s) => s.unidade_id === unidade.id)}
-                            onEditServidor={setEditingServidor}
-                          />
-                        ))}
-                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-border bg-card overflow-hidden">
+                    <div className="px-5 py-3 border-b border-border bg-muted/30">
+                      <p className="text-sm font-semibold text-foreground">
+                        {filteredServidores.length.toLocaleString("pt-BR")} servidores encontrados
+                      </p>
                     </div>
-                  );
-                })}
-                {filteredServidores.filter((s) => !s.diretoria_id).length > 0 && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-1 rounded-full bg-muted-foreground/30" />
-                      <h2 className="text-lg font-bold text-foreground">Sem Diretoria</h2>
-                    </div>
-                    <div className="rounded-xl border border-border bg-card overflow-hidden divide-y divide-border/50">
-                      {filteredServidores.filter((s) => !s.diretoria_id).slice(0, 50).map((servidor) => (
+                    <div className="divide-y divide-border/50">
+                      {filteredServidores.slice(0, 100).map((servidor) => (
                         <ServidorRow key={servidor.id} servidor={servidor} onEdit={setEditingServidor} />
                       ))}
-                      {filteredServidores.filter((s) => !s.diretoria_id).length > 50 && (
-                        <div className="px-5 py-3 text-center text-xs text-muted-foreground">
-                          Mostrando 50 de {filteredServidores.filter((s) => !s.diretoria_id).length} servidores sem diretoria
+                      {filteredServidores.length > 100 && (
+                        <div className="px-5 py-4 text-center text-sm text-muted-foreground">
+                          Mostrando 100 de {filteredServidores.length.toLocaleString("pt-BR")} servidores. Use a busca para refinar.
                         </div>
                       )}
                     </div>
                   </div>
                 )}
-              </div>
-            ) : (
-              <div className="rounded-xl border border-border bg-card overflow-hidden">
-                <div className="px-5 py-3 border-b border-border bg-muted/30">
-                  <p className="text-sm font-semibold text-foreground">
-                    {filteredServidores.length.toLocaleString("pt-BR")} servidores encontrados
-                  </p>
-                </div>
-                <div className="divide-y divide-border/50">
-                  {filteredServidores.slice(0, 100).map((servidor) => (
-                    <ServidorRow key={servidor.id} servidor={servidor} onEdit={setEditingServidor} />
-                  ))}
-                  {filteredServidores.length > 100 && (
-                    <div className="px-5 py-4 text-center text-sm text-muted-foreground">
-                      Mostrando 100 de {filteredServidores.length.toLocaleString("pt-BR")} servidores. Use a busca para refinar.
-                    </div>
-                  )}
-                </div>
-              </div>
+              </>
             )}
           </>
         )}
