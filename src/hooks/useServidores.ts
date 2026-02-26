@@ -112,6 +112,17 @@ export interface AtestadoDB {
   updated_at: string;
 }
 
+export interface AfastamentoDB {
+  id: string;
+  servidor_id: string;
+  motivo: string;
+  data_inicio: string;
+  data_fim: string | null;
+  observacao: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // Fetch all rows from servidores bypassing the 1000-row default limit
 async function fetchAllServidores(selectCols = "*"): Promise<ServidorDB[]> {
   const PAGE = 1000;
