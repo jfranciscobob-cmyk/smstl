@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Shield, Network, LogOut, UserPlus, Upload } from "lucide-react";
+import { Shield, Network, LogOut, UserPlus, Key } from "lucide-react";
+import { useAuthSession } from "@/hooks/useAuthSession";
 
 interface DashboardHeaderProps {
   userEmail?: string;
@@ -8,6 +9,8 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ userEmail, onSignOut, onCreateServidor }: DashboardHeaderProps) {
+  const { hasFullAccess } = useAuthSession();
+
   return (
     <header className="gradient-hero sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4">
@@ -32,21 +35,35 @@ export function DashboardHeader({ userEmail, onSignOut, onCreateServidor }: Dash
               <span className="text-[11px] font-medium text-primary-foreground/40">Tempo real</span>
             </div>
             
-            <button
-              onClick={onCreateServidor}
-              className="flex h-9 items-center gap-2 rounded-lg bg-primary-foreground/10 border border-primary-foreground/10 px-3.5 text-xs font-semibold text-primary-foreground hover:bg-primary-foreground/20 transition-all"
-            >
-              <UserPlus className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Novo Servidor</span>
-            </button>
+            {hasFullAccess && (
+              <button
+                onClick={onCreateServidor}
+                className="flex h-9 items-center gap-2 rounded-lg bg-primary-foreground/10 border border-primary-foreground/10 px-3.5 text-xs font-semibold text-primary-foreground hover:bg-primary-foreground/20 transition-all"
+              >
+                <UserPlus className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Novo Servidor</span>
+              </button>
+            )}
 
-            <Link
-              to="/estrutura"
-              className="flex h-9 items-center gap-2 rounded-lg bg-primary-foreground/10 border border-primary-foreground/10 px-3.5 text-xs font-semibold text-primary-foreground hover:bg-primary-foreground/20 transition-all"
-            >
-              <Network className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Estrutura</span>
-            </Link>
+            {hasFullAccess && (
+              <Link
+                to="/estrutura"
+                className="flex h-9 items-center gap-2 rounded-lg bg-primary-foreground/10 border border-primary-foreground/10 px-3.5 text-xs font-semibold text-primary-foreground hover:bg-primary-foreground/20 transition-all"
+              >
+                <Network className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Estrutura</span>
+              </Link>
+            )}
+
+            {hasFullAccess && (
+              <Link
+                to="/admin/usuarios"
+                className="flex h-9 items-center gap-2 rounded-lg bg-primary-foreground/10 border border-primary-foreground/10 px-3.5 text-xs font-semibold text-primary-foreground hover:bg-primary-foreground/20 transition-all"
+              >
+                <Key className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Usuários</span>
+              </Link>
+            )}
 
             <div className="hidden sm:flex items-center gap-2 ml-2 pl-2 border-l border-primary-foreground/10">
               <div className="h-7 w-7 rounded-full bg-primary-foreground/15 flex items-center justify-center">

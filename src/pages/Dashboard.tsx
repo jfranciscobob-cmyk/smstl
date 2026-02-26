@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthSession } from "@/hooks/useAuthSession";
 import { ImportCSVButton } from "@/components/ImportCSVButton";
-import { LoginForm } from "@/components/LoginForm";
 import { StatCard } from "@/components/StatCard";
 import { ServidorRow } from "@/components/ServidorRow";
 import { DashboardHeader } from "@/components/DashboardHeader";
@@ -485,7 +484,7 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
 }
 
 const Dashboard = () => {
-  const { signOut, user } = useAuth();
+  const { signOut, user } = useAuthSession();
   return <DashboardContent signOut={signOut} userEmail={user?.email} />;
 };
 
