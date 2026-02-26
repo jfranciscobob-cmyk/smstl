@@ -120,7 +120,6 @@ function EstruturaContent() {
   const filteredAssignResults = assignSearch.length >= 2
     ? servidores.filter(s => s.nome.toLowerCase().includes(assignSearch.toLowerCase()) || s.matricula.includes(assignSearch)).slice(0, 8)
     : unassignedServidores.slice(0, 8);
-  };
 
   const deleteCoord = async (id: string) => {
     await supabase.from("coordenacoes").delete().eq("id", id);
