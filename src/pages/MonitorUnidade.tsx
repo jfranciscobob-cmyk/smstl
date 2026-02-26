@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { ServidorDB, DiretoriaDB, UnidadeDB, FuncaoDB, AtestadoDB } from "@/hooks/useServidores";
+import type { ServidorDB, DiretoriaDB, UnidadeDB, FuncaoDB, AtestadoDB, FaltaAbonadaDB } from "@/hooks/useServidores";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft, Loader2, Users, Clock, AlertTriangle, Palmtree, FileText,
   CheckCircle, Building2, ChevronDown, ChevronRight, Plus, X, Calendar,
-  DollarSign, Eye, Shield
+  DollarSign, Eye, Shield, Ban, Pencil, Save, CalendarCheck
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { format, parseISO, isWithinInterval, addDays, isBefore, isAfter } from "date-fns";
+import { format, parseISO, isWithinInterval, addDays, isBefore, isAfter, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
 
 function formatCurrency(value: number) {
