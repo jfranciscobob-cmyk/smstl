@@ -231,6 +231,8 @@ function DiretoriaCard({ diretoria, servidores, unidades, coordenacoes, coordena
                 servidores={uniServidores}
                 coordenacoes={coordenacoes.filter(c => c.unidade_id === uni.id)}
                 coordenadores={coordenadores}
+                coordenadoresUnidades={coordenadoresUnidades}
+                allUnidades={unidades}
               />
             );
           })}
