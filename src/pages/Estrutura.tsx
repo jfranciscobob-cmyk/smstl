@@ -456,6 +456,24 @@ function EstruturaContent() {
                 onEditServidor={setEditingServidor}
                 defaultExpanded={secretariaServidores.length <= 30}
               />
+
+              {/* Setores da Secretaria */}
+              <div className="mt-4">
+                <SetorList
+                  setores={getSetoresByDiretoria(null)}
+                  servidores={servidores}
+                  diretoriaId={null}
+                  onAddSetor={(nome, cargo, dirId) => {
+                    supabase.from("setores").insert({ nome, cargo_gestao: cargo || null, diretoria_id: dirId }).then(({ error }) => {
+                      if (!error) loadData();
+                    });
+                  }}
+                  onDeleteSetor={deleteSetor}
+                  onAssignServidor={assignServidorToSetor}
+                  onSetResponsavel={setResponsavelSetor}
+                  allServidores={servidores}
+                />
+              </div>
             </div>
           )}
 
