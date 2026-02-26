@@ -260,7 +260,7 @@ function MonitorContent() {
 
   // Payroll card for a group of servidores
   const PayrollCard = ({ servs, label }: { servs: ServidorDB[]; label: string }) => {
-    const folha = servs.reduce((sum, s) => sum + ((s as any).salario || 0), 0);
+    const folha = servs.reduce((sum, s) => sum + (s.salario || 0), 0);
     const count = servs.length;
     return (
       <div className="rounded-xl border border-border bg-card p-4">
