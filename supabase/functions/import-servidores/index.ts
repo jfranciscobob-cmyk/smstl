@@ -50,7 +50,13 @@ serve(async (req) => {
 
       if (!nome) continue;
 
-      if (!servidoresMap.has(nome)) {
+      if (servidoresMap.has(nome)) {
+        // Same person may appear multiple times (multiple payroll entries)
+        // Sum the salary and keep the highest carga_horaria
+        const existing = servidoresMap.get(nome)!;
+        existing.salario += salario;
+        if (cargaHoraria > existing.carga_horaria) existing.carga_horaria = cargaHoraria;
+      } else {
         servidoresMap.set(nome, { nome, cargo, vinculo, carga_horaria: cargaHoraria, data_admissao: dataAdmissao, salario });
       }
     }
