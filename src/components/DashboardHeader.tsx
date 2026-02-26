@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Shield, Network, LogOut, UserPlus, Key, ArrowRightLeft, Bell } from "lucide-react";
+import { Shield, Network, LogOut, UserPlus, Key, ArrowRightLeft, Bell, BookOpen } from "lucide-react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { supabase } from "@/integrations/supabase/client";
 import type { DiretoriaDB, ServidorDB } from "@/hooks/useServidores";
@@ -113,6 +113,14 @@ export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, direto
                   <span className="hidden sm:inline">Usuários</span>
                 </Link>
               )}
+
+              <Link
+                to="/manual"
+                className="flex h-9 items-center gap-2 rounded-lg bg-primary-foreground/10 border border-primary-foreground/10 px-3.5 text-xs font-semibold text-primary-foreground hover:bg-primary-foreground/20 transition-all"
+              >
+                <BookOpen className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Manual</span>
+              </Link>
 
               <div className="hidden sm:flex items-center gap-2 ml-2 pl-2 border-l border-primary-foreground/10">
                 <div className="h-7 w-7 rounded-full bg-primary-foreground/15 flex items-center justify-center">
