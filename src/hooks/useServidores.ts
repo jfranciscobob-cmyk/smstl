@@ -86,9 +86,7 @@ export function useDiretorias() {
   return useQuery({
     queryKey: ["diretorias"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("diretorias").select("*").order("nome");
-      if (error) throw error;
-      return data as DiretoriaDB[];
+      return fetchAll<DiretoriaDB>("diretorias");
     },
   });
 }
