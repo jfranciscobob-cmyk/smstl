@@ -9,6 +9,8 @@ import {
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { CreateServidorModal } from "@/components/CreateServidorModal";
+import { UnidadeServidores } from "@/components/UnidadeServidores";
+import { EditServidorModal } from "@/components/EditServidorModal";
 
 function EstruturaContent() {
   const { toast } = useToast();
