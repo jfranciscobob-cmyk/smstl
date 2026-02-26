@@ -118,10 +118,35 @@ function EstruturaContent() {
   const unassignedServidores = servidores.filter(s => !s.unidade_id);
   const getServidoresByUnidade = (unidadeId: string) => servidores.filter(s => s.unidade_id === unidadeId);
   const getServidoresByCoord = (coordId: string) => servidores.filter(s => s.coordenacao_id === coordId);
+  const getDiretor = (diretoriaId: string) => servidores.find(s => s.diretoria_id === diretoriaId && s.is_diretor);
+  const getCoordenador = (coordId: string) => servidores.find(s => s.coordenacao_id === coordId && s.is_coordenador);
 
   const filteredAssignResults = assignSearch.length >= 2
     ? servidores.filter(s => s.nome.toLowerCase().includes(assignSearch.toLowerCase()) || s.matricula.includes(assignSearch)).slice(0, 8)
     : unassignedServidores.slice(0, 8);
+
+  const filteredRoleResults = roleSearch.length >= 2
+    ? servidores.filter(s => s.nome.toLowerCase().includes(roleSearch.toLowerCase()) || s.matricula.includes(roleSearch)).slice(0, 8)
+    : servidores.slice(0, 8);
+
+  const assignRole = async (servidorId: string, type: "diretor" | "coordenador", diretoriaId?: string, unidadeId?: string, coordId?: string) => {
+    const updateData: any = type === "diretor"
+      ? { is_diretor: true, diretoria_id: diretoriaId }
+      : { is_coordenador: true, coordenacao_id: coordId, unidade_id: unidadeId, diretoria_id: diretoriaId };
+    const { error } = await supabase.from("servidores").update(updateData).eq("id", servidorId);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: type === "diretor" ? "Diretor(a) definido!" : "Coordenador(a) definido!" });
+    setPickingRole(null);
+    setRoleSearch("");
+    loadData();
+  };
+
+  const removeRole = async (servidorId: string, type: "diretor" | "coordenador") => {
+    const updateData = type === "diretor" ? { is_diretor: false } : { is_coordenador: false };
+    await supabase.from("servidores").update(updateData).eq("id", servidorId);
+    toast({ title: type === "diretor" ? "Diretor removido" : "Coordenador removido" });
+    loadData();
+  };
 
   const deleteCoord = async (id: string) => {
     await supabase.from("coordenacoes").delete().eq("id", id);
