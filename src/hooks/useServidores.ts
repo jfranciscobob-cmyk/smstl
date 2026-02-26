@@ -35,6 +35,7 @@ export interface ServidorDB {
   is_diretor_geral: boolean;
   created_at: string;
   updated_at: string;
+  setor_id: string | null;
 }
 
 export interface DiretoriaDB {
