@@ -265,6 +265,17 @@ export default function AdminUsuarios() {
                     className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
                   />
                 </div>
+                <div className="flex items-center gap-3 pt-1">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editForm.acesso_financeiro}
+                      onChange={e => setEditForm(f => ({ ...f, acesso_financeiro: e.target.checked }))}
+                      className="h-4 w-4 rounded border-input"
+                    />
+                    <span className="text-xs font-medium text-foreground">Acesso à parte financeira (folha, salários)</span>
+                  </label>
+                </div>
               </div>
               <div className="flex items-center gap-2 pt-2">
                 <button

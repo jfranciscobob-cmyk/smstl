@@ -51,9 +51,12 @@ serve(async (req) => {
       if (updateError) throw updateError;
     }
 
-    // Update profile name
-    if (nome !== undefined) {
-      await supabase.from("profiles").update({ nome }).eq("id", user_id);
+    // Update profile name and financial access
+    const profileUpdate: Record<string, unknown> = {};
+    if (nome !== undefined) profileUpdate.nome = nome;
+    if (acesso_financeiro !== undefined) profileUpdate.acesso_financeiro = acesso_financeiro;
+    if (Object.keys(profileUpdate).length > 0) {
+      await supabase.from("profiles").update(profileUpdate).eq("id", user_id);
     }
 
     // Update role if provided
