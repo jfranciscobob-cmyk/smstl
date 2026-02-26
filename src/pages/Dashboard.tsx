@@ -497,7 +497,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                       <th className="text-center px-3 py-3 font-semibold">Presentes</th>
                       <th className="text-center px-3 py-3 font-semibold">Cobertura</th>
                       <th className="text-center px-3 py-3 font-semibold">Unidades</th>
-                      <th className="text-right px-5 py-3 font-semibold">Folha Est.</th>
+                      {hasFinancialAccess && <th className="text-right px-5 py-3 font-semibold">Folha Est.</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/50">
