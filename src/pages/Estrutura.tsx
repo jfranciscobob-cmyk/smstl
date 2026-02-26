@@ -328,10 +328,18 @@ function EstruturaContent() {
               <Shield className="h-6 w-6 text-primary" />
               <div>
                 <h2 className="text-lg font-bold text-foreground">Secretaria Municipal de Saúde</h2>
-                <p className="text-xs text-muted-foreground">{diretorias.length} diretoria(s) · {servidores.length} servidores</p>
+                <p className="text-xs text-muted-foreground">
+                  {diretorias.length} diretoria(s) · {servidores.length} total · {secretariaServidores.length} no gabinete
+                </p>
               </div>
             </button>
-          </div>
+            {/* Allocation progress */}
+            <div className="flex items-center gap-3 mr-3">
+              <span className="text-xs text-muted-foreground font-mono">
+                <span className="font-bold text-foreground">{servidores.filter(s => s.diretoria_id).length}</span> alocados
+              </span>
+              <span className="text-xs text-warning font-mono font-bold">{secretariaServidores.length} pendentes</span>
+            </div>
 
           {/* Secretário picker */}
           {(() => {
