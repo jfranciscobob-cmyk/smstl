@@ -59,6 +59,11 @@ function MonitorContent() {
   const [savingBulk, setSavingBulk] = useState(false);
   const [expandedSemanalId, setExpandedSemanalId] = useState<string | null>(null);
 
+  // Bulk férias
+  const [showBulkFerias, setShowBulkFerias] = useState(false);
+  const [bulkFerias, setBulkFerias] = useState<Record<string, { status: string; p1_inicio: string; p1_fim: string; p2_inicio: string; p2_fim: string; total_dias: string; vencidas: string }>>({});
+  const [savingBulkFerias, setSavingBulkFerias] = useState(false);
+
   // Expanded diretorias
   const [expandedDirs, setExpandedDirs] = useState<Record<string, boolean>>({});
 
