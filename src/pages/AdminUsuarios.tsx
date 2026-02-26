@@ -32,7 +32,7 @@ export default function AdminUsuarios() {
 
   // Edit user
   const [editUser, setEditUser] = useState<ProfileRow | null>(null);
-  const [editForm, setEditForm] = useState({ nome: "", role: "", password: "" });
+  const [editForm, setEditForm] = useState({ nome: "", role: "", password: "", acesso_financeiro: false });
   const [saving, setSaving] = useState(false);
 
   const loadData = useCallback(async () => {
