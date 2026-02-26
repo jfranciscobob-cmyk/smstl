@@ -263,6 +263,7 @@ function EstruturaContent() {
     toast({ title: agrupamentoId ? "Unidade vinculada ao agrupamento!" : "Unidade desvinculada do agrupamento!" });
     loadData();
   };
+  const getSecretario = () => servidores.find(s => s.is_secretario);
   const getDiretorGeral = () => servidores.find(s => (s as any).is_diretor_geral);
 
   const filteredAssignResults = assignSearch.length >= 2
