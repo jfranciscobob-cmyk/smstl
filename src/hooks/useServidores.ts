@@ -113,9 +113,7 @@ export function useServidores() {
   return useQuery({
     queryKey: ["servidores"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("servidores").select("*").order("nome");
-      if (error) throw error;
-      return data as ServidorDB[];
+      return fetchAll<ServidorDB>("servidores");
     },
   });
 }
