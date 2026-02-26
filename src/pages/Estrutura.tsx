@@ -660,6 +660,7 @@ function EstruturaContent() {
                                   />
                                 </div>
                               )}
+                            </div>
                           );
                         })}
                       </div>
