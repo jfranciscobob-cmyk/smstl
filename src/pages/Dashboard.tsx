@@ -103,6 +103,13 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
                 <div className="flex h-2 w-2 rounded-full bg-status-present animate-pulse" />
                 <span className="text-xs font-medium text-muted-foreground">Tempo real</span>
               </div>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                <UserPlus className="h-3.5 w-3.5" />
+                Novo Servidor
+              </button>
               <Link
                 to="/estrutura"
                 className="flex h-8 items-center gap-1.5 rounded-lg bg-primary/10 px-3 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
