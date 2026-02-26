@@ -23,10 +23,9 @@ serve(async (req) => {
     }
 
     const lines = csvData.split("\n").filter((l: string) => l.trim().length > 0);
-    // Skip header
-    const dataLines = lines.slice(1);
+    const dataLines = lines.slice(1); // Skip header
 
-    // Parse and deduplicate by name (keep first occurrence with most data)
+    // Parse CSV and deduplicate by name
     const servidoresMap = new Map<string, {
       nome: string;
       cargo: string;
@@ -45,23 +44,16 @@ serve(async (req) => {
       const cargo = (parts[5] || "").trim();
       const dataAdmissao = (parts[6] || "").trim();
       const cargaHoraria = parseInt(parts[7] || "0", 10) || 0;
-      // Salário pode estar na coluna 8 ou 9 dependendo do layout
       const salarioRaw = (parts[8] || "").trim().replace(/[^\d.,]/g, "").replace(",", ".");
       const salario = parseFloat(salarioRaw) || 0;
 
       if (!nome) continue;
 
       if (!servidoresMap.has(nome)) {
-        servidoresMap.set(nome, {
-          nome, cargo, vinculo,
-          carga_horaria: cargaHoraria,
-          data_admissao: dataAdmissao,
-          salario,
-        });
+        servidoresMap.set(nome, { nome, cargo, vinculo, carga_horaria: cargaHoraria, data_admissao: dataAdmissao, salario });
       }
     }
 
-    // Map vinculo to simplified version
     function mapVinculo(v: string): string {
       if (v.includes("ESTATUTARIO EFETIVO")) return "CONCURSADO (EFETIVO)";
       if (v.includes("CONTRATO TEMPORARIO")) return "CONTRATO TEMPORARIO";
@@ -69,34 +61,112 @@ serve(async (req) => {
       return v;
     }
 
-    // Prepare inserts
-    const servidores = Array.from(servidoresMap.values()).map((s) => ({
-      nome: s.nome,
-      matricula: "",
-      cargo: s.cargo,
-      local_trabalho: "SECRETARIA MUNICIPAL DE SAUDE",
-      setor: "",
-      funcao_critica: false,
-      cobertura_prevista: "PARCIAL",
-      vinculo: mapVinculo(s.vinculo),
-      status_presenca: "presente",
-      escala_total_horas: s.carga_horaria > 0 ? Math.round(s.carga_horaria / 5) : null,
-      salario: s.salario,
-    }));
+    // ═══ FETCH ALL EXISTING SERVIDORES ═══
+    const PAGE = 1000;
+    let offset = 0;
+    let existingAll: any[] = [];
+    while (true) {
+      const { data, error } = await supabase
+        .from("servidores")
+        .select("id, nome")
+        .order("nome")
+        .range(offset, offset + PAGE - 1);
+      if (error) throw error;
+      if (!data || data.length === 0) break;
+      existingAll = existingAll.concat(data);
+      if (data.length < PAGE) break;
+      offset += PAGE;
+    }
 
-    // Clear existing before import
-    await supabase.from("servidores").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    // Build a map of existing servidores by normalized name
+    const normalizeName = (n: string) => n.trim().toUpperCase();
+    const existingByName = new Map<string, string>(); // name -> id
+    for (const e of existingAll) {
+      existingByName.set(normalizeName(e.nome), e.id);
+    }
 
-    // Insert in batches of 50
-    let inserted = 0;
+    const csvNames = new Set<string>();
+    const toInsert: any[] = [];
+    const toUpdate: { id: string; data: any }[] = [];
+
+    for (const s of servidoresMap.values()) {
+      const key = normalizeName(s.nome);
+      csvNames.add(key);
+
+      const updateFields: any = {
+        cargo: s.cargo,
+        vinculo: mapVinculo(s.vinculo),
+        salario: s.salario,
+      };
+      if (s.carga_horaria > 0) {
+        updateFields.escala_total_horas = Math.round(s.carga_horaria / 5);
+      }
+
+      const existingId = existingByName.get(key);
+      if (existingId) {
+        // UPDATE existing — only update CSV-sourced fields, NEVER touch:
+        // diretoria_id, unidade_id, coordenacao_id, setor_id, funcao_id,
+        // is_diretor, is_coordenador, is_secretario, is_diretor_geral,
+        // status_presenca, observacao, funcao_critica, cobertura_prevista, etc.
+        toUpdate.push({ id: existingId, data: updateFields });
+      } else {
+        // INSERT new
+        toInsert.push({
+          nome: s.nome,
+          matricula: "",
+          cargo: s.cargo,
+          local_trabalho: "SECRETARIA MUNICIPAL DE SAUDE",
+          setor: "",
+          funcao_critica: false,
+          cobertura_prevista: "PARCIAL",
+          vinculo: mapVinculo(s.vinculo),
+          status_presenca: "presente",
+          escala_total_horas: s.carga_horaria > 0 ? Math.round(s.carga_horaria / 5) : null,
+          salario: s.salario,
+        });
+      }
+    }
+
+    // ═══ DETECT REMOVED SERVIDORES (in DB but not in CSV) ═══
+    const removedNames: string[] = [];
+    const removedIds: string[] = [];
+    for (const [name, id] of existingByName.entries()) {
+      if (!csvNames.has(name)) {
+        removedNames.push(name);
+        removedIds.push(id);
+      }
+    }
+
+    // Mark removed servidores with an observation instead of deleting
+    // We set status to "ausente" and add a note, but NEVER delete
+    const markedDate = new Date().toISOString().slice(0, 10);
+    for (const id of removedIds) {
+      await supabase.from("servidores").update({
+        status_presenca: "ausente",
+        observacao: `[IMPORTAÇÃO ${markedDate}] Servidor não consta na planilha atualizada.`,
+      }).eq("id", id);
+    }
+
+    // ═══ UPDATE EXISTING ═══
+    let updated = 0;
     let errors: string[] = [];
-    const batchSize = 50;
+    for (const item of toUpdate) {
+      const { error } = await supabase.from("servidores").update(item.data).eq("id", item.id);
+      if (error) {
+        errors.push(`Update ${item.id}: ${error.message}`);
+      } else {
+        updated++;
+      }
+    }
 
-    for (let i = 0; i < servidores.length; i += batchSize) {
-      const batch = servidores.slice(i, i + batchSize);
+    // ═══ INSERT NEW ═══
+    let inserted = 0;
+    const batchSize = 50;
+    for (let i = 0; i < toInsert.length; i += batchSize) {
+      const batch = toInsert.slice(i, i + batchSize);
       const { error } = await supabase.from("servidores").insert(batch);
       if (error) {
-        errors.push(`Batch ${i / batchSize + 1}: ${error.message}`);
+        errors.push(`Insert batch ${Math.floor(i / batchSize) + 1}: ${error.message}`);
       } else {
         inserted += batch.length;
       }
@@ -105,8 +175,11 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        total_unique: servidores.length,
+        total_csv: servidoresMap.size,
         inserted,
+        updated,
+        removed: removedNames.length,
+        removed_names: removedNames.slice(0, 50), // Show up to 50 removed names
         errors,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
