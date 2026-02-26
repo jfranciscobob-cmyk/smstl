@@ -387,7 +387,7 @@ function MonitorContent() {
               </div>
               <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
                 <div className="flex items-center gap-2 text-xs text-primary mb-1"><DollarSign className="h-3.5 w-3.5" /> Folha Total</div>
-                <p className="text-lg font-bold text-foreground font-mono">{formatCurrency(servidores.reduce((s, sv) => s + ((sv as any).salario || 0), 0))}</p>
+                <p className="text-lg font-bold text-foreground font-mono">{formatCurrency(servidores.reduce((s, sv) => s + (sv.salario || 0), 0))}</p>
               </div>
             </div>
 
