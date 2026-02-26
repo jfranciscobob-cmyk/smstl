@@ -142,6 +142,52 @@ function EstruturaContent() {
     loadData();
   };
 
+  // CRUD Setores
+  const addSetor = async () => {
+    if (!newSetor || !newSetor.nome.trim()) return;
+    const { error } = await supabase.from("setores").insert({
+      nome: newSetor.nome.trim(),
+      cargo_gestao: newSetor.cargo_gestao.trim() || null,
+      diretoria_id: newSetor.diretoria_id,
+    });
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    setNewSetor(null);
+    toast({ title: "Setor/Função criado!" });
+    loadData();
+  };
+
+  const deleteSetor = async (id: string) => {
+    // Unlink servidores first
+    await supabase.from("servidores").update({ setor_id: null }).eq("setor_id", id);
+    await supabase.from("setores").delete().eq("id", id);
+    toast({ title: "Setor removido" });
+    loadData();
+  };
+
+  const assignServidorToSetor = async (servidorId: string, setorId: string, diretoriaId: string | null) => {
+    const updateData: any = { setor_id: setorId };
+    if (diretoriaId) updateData.diretoria_id = diretoriaId;
+    const { error } = await supabase.from("servidores").update(updateData).eq("id", servidorId);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Servidor vinculado ao setor!" });
+    setAssigningSetor(null);
+    setSetorAssignSearch("");
+    loadData();
+  };
+
+  const setResponsavelSetor = async (setorId: string, servidorId: string) => {
+    const { error } = await supabase.from("setores").update({ responsavel_id: servidorId }).eq("id", setorId);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Responsável definido!" });
+    setPickingRole(null);
+    setRoleSearch("");
+    loadData();
+  };
+
+  const getSetoresByDiretoria = (diretoriaId: string | null) => setores.filter(s => s.diretoria_id === diretoriaId);
+  const getServidoresBySetor = (setorId: string) => servidores.filter(s => (s as any).setor_id === setorId);
+  const getResponsavel = (responsavelId: string | null) => responsavelId ? servidores.find(s => s.id === responsavelId) : null;
+
   const unassignedServidores = servidores.filter(s => !s.unidade_id);
   const secretariaServidores = servidores.filter(s => !s.diretoria_id && !s.unidade_id);
   const getServidoresByUnidade = (unidadeId: string) => servidores.filter(s => s.unidade_id === unidadeId);
@@ -162,6 +208,10 @@ function EstruturaContent() {
 
   const filteredRoleResults = roleSearch.length >= 2
     ? servidores.filter(s => s.nome.toLowerCase().includes(roleSearch.toLowerCase()) || s.matricula.includes(roleSearch)).slice(0, 8)
+    : servidores.slice(0, 8);
+
+  const filteredSetorAssign = setorAssignSearch.length >= 2
+    ? servidores.filter(s => s.nome.toLowerCase().includes(setorAssignSearch.toLowerCase()) || s.matricula.includes(setorAssignSearch)).slice(0, 8)
     : servidores.slice(0, 8);
 
   const assignRole = async (servidorId: string, type: "diretor" | "coordenador" | "secretario" | "diretor_geral", diretoriaId?: string, unidadeId?: string, coordId?: string) => {
