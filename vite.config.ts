@@ -4,6 +4,9 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
+const FALLBACK_SUPABASE_URL = "https://ggbsmrhetqvfeciaigbk.supabase.co";
+const FALLBACK_SUPABASE_PUBLISHABLE_KEY = "<SECRET>";
+
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
@@ -17,5 +20,11 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  define: {
+    "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(process.env.VITE_SUPABASE_URL ?? FALLBACK_SUPABASE_URL),
+    "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
+      process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? FALLBACK_SUPABASE_PUBLISHABLE_KEY
+    ),
   },
 }));
