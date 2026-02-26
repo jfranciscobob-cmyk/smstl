@@ -248,6 +248,16 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
           </>
         )}
       </main>
+
+      <EditServidorModal
+        servidor={editingServidor}
+        open={!!editingServidor}
+        onClose={() => setEditingServidor(null)}
+        onSaved={loadData}
+        diretorias={diretorias}
+        unidades={unidades}
+        coordenacoes={coordenacoes}
+      />
     </div>
   );
 }
