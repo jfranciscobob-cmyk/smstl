@@ -33,7 +33,7 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
     setLoadError(null);
 
     const [servidoresRes, diretoriasRes, unidadesRes, coordenacoesRes] = await Promise.all([
-      supabase.from("servidores").select("*").order("nome").limit(2000),
+      supabase.from("servidores").select("*").order("nome").limit(5000),
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenacoes").select("*").order("nome"),
