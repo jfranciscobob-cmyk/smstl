@@ -51,22 +51,27 @@ function AppRoutes() {
   useEffect(() => {
     let isMounted = true;
 
-    supabase
-      .from("profiles")
-      .select("id", { count: "exact", head: true })
-      .then(({ count, error }) => {
+    const loadUsersCount = async () => {
+      try {
+        const { count, error } = await supabase
+          .from("profiles")
+          .select("id", { count: "exact", head: true });
+
         if (!isMounted) return;
         if (error) {
           console.error("[AppRoutes/profiles-count] error:", error);
           setHasAnyUsers(true);
           return;
         }
+
         setHasAnyUsers((count ?? 0) > 0);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("[AppRoutes/profiles-count] unexpected error:", err);
         if (isMounted) setHasAnyUsers(true);
-      });
+      }
+    };
+
+    void loadUsersCount();
 
     return () => {
       isMounted = false;
