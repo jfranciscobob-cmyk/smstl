@@ -92,6 +92,7 @@ export default function AdminUsuarios() {
       nome: profile.nome || "",
       role: userRoles[0] || "coordenador",
       password: "",
+      acesso_financeiro: profile.acesso_financeiro ?? false,
     });
   };
 
