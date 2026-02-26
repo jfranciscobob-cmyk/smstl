@@ -25,23 +25,28 @@ export function useAuthSession(): AuthSession {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    let isActive = true;
+
+    const loadAuthData = async (currentUser: User | null) => {
       try {
-        const currentUser = session?.user ?? null;
+        if (!isActive) return;
         setUser(currentUser);
 
         if (currentUser) {
-          const { data: rolesData } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", currentUser.id);
-          setRoles((rolesData ?? []) as UserRole[]);
+          const [{ data: rolesData }, { data: profile }] = await Promise.all([
+            supabase
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", currentUser.id),
+            supabase
+              .from("profiles")
+              .select("servidor_id")
+              .eq("id", currentUser.id)
+              .maybeSingle(),
+          ]);
 
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("servidor_id")
-            .eq("id", currentUser.id)
-            .maybeSingle();
+          if (!isActive) return;
+          setRoles((rolesData ?? []) as UserRole[]);
           setServidorId(profile?.servidor_id ?? null);
         } else {
           setRoles([]);
@@ -49,16 +54,30 @@ export function useAuthSession(): AuthSession {
         }
       } catch (err) {
         console.error("[useAuthSession] error:", err);
+        if (!isActive) return;
+        setRoles([]);
+        setServidorId(null);
       } finally {
-        setLoading(false);
+        if (isActive) setLoading(false);
       }
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      await loadAuthData(session?.user ?? null);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) setLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => loadAuthData(session?.user ?? null))
+      .catch((err) => {
+        console.error("[useAuthSession/getSession] error:", err);
+        if (isActive) setLoading(false);
+      });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isActive = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const isAdmin = roles.some(r => r.role === "admin");
