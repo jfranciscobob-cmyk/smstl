@@ -38,16 +38,32 @@ function EstruturaContent() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [d, u, c, s] = await Promise.all([
+    const [d, u, c] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenacoes").select("*").order("nome"),
-      supabase.from("servidores").select("id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, is_diretor, is_coordenador, is_secretario, is_diretor_geral").order("nome").limit(5000),
     ]);
+    // Fetch all servidores with pagination (bypass 1000 limit)
+    const selectCols = "id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, is_diretor, is_coordenador, is_secretario, is_diretor_geral";
+    const PAGE = 1000;
+    let offset = 0;
+    let allServidores: any[] = [];
+    while (true) {
+      const { data, error } = await supabase
+        .from("servidores")
+        .select(selectCols)
+        .order("nome")
+        .range(offset, offset + PAGE - 1);
+      if (error) break;
+      if (!data || data.length === 0) break;
+      allServidores = allServidores.concat(data);
+      if (data.length < PAGE) break;
+      offset += PAGE;
+    }
     setDiretorias((d.data ?? []) as DiretoriaDB[]);
     setUnidades((u.data ?? []) as UnidadeDB[]);
     setCoordenacoes((c.data ?? []) as CoordenacaoDB[]);
-    setServidores((s.data ?? []) as ServidorDB[]);
+    setServidores(allServidores as ServidorDB[]);
     setLoading(false);
   }, []);
 
