@@ -5,6 +5,7 @@ import { LoginForm } from "@/components/LoginForm";
 import { StatCard } from "@/components/StatCard";
 import { ServidorRow } from "@/components/ServidorRow";
 import { UnidadeSection } from "@/components/UnidadeSection";
+import { EditServidorModal } from "@/components/EditServidorModal";
 import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB, type CoordenacaoDB } from "@/hooks/useServidores";
 import {
   Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Search, Filter, LogOut, Loader2
@@ -22,6 +23,7 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [view, setView] = useState<"hierarchy" | "list">("hierarchy");
+  const [editingServidor, setEditingServidor] = useState<ServidorDB | null>(null);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -210,6 +212,7 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
                             unidade={unidade}
                             coordenacoes={coordenacoes.filter((c) => c.unidade_id === unidade.id)}
                             servidores={filteredServidores.filter((s) => s.unidade_id === unidade.id)}
+                            onEditServidor={setEditingServidor}
                           />
                         ))}
                       </div>
@@ -224,7 +227,7 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
                     </div>
                     <div className="glass-card rounded-xl overflow-hidden divide-y divide-border/30 px-1">
                       {filteredServidores.filter((s) => !s.diretoria_id).map((servidor) => (
-                        <ServidorRow key={servidor.id} servidor={servidor} />
+                        <ServidorRow key={servidor.id} servidor={servidor} onEdit={setEditingServidor} />
                       ))}
                     </div>
                   </div>
@@ -237,7 +240,7 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
                 </div>
                 <div className="divide-y divide-border/30 px-1">
                   {filteredServidores.map((servidor) => (
-                    <ServidorRow key={servidor.id} servidor={servidor} />
+                    <ServidorRow key={servidor.id} servidor={servidor} onEdit={setEditingServidor} />
                   ))}
                 </div>
               </div>
@@ -245,6 +248,16 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
           </>
         )}
       </main>
+
+      <EditServidorModal
+        servidor={editingServidor}
+        open={!!editingServidor}
+        onClose={() => setEditingServidor(null)}
+        onSaved={loadData}
+        diretorias={diretorias}
+        unidades={unidades}
+        coordenacoes={coordenacoes}
+      />
     </div>
   );
 }
