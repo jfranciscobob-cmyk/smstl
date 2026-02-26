@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useServidores, useDiretorias, useUnidades, useCoordenacoes, useStats, type ServidorDB } from "@/hooks/useServidores";
+import { useServidores, useDiretorias, useUnidades, useCoordenacoes, computeStats, type ServidorDB } from "@/hooks/useServidores";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginForm } from "@/components/LoginForm";
 import { StatCard } from "@/components/StatCard";
