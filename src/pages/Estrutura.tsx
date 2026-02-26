@@ -90,6 +90,7 @@ function EstruturaContent() {
     setSetores((st.data ?? []) as SetorDB[]);
     setFuncoes((fc.data ?? []) as FuncaoDB[]);
     setCoordenadoresUnidades((cu.data ?? []) as CoordenadorUnidadeDB[]);
+    setAgrupamentos((ag.data ?? []) as AgrupamentoDB[]);
     setServidores(allServidores as ServidorDB[]);
     setLoading(false);
   }, []);
