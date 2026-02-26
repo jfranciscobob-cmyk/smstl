@@ -61,6 +61,26 @@ export interface CoordenacaoDB {
   updated_at: string;
 }
 
+// Fetch all rows from servidores bypassing the 1000-row default limit
+async function fetchAllServidores(selectCols = "*"): Promise<ServidorDB[]> {
+  const PAGE = 1000;
+  let offset = 0;
+  let allRows: any[] = [];
+  while (true) {
+    const { data, error } = await supabase
+      .from("servidores")
+      .select(selectCols)
+      .order("nome")
+      .range(offset, offset + PAGE - 1);
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    allRows = allRows.concat(data);
+    if (data.length < PAGE) break;
+    offset += PAGE;
+  }
+  return allRows as ServidorDB[];
+}
+
 // Queries
 export function useDiretorias() {
   return useQuery({
@@ -99,9 +119,7 @@ export function useServidores() {
   return useQuery({
     queryKey: ["servidores"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("servidores").select("*").order("nome");
-      if (error) throw error;
-      return data as ServidorDB[];
+      return fetchAllServidores();
     },
   });
 }
