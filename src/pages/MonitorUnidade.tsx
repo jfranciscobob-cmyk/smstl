@@ -160,9 +160,90 @@ function MonitorContent() {
     loadData();
   };
 
+  // Faltas abonadas helpers
+  const getFaltasNoAno = (servidorId: string, dataAdmissao: string | null) => {
+    if (!dataAdmissao) return { usadas: 0, limite: 5, anoInicio: "", anoFim: "" };
+    const admDate = parseISO(dataAdmissao);
+    const now = new Date();
+    // Calculate current anniversary year
+    let anoInicio = new Date(now.getFullYear(), admDate.getMonth(), admDate.getDate());
+    if (isAfter(anoInicio, now)) {
+      anoInicio = new Date(now.getFullYear() - 1, admDate.getMonth(), admDate.getDate());
+    }
+    const anoFim = new Date(anoInicio.getFullYear() + 1, anoInicio.getMonth(), anoInicio.getDate());
+    const usadas = faltasAbonadas.filter(f => {
+      if (f.servidor_id !== servidorId) return false;
+      const d = parseISO(f.data);
+      return !isBefore(d, anoInicio) && isBefore(d, anoFim);
+    }).length;
+    return { usadas, limite: 5, anoInicio: format(anoInicio, "dd/MM/yyyy"), anoFim: format(anoFim, "dd/MM/yyyy") };
+  };
+
+  const addFaltaAbonada = async () => {
+    if (!faltaForm.servidor_id || !faltaForm.data) {
+      toast({ title: "Preencha servidor e data", variant: "destructive" }); return;
+    }
+    const srv = servidores.find(s => s.id === faltaForm.servidor_id);
+    const info = getFaltasNoAno(faltaForm.servidor_id, srv?.data_admissao || null);
+    if (info.usadas >= 5) {
+      toast({ title: "Limite atingido", description: `Este servidor já usou ${info.usadas}/5 faltas abonadas neste período.`, variant: "destructive" }); return;
+    }
+    const { error } = await supabase.from("faltas_abonadas").insert({
+      servidor_id: faltaForm.servidor_id, data: faltaForm.data, observacao: faltaForm.observacao || null,
+    });
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Falta abonada registrada!" });
+    setShowFaltaForm(false);
+    setFaltaForm({ servidor_id: "", data: "", observacao: "" });
+    loadData();
+  };
+
+  const filteredFaltaServidores = faltaSearch.length >= 2
+    ? filteredServidores.filter(s => s.nome.toLowerCase().includes(faltaSearch.toLowerCase())).slice(0, 10)
+    : filteredServidores.slice(0, 10);
+
   const filteredAtestadoServidores = atestadoSearch.length >= 2
     ? filteredServidores.filter(s => s.nome.toLowerCase().includes(atestadoSearch.toLowerCase())).slice(0, 10)
     : filteredServidores.slice(0, 10);
+
+  // Bulk escala save
+  const initBulkEscalas = () => {
+    const initial: Record<string, any> = {};
+    filteredServidores.forEach(s => {
+      initial[s.id] = { inicio1: s.escala_inicio1 || "", fim1: s.escala_fim1 || "", inicio2: s.escala_inicio2 || "", fim2: s.escala_fim2 || "", total: s.escala_total_horas?.toString() || "" };
+    });
+    setBulkEscalas(initial);
+    setShowBulkEscala(true);
+  };
+
+  const saveBulkEscalas = async () => {
+    setSavingBulk(true);
+    let count = 0;
+    for (const [id, esc] of Object.entries(bulkEscalas)) {
+      const { error } = await supabase.from("servidores").update({
+        escala_inicio1: esc.inicio1 || null, escala_fim1: esc.fim1 || null,
+        escala_inicio2: esc.inicio2 || null, escala_fim2: esc.fim2 || null,
+        escala_total_horas: esc.total ? parseInt(esc.total) : null,
+      }).eq("id", id);
+      if (!error) count++;
+    }
+    setSavingBulk(false);
+    toast({ title: `${count} escalas atualizadas!` });
+    setShowBulkEscala(false);
+    loadData();
+  };
+
+  // Contract expiry alerts (temporary contracts)
+  const contractAlerts = useMemo(() => {
+    return filteredServidores.filter(s => {
+      if (!s.vinculo?.includes("CONTRATO") && !s.vinculo?.includes("TEMPORARIO")) return false;
+      return !!s.data_admissao;
+    }).map(s => {
+      const admDate = parseISO(s.data_admissao!);
+      const daysFromAdmission = differenceInDays(new Date(), admDate);
+      return { ...s, daysFromAdmission };
+    }).sort((a, b) => b.daysFromAdmission - a.daysFromAdmission);
+  }, [filteredServidores]);
 
   // Navigation
   const setView = (mode: string, dirId?: string, uniId?: string) => {
