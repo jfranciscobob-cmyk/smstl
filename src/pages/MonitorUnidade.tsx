@@ -113,10 +113,20 @@ function MonitorContent() {
 
   // Filter servidores based on view
   const filteredServidores = useMemo(() => {
-    if (selectedUnidadeId) return servidores.filter(s => s.unidade_id === selectedUnidadeId);
-    if (selectedDiretoriaId) return servidores.filter(s => s.diretoria_id === selectedDiretoriaId);
-    return servidores;
-  }, [servidores, selectedUnidadeId, selectedDiretoriaId]);
+    let result = servidores;
+    if (selectedUnidadeId) result = result.filter(s => s.unidade_id === selectedUnidadeId);
+    else if (selectedDiretoriaId) result = result.filter(s => s.diretoria_id === selectedDiretoriaId);
+
+    if (activeFilter === "presentes") result = result.filter(s => s.status_presenca === "presente");
+    else if (activeFilter === "ferias") result = result.filter(s => s.status_presenca === "ferias");
+    else if (activeFilter === "afastados") result = result.filter(s => s.status_presenca === "afastado");
+    else if (activeFilter === "ausentes") result = result.filter(s => s.status_presenca === "ausente");
+    else if (activeFilter === "concursados") result = result.filter(s => (s.vinculo || "").includes("CONCURSADO"));
+    else if (activeFilter === "contratados") result = result.filter(s => (s.vinculo || "").includes("CONTRATO"));
+    else if (activeFilter === "duplo_vinculo") result = result.filter(s => s.duplo_vinculo);
+
+    return result;
+  }, [servidores, selectedUnidadeId, selectedDiretoriaId, activeFilter]);
 
   // Time helpers
   const currentHour = today.getHours();
