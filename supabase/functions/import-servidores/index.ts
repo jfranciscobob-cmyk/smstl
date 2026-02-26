@@ -25,11 +25,13 @@ serve(async (req) => {
     const lines = csvData.split("\n").filter((l: string) => l.trim().length > 0);
     const dataLines = lines.slice(1);
 
-    // Parse CSV and deduplicate by name
+    // Parse CSV and deduplicate by name, tracking dual vínculos
     const servidoresMap = new Map<string, {
       nome: string;
       cargo: string;
       vinculo: string;
+      vinculo2: string | null;
+      duplo_vinculo: boolean;
       carga_horaria: number;
       data_admissao: string;
       salario: number;
@@ -53,8 +55,17 @@ serve(async (req) => {
         const existing = servidoresMap.get(nome)!;
         existing.salario += salario;
         if (cargaHoraria > existing.carga_horaria) existing.carga_horaria = cargaHoraria;
+        // Detect dual vínculo
+        if (vinculo && vinculo !== existing.vinculo) {
+          existing.vinculo2 = vinculo;
+          existing.duplo_vinculo = true;
+        } else if (!existing.duplo_vinculo) {
+          // Same vínculo appearing twice = still duplo vínculo (2 matrículas)
+          existing.duplo_vinculo = true;
+          existing.vinculo2 = vinculo;
+        }
       } else {
-        servidoresMap.set(nome, { nome, cargo, vinculo, carga_horaria: cargaHoraria, data_admissao: dataAdmissao, salario });
+        servidoresMap.set(nome, { nome, cargo, vinculo, vinculo2: null, duplo_vinculo: false, carga_horaria: cargaHoraria, data_admissao: dataAdmissao, salario });
       }
     }
 
@@ -107,6 +118,8 @@ serve(async (req) => {
       const updateFields: any = {
         cargo: s.cargo,
         vinculo: mapVinculo(s.vinculo),
+        vinculo2: s.vinculo2 ? mapVinculo(s.vinculo2) : null,
+        duplo_vinculo: s.duplo_vinculo,
         salario: s.salario,
       };
       if (dataAdmissaoISO) updateFields.data_admissao = dataAdmissaoISO;
@@ -127,6 +140,8 @@ serve(async (req) => {
           funcao_critica: false,
           cobertura_prevista: "PARCIAL",
           vinculo: mapVinculo(s.vinculo),
+          vinculo2: s.vinculo2 ? mapVinculo(s.vinculo2) : null,
+          duplo_vinculo: s.duplo_vinculo,
           status_presenca: "presente",
           escala_total_horas: s.carga_horaria > 0 ? Math.round(s.carga_horaria / 5) : null,
           salario: s.salario,

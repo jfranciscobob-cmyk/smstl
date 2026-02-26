@@ -62,6 +62,8 @@ export function EditServidorModal({
     is_diretor: false,
     is_coordenador: false,
     is_coordenador_medico: false,
+    vinculo2: "",
+    duplo_vinculo: false,
   });
 
   useEffect(() => {
@@ -98,6 +100,8 @@ export function EditServidorModal({
         is_diretor: servidor.is_diretor,
         is_coordenador: servidor.is_coordenador,
         is_coordenador_medico: (servidor as any).is_coordenador_medico || false,
+        vinculo2: (servidor as any).vinculo2 || "",
+        duplo_vinculo: (servidor as any).duplo_vinculo || false,
       });
     }
   }, [servidor]);
@@ -142,6 +146,8 @@ export function EditServidorModal({
       is_diretor: form.is_diretor,
       is_coordenador: form.is_coordenador,
       is_coordenador_medico: form.is_coordenador_medico,
+      duplo_vinculo: form.duplo_vinculo,
+      vinculo2: form.duplo_vinculo ? (form.vinculo2 || null) : null,
       data_admissao: form.data_admissao || null,
       data_encerramento_contrato: form.data_encerramento_contrato || null,
       tipo_escala: form.tipo_escala,
@@ -206,10 +212,29 @@ export function EditServidorModal({
                   <option value="AGENTE POLITICO">Agente Político</option>
                 </select>
               </div>
+              {form.duplo_vinculo && (
+                <div>
+                  <label className={labelClass}>Vínculo 2 <span className="text-amber-500 font-semibold">⚡ DUPLO VÍNCULO</span></label>
+                  <select className={selectClass} value={form.vinculo2} onChange={(e) => set("vinculo2", e.target.value)}>
+                    <option value="">Selecione</option>
+                    <option value="CONCURSADO (EFETIVO)">Concursado (Efetivo)</option>
+                    <option value="CONTRATO TEMPORARIO">Contrato Temporário</option>
+                    <option value="COMISSIONADO">Comissionado</option>
+                    <option value="CLT">CLT</option>
+                    <option value="AGENTE POLITICO">Agente Político</option>
+                  </select>
+                </div>
+              )}
               <div>
                 <label className={labelClass}>Data de Admissão</label>
                 <input type="date" className={inputClass} value={form.data_admissao} onChange={(e) => set("data_admissao", e.target.value)} />
+            <div className="sm:col-span-2">
+                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                  <input type="checkbox" checked={form.duplo_vinculo} onChange={(e) => set("duplo_vinculo", e.target.checked)} className="rounded border-input" />
+                  Duplo Vínculo
+                </label>
               </div>
+            </div>
               {form.vinculo === "CONTRATO TEMPORARIO" && (
                 <div>
                   <label className={labelClass}>Data Encerramento Contrato</label>
