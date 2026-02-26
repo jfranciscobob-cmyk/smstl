@@ -484,7 +484,7 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
 }
 
 const Dashboard = () => {
-  const { signOut, user } = useAuth();
+  const { signOut, user } = useAuthSession();
   return <DashboardContent signOut={signOut} userEmail={user?.email} />;
 };
 
