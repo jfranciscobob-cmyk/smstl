@@ -1,14 +1,18 @@
 import type { ServidorDB } from "@/hooks/useServidores";
 import { StatusBadge } from "./StatusBadge";
-import { Clock, Briefcase, MapPin } from "lucide-react";
+import { Clock, Briefcase, MapPin, Pencil } from "lucide-react";
 
 interface ServidorRowProps {
   servidor: ServidorDB;
+  onEdit?: (servidor: ServidorDB) => void;
 }
 
-export function ServidorRow({ servidor }: ServidorRowProps) {
+export function ServidorRow({ servidor, onEdit }: ServidorRowProps) {
   return (
-    <div className="group flex items-center gap-4 rounded-lg border border-transparent px-4 py-3 transition-colors hover:border-border hover:bg-muted/50">
+    <div
+      onClick={() => onEdit?.(servidor)}
+      className="group flex items-center gap-4 rounded-lg border border-transparent px-4 py-3 transition-colors hover:border-border hover:bg-muted/50 cursor-pointer"
+    >
       <div className="flex-shrink-0">
         <StatusBadge status={servidor.status_presenca} />
       </div>
@@ -53,6 +57,8 @@ export function ServidorRow({ servidor }: ServidorRowProps) {
           <span className="text-xs italic text-muted-foreground">{servidor.observacao}</span>
         </div>
       )}
+
+      <Pencil className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
     </div>
   );
 }
