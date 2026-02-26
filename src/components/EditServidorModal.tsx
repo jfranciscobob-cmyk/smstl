@@ -58,6 +58,7 @@ export function EditServidorModal({
     observacao: "",
     data_admissao: "",
     data_encerramento_contrato: "",
+    tipo_escala: "fixa",
     is_diretor: false,
     is_coordenador: false,
   });
