@@ -122,6 +122,7 @@ function EstruturaContent() {
   const getCoordenador = (coordId: string) => servidores.find(s => s.coordenacao_id === coordId && s.is_coordenador);
   const getCoordenadorByUnidade = (unidadeId: string) => servidores.find(s => s.unidade_id === unidadeId && s.is_coordenador);
   const getSecretario = () => servidores.find(s => s.is_secretario);
+  const getDiretorGeral = () => servidores.find(s => (s as any).is_diretor_geral);
 
   const filteredAssignResults = assignSearch.length >= 2
     ? servidores.filter(s => s.nome.toLowerCase().includes(assignSearch.toLowerCase()) || s.matricula.includes(assignSearch)).slice(0, 8)
