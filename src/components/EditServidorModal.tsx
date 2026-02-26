@@ -228,7 +228,13 @@ export function EditServidorModal({
               <div>
                 <label className={labelClass}>Data de Admissão</label>
                 <input type="date" className={inputClass} value={form.data_admissao} onChange={(e) => set("data_admissao", e.target.value)} />
+            <div className="sm:col-span-2">
+                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                  <input type="checkbox" checked={form.duplo_vinculo} onChange={(e) => set("duplo_vinculo", e.target.checked)} className="rounded border-input" />
+                  Duplo Vínculo
+                </label>
               </div>
+            </div>
               {form.vinculo === "CONTRATO TEMPORARIO" && (
                 <div>
                   <label className={labelClass}>Data Encerramento Contrato</label>
