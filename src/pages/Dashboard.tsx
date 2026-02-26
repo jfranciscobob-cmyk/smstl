@@ -292,23 +292,23 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                     </h2>
                     <p className="text-[11px] text-primary-foreground/40">Três Lagoas · Painel Executivo</p>
                   </div>
-                  <div className="flex items-center gap-5 sm:gap-8">
-                    <div className="text-center">
-                      <p className="text-2xl sm:text-3xl font-extrabold font-mono">{stats.total}</p>
-                      <p className="text-[10px] text-primary-foreground/50 font-medium">Servidores</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl sm:text-3xl font-extrabold font-mono text-success">{coberturaGeral}%</p>
-                      <p className="text-[10px] text-primary-foreground/50 font-medium">Cobertura</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl sm:text-3xl font-extrabold font-mono">{alocados}<span className="text-base text-primary-foreground/40">/{stats.total}</span></p>
-                      <p className="text-[10px] text-primary-foreground/50 font-medium">Alocados</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl sm:text-3xl font-extrabold font-mono">{diretorias.length}</p>
-                      <p className="text-[10px] text-primary-foreground/50 font-medium">Diretorias</p>
-                    </div>
+                    <div className="flex items-center gap-5 sm:gap-8">
+                      <Link to="/monitor" className="text-center hover:opacity-80 transition-opacity">
+                        <p className="text-2xl sm:text-3xl font-extrabold font-mono">{stats.total}</p>
+                        <p className="text-[10px] text-primary-foreground/50 font-medium">Servidores</p>
+                      </Link>
+                      <Link to="/monitor?filter=presentes" className="text-center hover:opacity-80 transition-opacity">
+                        <p className="text-2xl sm:text-3xl font-extrabold font-mono text-success">{coberturaGeral}%</p>
+                        <p className="text-[10px] text-primary-foreground/50 font-medium">Cobertura</p>
+                      </Link>
+                      <Link to="/estrutura" className="text-center hover:opacity-80 transition-opacity">
+                        <p className="text-2xl sm:text-3xl font-extrabold font-mono">{alocados}<span className="text-base text-primary-foreground/40">/{stats.total}</span></p>
+                        <p className="text-[10px] text-primary-foreground/50 font-medium">Alocados</p>
+                      </Link>
+                      <Link to="/monitor" className="text-center hover:opacity-80 transition-opacity">
+                        <p className="text-2xl sm:text-3xl font-extrabold font-mono">{diretorias.length}</p>
+                        <p className="text-[10px] text-primary-foreground/50 font-medium">Diretorias</p>
+                      </Link>
                     {hasFinancialAccess && (
                       <div className="text-center hidden sm:block">
                         <p className="text-2xl sm:text-3xl font-extrabold font-mono">
