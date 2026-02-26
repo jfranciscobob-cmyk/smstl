@@ -94,11 +94,21 @@ serve(async (req) => {
       const key = normalizeName(s.nome);
       csvNames.add(key);
 
+      // Parse data_admissao from DD/MM/YYYY to YYYY-MM-DD
+      let dataAdmissaoISO: string | null = null;
+      if (s.data_admissao) {
+        const parts = s.data_admissao.split("/");
+        if (parts.length === 3) {
+          dataAdmissaoISO = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+        }
+      }
+
       const updateFields: any = {
         cargo: s.cargo,
         vinculo: mapVinculo(s.vinculo),
         salario: s.salario,
       };
+      if (dataAdmissaoISO) updateFields.data_admissao = dataAdmissaoISO;
       if (s.carga_horaria > 0) {
         updateFields.escala_total_horas = Math.round(s.carga_horaria / 5);
       }
