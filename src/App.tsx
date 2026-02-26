@@ -14,6 +14,7 @@ import Login from "./pages/Login";
 import AdminUsuarios from "./pages/AdminUsuarios";
 import SetupAdmin from "./pages/SetupAdmin";
 import NotFound from "./pages/NotFound";
+import Manual from "./pages/Manual";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
