@@ -460,7 +460,7 @@ function MonitorContent() {
         <div className="flex items-center gap-3 text-[10px] text-muted-foreground flex-wrap">
           <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {uniServs.length}</span>
           <span className="flex items-center gap-1 text-success"><CheckCircle className="h-3 w-3" /> {uniPresentes}</span>
-          {uniFolha > 0 && <span className="flex items-center gap-1 text-primary"><DollarSign className="h-3 w-3" /> {formatCurrency(uniFolha)}</span>}
+          {hasFinancialAccess && uniFolha > 0 && <span className="flex items-center gap-1 text-primary"><DollarSign className="h-3 w-3" /> {formatCurrency(uniFolha)}</span>}
         </div>
       </button>
     );
