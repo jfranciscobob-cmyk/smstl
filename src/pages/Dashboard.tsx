@@ -238,6 +238,16 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
                         </span>
                         <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                       </Link>
+                      <Link
+                        to="/acesso"
+                        className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors group"
+                      >
+                        <span className="flex items-center gap-3">
+                          <UserCheck className="h-4 w-4 text-primary" />
+                          Acesso Rápido (Diretores/Coordenadores)
+                        </span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                      </Link>
                       <button
                         onClick={() => setShowCreateModal(true)}
                         className="w-full flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors group"
