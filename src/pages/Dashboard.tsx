@@ -112,12 +112,18 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
-          <StatCard title="Total Servidores" value={stats.total} icon={<Users className="h-5 w-5" />} subtitle={`${stats.concursados} concursados`} />
-          <StatCard title="Presentes" value={stats.presentes} icon={<CheckCircle className="h-5 w-5" />} variant="success" subtitle={stats.total > 0 ? `${Math.round((stats.presentes / stats.total) * 100)}% do efetivo` : "—"} />
-          <StatCard title="Em Férias" value={stats.ferias} icon={<Palmtree className="h-5 w-5" />} variant="warning" />
-          <StatCard title="Afastados" value={stats.afastados} icon={<AlertTriangle className="h-5 w-5" />} variant="danger" />
-          <StatCard title="Funções Críticas" value={stats.funcoesCriticas} icon={<Shield className="h-5 w-5" />} variant="info" subtitle="Cobertura necessária" />
+        <div className="flex items-center justify-between">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5 flex-1">
+            <StatCard title="Total Servidores" value={stats.total} icon={<Users className="h-5 w-5" />} subtitle={`${stats.concursados} concursados`} />
+            <StatCard title="Presentes" value={stats.presentes} icon={<CheckCircle className="h-5 w-5" />} variant="success" subtitle={stats.total > 0 ? `${Math.round((stats.presentes / stats.total) * 100)}% do efetivo` : "—"} />
+            <StatCard title="Em Férias" value={stats.ferias} icon={<Palmtree className="h-5 w-5" />} variant="warning" />
+            <StatCard title="Afastados" value={stats.afastados} icon={<AlertTriangle className="h-5 w-5" />} variant="danger" />
+            <StatCard title="Funções Críticas" value={stats.funcoesCriticas} icon={<Shield className="h-5 w-5" />} variant="info" subtitle="Cobertura necessária" />
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <ImportCSVButton onComplete={loadData} />
         </div>
 
         {loadError && (
@@ -131,11 +137,8 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
             <Users className="mx-auto h-12 w-12 text-muted-foreground/40" />
             <h3 className="mt-4 text-lg font-semibold text-foreground">Nenhum servidor cadastrado</h3>
             <p className="mt-2 text-sm text-muted-foreground mb-6">
-              O banco de dados está pronto. Importe os servidores do CSV para começar.
+              Clique em "Importar Servidores do CSV" acima para popular o banco de dados.
             </p>
-            <div className="flex justify-center">
-              <ImportCSVButton onComplete={loadData} />
-            </div>
           </div>
         )}
 
