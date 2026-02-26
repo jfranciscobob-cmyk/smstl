@@ -648,7 +648,18 @@ function EstruturaContent() {
                                   })()}
                                 </div>
                               )}
-                            </div>
+
+                              {/* Cargos e servidores da unidade */}
+                              {uniExpanded && (
+                                <div className="px-4 pb-3 ml-6">
+                                  <UnidadeServidores
+                                    servidores={getServidoresByUnidade(uni.id)}
+                                    onEditServidor={setEditingServidor}
+                                    title="Servidores por cargo"
+                                    defaultExpanded={getServidoresByUnidade(uni.id).length <= 20}
+                                  />
+                                </div>
+                              )}
                           );
                         })}
                       </div>
