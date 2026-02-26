@@ -88,7 +88,7 @@ export function EditServidorModal({
         ferias_total_dias: servidor.ferias_total_dias?.toString() || "",
         ferias_vencidas: servidor.ferias_vencidas?.toString() || "",
         observacao: servidor.observacao || "",
-        is_diretor: servidor.is_diretor,
+        data_admissao: servidor.data_admissao || "",
         is_coordenador: servidor.is_coordenador,
       });
     }
