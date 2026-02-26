@@ -19,7 +19,7 @@ function formatCurrency(value: number) {
 }
 
 function MonitorContent() {
-  const { hasFinancialAccess } = useAuthSession();
+  const { hasFinancialAccess, user, isAdmin, isDiretor, servidorId, hasFullAccess } = useAuthSession();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const viewMode = searchParams.get("view") || "tudo"; // tudo | diretoria | unidade
