@@ -313,6 +313,11 @@ export default function AdminUsuarios() {
                       {roleLabel[r] || r}
                     </span>
                   ))}
+                  {p.acesso_financeiro && (
+                    <span className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary">
+                      💰 Financeiro
+                    </span>
+                  )}
                   <button
                     onClick={() => openEdit(p)}
                     className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
