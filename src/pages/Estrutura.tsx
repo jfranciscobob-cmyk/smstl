@@ -132,15 +132,17 @@ function EstruturaContent() {
     ? servidores.filter(s => s.nome.toLowerCase().includes(roleSearch.toLowerCase()) || s.matricula.includes(roleSearch)).slice(0, 8)
     : servidores.slice(0, 8);
 
-  const assignRole = async (servidorId: string, type: "diretor" | "coordenador" | "secretario", diretoriaId?: string, unidadeId?: string, coordId?: string) => {
+  const assignRole = async (servidorId: string, type: "diretor" | "coordenador" | "secretario" | "diretor_geral", diretoriaId?: string, unidadeId?: string, coordId?: string) => {
     const updateData: any = type === "diretor"
       ? { is_diretor: true, diretoria_id: diretoriaId }
       : type === "coordenador"
       ? { is_coordenador: true, coordenacao_id: coordId, unidade_id: unidadeId, diretoria_id: diretoriaId }
+      : type === "diretor_geral"
+      ? { is_diretor_geral: true }
       : { is_secretario: true };
     const { error } = await supabase.from("servidores").update(updateData).eq("id", servidorId);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    const labels = { diretor: "Diretor(a) definido!", coordenador: "Coordenador(a) definido!", secretario: "Secretário(a) definido!" };
+    const labels: Record<string, string> = { diretor: "Diretor(a) definido!", coordenador: "Coordenador(a) definido!", secretario: "Secretário(a) definido!", diretor_geral: "Diretor(a) Geral definido!" };
     toast({ title: labels[type] });
     setPickingRole(null);
     setRoleSearch("");
