@@ -5,7 +5,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft, Loader2, Users, Clock, AlertTriangle, Palmtree, FileText,
   CheckCircle, Building2, ChevronDown, ChevronRight, Plus, X, Calendar,
-  DollarSign, Eye, Shield, Ban, Pencil, Save, CalendarCheck, UserX
+  DollarSign, Eye, Shield, Ban, Pencil, Save, CalendarCheck, UserX, UserPlus
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO, isWithinInterval, addDays, isBefore, isAfter, differenceInDays } from "date-fns";
