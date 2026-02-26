@@ -42,6 +42,17 @@ function MonitorContent() {
   const [faltaForm, setFaltaForm] = useState({ servidor_id: "", data: "", observacao: "" });
   const [faltaSearch, setFaltaSearch] = useState("");
 
+  // Afastamento form
+  const MOTIVOS_AFASTAMENTO = [
+    "Licença Maternidade", "Licença Paternidade", "Licença Sem Vencimento",
+    "Licença Prêmio", "Licença para Tratamento de Saúde", "Suspensão Disciplinar",
+    "Cessão", "Curso/Capacitação", "Licença por Interesse Particular",
+    "Licença Nojo (Falecimento)", "Licença Casamento", "Outro"
+  ];
+  const [showAfastamentoForm, setShowAfastamentoForm] = useState(false);
+  const [afastamentoForm, setAfastamentoForm] = useState({ servidor_id: "", motivo: "Licença para Tratamento de Saúde", data_inicio: "", data_fim: "", observacao: "" });
+  const [afastamentoSearch, setAfastamentoSearch] = useState("");
+
   // Bulk edit escalas
   const [showBulkEscala, setShowBulkEscala] = useState(false);
   const [bulkEscalas, setBulkEscalas] = useState<Record<string, { inicio1: string; fim1: string; inicio2: string; fim2: string; total: string }>>({});
