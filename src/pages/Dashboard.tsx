@@ -323,7 +323,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
             </div>
 
             {/* ═══ Indicadores rápidos ═══ */}
-            <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+            <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-9 gap-2">
               <div className="rounded-xl border border-success/30 bg-success/5 p-3 text-center">
                 <p className="text-lg font-extrabold font-mono text-success">{stats.presentes}</p>
                 <p className="text-[9px] font-semibold text-success/70 uppercase tracking-wider">Presentes</p>
@@ -355,6 +355,10 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
               <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-center" title={`${alocados} alocados em diretorias / ${stats.total - alocados} sem diretoria`}>
                 <p className="text-lg font-extrabold font-mono text-primary">{alocados}</p>
                 <p className="text-[9px] font-semibold text-primary/70 uppercase tracking-wider">Alocados</p>
+              </div>
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-center" title="Servidores com dois vínculos">
+                <p className="text-lg font-extrabold font-mono text-amber-600 dark:text-amber-400">{servidores.filter(s => s.duplo_vinculo).length}</p>
+                <p className="text-[9px] font-semibold text-amber-600/70 dark:text-amber-400/70 uppercase tracking-wider">Duplo Vínculo</p>
               </div>
             </div>
 
