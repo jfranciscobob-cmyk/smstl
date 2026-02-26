@@ -53,11 +53,12 @@ function EstruturaContent() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [d, u, c, st] = await Promise.all([
+    const [d, u, c, st, fc] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenacoes").select("*").order("nome"),
       supabase.from("setores").select("*").order("nome"),
+      supabase.from("funcoes").select("*").order("nome"),
     ]);
     // Fetch all servidores with pagination (bypass 1000 limit)
     const selectCols = "id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, setor_id, is_diretor, is_coordenador, is_secretario, is_diretor_geral";
