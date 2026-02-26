@@ -23,6 +23,7 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [view, setView] = useState<"hierarchy" | "list">("hierarchy");
+  const [editingServidor, setEditingServidor] = useState<ServidorDB | null>(null);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
