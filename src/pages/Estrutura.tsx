@@ -903,14 +903,25 @@ function EstruturaContent() {
                                         </div>
                                         {coordenadores.length > 0 && (
                                           <div className="flex flex-wrap gap-2">
-                                            {coordenadores.map(coord => (
-                                              <div key={coord.id} className="flex items-center gap-1.5 rounded-md bg-accent/50 px-2 py-1">
-                                                <span className="text-sm font-medium text-foreground">{coord.nome}</span>
-                                                <button onClick={() => removeRole(coord.id, "coordenador", uni.id)} className="p-0.5 rounded text-muted-foreground hover:text-destructive" title="Remover coordenador">
-                                                  <X className="h-3 w-3" />
-                                                </button>
-                                              </div>
-                                            ))}
+                                            {coordenadores.map(coord => {
+                                              const outrasUnidades = coordenadoresUnidades
+                                                .filter(cu => cu.servidor_id === coord.id && cu.unidade_id !== uni.id)
+                                                .map(cu => unidades.find(u => u.id === cu.unidade_id))
+                                                .filter(Boolean);
+                                              return (
+                                                <div key={coord.id} className="flex items-center gap-1.5 rounded-md bg-accent/50 px-2 py-1">
+                                                  <span className="text-sm font-medium text-foreground">{coord.nome}</span>
+                                                  {outrasUnidades.length > 0 && (
+                                                    <span className="text-[10px] text-primary font-medium" title={`Também coordena: ${outrasUnidades.map(u => u!.sigla).join(", ")}`}>
+                                                      (+{outrasUnidades.length} {outrasUnidades.length === 1 ? "unidade" : "unidades"}: {outrasUnidades.map(u => u!.sigla).join(", ")})
+                                                    </span>
+                                                  )}
+                                                  <button onClick={() => removeRole(coord.id, "coordenador", uni.id)} className="p-0.5 rounded text-muted-foreground hover:text-destructive" title="Remover coordenador">
+                                                    <X className="h-3 w-3" />
+                                                  </button>
+                                                </div>
+                                              );
+                                            })}
                                           </div>
                                         )}
                                         {pickingRole?.type === "coordenador" && pickingRole.targetId === uni.id ? (
