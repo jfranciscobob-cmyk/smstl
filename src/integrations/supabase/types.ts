@@ -179,6 +179,41 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          nome: string | null
+          servidor_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          nome?: string | null
+          servidor_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string | null
+          servidor_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_servidor_id_fkey"
+            columns: ["servidor_id"]
+            isOneToOne: false
+            referencedRelation: "servidores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       servidores: {
         Row: {
           cargo: string
@@ -186,6 +221,7 @@ export type Database = {
           coordenacao_id: string | null
           created_at: string
           diretoria_id: string | null
+          email: string | null
           escala_fim1: string | null
           escala_fim2: string | null
           escala_inicio1: string | null
@@ -224,6 +260,7 @@ export type Database = {
           coordenacao_id?: string | null
           created_at?: string
           diretoria_id?: string | null
+          email?: string | null
           escala_fim1?: string | null
           escala_fim2?: string | null
           escala_inicio1?: string | null
@@ -262,6 +299,7 @@ export type Database = {
           coordenacao_id?: string | null
           created_at?: string
           diretoria_id?: string | null
+          email?: string | null
           escala_fim1?: string | null
           escala_fim2?: string | null
           escala_inicio1?: string | null
@@ -412,15 +450,41 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_servidor_id: { Args: { _user_id: string }; Returns: string }
+      has_full_access: { Args: { _user_id: string }; Returns: boolean }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "diretor" | "coordenador"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -547,6 +611,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "diretor", "coordenador"],
+    },
   },
 } as const
