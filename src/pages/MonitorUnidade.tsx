@@ -454,7 +454,7 @@ function MonitorContent() {
         {selectedDiretoriaId && !selectedUnidadeId && (
           <div className="space-y-6">
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Users className="h-3.5 w-3.5" /> Total</div>
                 <p className="text-2xl font-bold text-foreground">{filteredServidores.length}</p>
