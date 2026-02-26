@@ -118,6 +118,8 @@ serve(async (req) => {
       const updateFields: any = {
         cargo: s.cargo,
         vinculo: mapVinculo(s.vinculo),
+        vinculo2: s.vinculo2 ? mapVinculo(s.vinculo2) : null,
+        duplo_vinculo: s.duplo_vinculo,
         salario: s.salario,
       };
       if (dataAdmissaoISO) updateFields.data_admissao = dataAdmissaoISO;
