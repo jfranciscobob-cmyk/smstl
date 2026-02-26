@@ -32,6 +32,9 @@ function EstruturaContent() {
   const [assignSearch, setAssignSearch] = useState("");
   const [pickingRole, setPickingRole] = useState<{ type: "diretor" | "coordenador" | "secretario" | "diretor_geral"; targetId: string; diretoriaId?: string; unidadeId?: string } | null>(null);
   const [roleSearch, setRoleSearch] = useState("");
+  const [editingServidor, setEditingServidor] = useState<ServidorDB | null>(null);
+  const [assigningSecretaria, setAssigningSecretaria] = useState(false);
+  const [secAssignSearch, setSecAssignSearch] = useState("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
