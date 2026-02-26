@@ -567,8 +567,8 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
 }
 
 const Dashboard = () => {
-  const { signOut, user } = useAuthSession();
-  return <DashboardContent signOut={signOut} userEmail={user?.email} />;
+  const { signOut, user, hasFinancialAccess } = useAuthSession();
+  return <DashboardContent signOut={signOut} userEmail={user?.email} hasFinancialAccess={hasFinancialAccess} />;
 };
 
 export default Dashboard;
