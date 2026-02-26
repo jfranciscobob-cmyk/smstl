@@ -790,20 +790,21 @@ function MonitorContent() {
                   </div>
                 )}
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
+              <div className="overflow-x-auto -mx-5 px-5">
+                <table className="w-full text-xs min-w-[900px]">
                   <thead>
                     <tr className="border-b border-border text-left">
-                      <th className="pb-2 font-semibold text-muted-foreground">Servidor</th>
-                      <th className="pb-2 font-semibold text-muted-foreground">Cargo</th>
-                      <th className="pb-2 font-semibold text-muted-foreground">Admissão</th>
-                      <th className="pb-2 font-semibold text-muted-foreground">Turno 1</th>
-                      <th className="pb-2 font-semibold text-muted-foreground">Turno 2</th>
-                      <th className="pb-2 font-semibold text-muted-foreground">Total</th>
-                      <th className="pb-2 font-semibold text-muted-foreground">Salário</th>
-                      <th className="pb-2 font-semibold text-muted-foreground">F.Abon.</th>
-                      <th className="pb-2 font-semibold text-muted-foreground">Status</th>
-                      <th className="pb-2 font-semibold text-muted-foreground w-10">Sem.</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Servidor</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Cargo</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Admissão</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Turno 1</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Turno 2</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Total</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Escala</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Salário</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">F.Abon.</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Status</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap w-10">Sem.</th>
                       <th className="pb-2 font-semibold text-muted-foreground">F.Abon.</th>
                       <th className="pb-2 font-semibold text-muted-foreground">Status</th>
                     </tr>
