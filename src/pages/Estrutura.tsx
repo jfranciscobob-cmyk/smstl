@@ -684,6 +684,16 @@ function EstruturaContent() {
         defaultUnidadeId={createServidorTarget?.unidade_id}
         defaultCoordenacaoId={createServidorTarget?.coordenacao_id}
       />
+
+      <EditServidorModal
+        servidor={editingServidor}
+        open={!!editingServidor}
+        onClose={() => setEditingServidor(null)}
+        onSaved={loadData}
+        diretorias={diretorias}
+        unidades={unidades}
+        coordenacoes={coordenacoes}
+      />
     </div>
   );
 }
