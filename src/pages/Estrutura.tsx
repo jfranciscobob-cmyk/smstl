@@ -9,6 +9,8 @@ import {
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { CreateServidorModal } from "@/components/CreateServidorModal";
+import { UnidadeServidores } from "@/components/UnidadeServidores";
+import { EditServidorModal } from "@/components/EditServidorModal";
 
 function EstruturaContent() {
   const { toast } = useToast();
@@ -30,6 +32,9 @@ function EstruturaContent() {
   const [assignSearch, setAssignSearch] = useState("");
   const [pickingRole, setPickingRole] = useState<{ type: "diretor" | "coordenador" | "secretario" | "diretor_geral"; targetId: string; diretoriaId?: string; unidadeId?: string } | null>(null);
   const [roleSearch, setRoleSearch] = useState("");
+  const [editingServidor, setEditingServidor] = useState<ServidorDB | null>(null);
+  const [assigningSecretaria, setAssigningSecretaria] = useState(false);
+  const [secAssignSearch, setSecAssignSearch] = useState("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -116,6 +121,7 @@ function EstruturaContent() {
   };
 
   const unassignedServidores = servidores.filter(s => !s.unidade_id);
+  const secretariaServidores = servidores.filter(s => !s.diretoria_id && !s.unidade_id);
   const getServidoresByUnidade = (unidadeId: string) => servidores.filter(s => s.unidade_id === unidadeId);
   const getServidoresByCoord = (coordId: string) => servidores.filter(s => s.coordenacao_id === coordId);
   const getDiretor = (diretoriaId: string) => servidores.find(s => s.diretoria_id === diretoriaId && s.is_diretor);
@@ -127,6 +133,10 @@ function EstruturaContent() {
   const filteredAssignResults = assignSearch.length >= 2
     ? servidores.filter(s => s.nome.toLowerCase().includes(assignSearch.toLowerCase()) || s.matricula.includes(assignSearch)).slice(0, 8)
     : unassignedServidores.slice(0, 8);
+
+  const filteredSecAssign = secAssignSearch.length >= 2
+    ? servidores.filter(s => s.nome.toLowerCase().includes(secAssignSearch.toLowerCase()) || s.matricula.includes(secAssignSearch)).slice(0, 8)
+    : servidores.filter(s => !s.diretoria_id).slice(0, 8);
 
   const filteredRoleResults = roleSearch.length >= 2
     ? servidores.filter(s => s.nome.toLowerCase().includes(roleSearch.toLowerCase()) || s.matricula.includes(roleSearch)).slice(0, 8)
@@ -314,6 +324,67 @@ function EstruturaContent() {
               </div>
             );
           })()}
+
+          {/* Servidores da Secretaria (sem diretoria) */}
+          {expanded["secretaria"] !== false && (
+            <div className="px-5 py-3 border-t border-border/30">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <Users className="h-3.5 w-3.5" /> Servidores do Gabinete ({secretariaServidores.length})
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCreateServidorTarget({})}
+                    className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80 transition-colors"
+                  >
+                    <UserPlus className="h-3.5 w-3.5" /> Novo
+                  </button>
+                  <button
+                    onClick={() => setAssigningSecretaria(true)}
+                    className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80 transition-colors"
+                  >
+                    <Users className="h-3.5 w-3.5" /> Vincular
+                  </button>
+                </div>
+              </div>
+
+              {assigningSecretaria && (
+                <div className="mb-3 space-y-2 max-w-md">
+                  <input
+                    autoFocus
+                    value={secAssignSearch}
+                    onChange={e => setSecAssignSearch(e.target.value)}
+                    placeholder="Buscar servidor por nome ou matrícula..."
+                    className="w-full h-8 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                  />
+                  <div className="max-h-40 overflow-y-auto bg-card rounded border border-border shadow-md">
+                    {filteredSecAssign.map(s => (
+                      <button
+                        key={s.id}
+                        onClick={async () => {
+                          await supabase.from("servidores").update({ diretoria_id: null, unidade_id: null, coordenacao_id: null }).eq("id", s.id);
+                          setAssigningSecretaria(false);
+                          setSecAssignSearch("");
+                          loadData();
+                        }}
+                        className="w-full text-left px-2 py-1.5 text-xs hover:bg-primary/10 text-foreground"
+                      >
+                        <span className="font-medium">{s.nome}</span>
+                        <span className="text-muted-foreground ml-2">({s.cargo})</span>
+                      </button>
+                    ))}
+                  </div>
+                  <button onClick={() => { setAssigningSecretaria(false); setSecAssignSearch(""); }} className="text-xs text-muted-foreground">Cancelar</button>
+                </div>
+              )}
+
+              <UnidadeServidores
+                servidores={secretariaServidores}
+                onEditServidor={setEditingServidor}
+                defaultExpanded={secretariaServidores.length <= 30}
+              />
+            </div>
+          )}
 
           {/* Diretorias nested inside */}
           {expanded["secretaria"] !== false && (
@@ -577,6 +648,18 @@ function EstruturaContent() {
                                   })()}
                                 </div>
                               )}
+
+                              {/* Cargos e servidores da unidade */}
+                              {uniExpanded && (
+                                <div className="px-4 pb-3 ml-6">
+                                  <UnidadeServidores
+                                    servidores={getServidoresByUnidade(uni.id)}
+                                    onEditServidor={setEditingServidor}
+                                    title="Servidores por cargo"
+                                    defaultExpanded={getServidoresByUnidade(uni.id).length <= 20}
+                                  />
+                                </div>
+                              )}
                             </div>
                           );
                         })}
@@ -600,6 +683,16 @@ function EstruturaContent() {
         defaultDiretoriaId={createServidorTarget?.diretoria_id}
         defaultUnidadeId={createServidorTarget?.unidade_id}
         defaultCoordenacaoId={createServidorTarget?.coordenacao_id}
+      />
+
+      <EditServidorModal
+        servidor={editingServidor}
+        open={!!editingServidor}
+        onClose={() => setEditingServidor(null)}
+        onSaved={loadData}
+        diretorias={diretorias}
+        unidades={unidades}
+        coordenacoes={coordenacoes}
       />
     </div>
   );

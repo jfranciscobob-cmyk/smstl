@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import type { ServidorDB, DiretoriaDB, UnidadeDB, CoordenacaoDB } from "@/hooks/useServidores";
 import {
   Shield, Building2, ChevronDown, ChevronRight, Crown, Users,
-  AlertTriangle, CheckCircle, Palmtree, Star, MapPin
+  AlertTriangle, CheckCircle, Palmtree, Star, MapPin, Briefcase
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -85,6 +85,15 @@ function UnidadeCard({ unidade, servidores, coordenacoes, coordenador }: {
 }) {
   const stats = getStats(servidores);
 
+  const topCargos = useMemo(() => {
+    const counts: Record<string, number> = {};
+    servidores.forEach(s => {
+      const c = s.cargo || "Sem cargo";
+      counts[c] = (counts[c] || 0) + 1;
+    });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 4);
+  }, [servidores]);
+
   return (
     <div className="rounded-lg border border-border/60 bg-card/80 p-4 space-y-3 hover:shadow-sm transition-shadow">
       <div className="flex items-start justify-between gap-2">
@@ -107,6 +116,22 @@ function UnidadeCard({ unidade, servidores, coordenacoes, coordenador }: {
 
       <StatusBar {...stats} />
       <StatusCounts {...stats} />
+
+      {/* Cargo breakdown */}
+      {topCargos.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {topCargos.map(([cargo, count]) => (
+            <span key={cargo} className="inline-flex items-center gap-1 rounded bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+              <Briefcase className="h-2.5 w-2.5" />
+              {cargo.length > 20 ? cargo.substring(0, 18) + "…" : cargo}
+              <span className="font-mono font-bold text-foreground">{count}</span>
+            </span>
+          ))}
+          {Object.keys(servidores.reduce((acc, s) => { acc[s.cargo || ""] = 1; return acc; }, {} as Record<string, number>)).length > 4 && (
+            <span className="text-[10px] text-muted-foreground/60">+mais</span>
+          )}
+        </div>
+      )}
 
       {stats.funcoesCriticas > 0 && (
         <div className="flex items-center gap-1.5 rounded-md bg-destructive/10 px-2.5 py-1.5 text-xs font-semibold text-destructive">
