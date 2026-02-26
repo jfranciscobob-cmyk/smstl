@@ -1,24 +1,56 @@
-import { useState, useEffect } from "react";
-import { useServidores, useDiretorias, useUnidades, useCoordenacoes, computeStats, type ServidorDB } from "@/hooks/useServidores";
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginForm } from "@/components/LoginForm";
 import { StatCard } from "@/components/StatCard";
 import { ServidorRow } from "@/components/ServidorRow";
 import { UnidadeSection } from "@/components/UnidadeSection";
+import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB, type CoordenacaoDB } from "@/hooks/useServidores";
 import {
   Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Search, Filter, LogOut, Loader2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
 
-const Dashboard = () => {
-  const { session, loading: authLoading, signOut, user } = useAuth();
-  const { data: servidores = [], isLoading } = useServidores();
-  const stats = computeStats(servidores);
-  const { data: diretorias = [] } = useDiretorias();
-  const { data: unidades = [] } = useUnidades();
-  const { data: coordenacoes = [] } = useCoordenacoes();
+function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEmail?: string }) {
   const queryClient = useQueryClient();
+
+  const { data: servidores = [], isLoading } = useQuery({
+    queryKey: ["servidores"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("servidores").select("*").order("nome");
+      if (error) throw error;
+      return data as ServidorDB[];
+    },
+  });
+
+  const { data: diretorias = [] } = useQuery({
+    queryKey: ["diretorias"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("diretorias").select("*").order("nome");
+      if (error) throw error;
+      return data as DiretoriaDB[];
+    },
+  });
+
+  const { data: unidades = [] } = useQuery({
+    queryKey: ["unidades"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("unidades").select("*").order("nome");
+      if (error) throw error;
+      return data as UnidadeDB[];
+    },
+  });
+
+  const { data: coordenacoes = [] } = useQuery({
+    queryKey: ["coordenacoes"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("coordenacoes").select("*").order("nome");
+      if (error) throw error;
+      return data as CoordenacaoDB[];
+    },
+  });
+
+  const stats = useMemo(() => computeStats(servidores), [servidores]);
 
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("todos");
@@ -35,16 +67,6 @@ const Dashboard = () => {
     return () => { supabase.removeChannel(channel); };
   }, [queryClient]);
 
-  if (authLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (!session) return <LoginForm />;
-
   const filteredServidores = servidores.filter((s) => {
     const matchSearch = s.nome.toLowerCase().includes(search.toLowerCase()) ||
       s.cargo.toLowerCase().includes(search.toLowerCase()) ||
@@ -55,7 +77,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="border-b border-border bg-card/60 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -73,7 +94,7 @@ const Dashboard = () => {
                 <div className="flex h-2 w-2 rounded-full bg-status-present animate-pulse" />
                 <span className="text-xs font-medium text-muted-foreground">Tempo real</span>
               </div>
-              <span className="text-xs text-muted-foreground hidden sm:block">{user?.email}</span>
+              <span className="text-xs text-muted-foreground hidden sm:block">{userEmail}</span>
               <button
                 onClick={signOut}
                 className="flex h-8 items-center gap-1.5 rounded-lg bg-muted px-3 text-xs font-medium text-muted-foreground hover:bg-muted/80 transition-colors"
@@ -87,7 +108,6 @@ const Dashboard = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Stats */}
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
           <StatCard title="Total Servidores" value={stats.total} icon={<Users className="h-5 w-5" />} subtitle={`${stats.concursados} concursados`} />
           <StatCard title="Presentes" value={stats.presentes} icon={<CheckCircle className="h-5 w-5" />} variant="success" subtitle={stats.total > 0 ? `${Math.round((stats.presentes / stats.total) * 100)}% do efetivo` : "—"} />
@@ -96,7 +116,6 @@ const Dashboard = () => {
           <StatCard title="Funções Críticas" value={stats.funcoesCriticas} icon={<Shield className="h-5 w-5" />} variant="info" subtitle="Cobertura necessária" />
         </div>
 
-        {/* Empty state */}
         {servidores.length === 0 && !isLoading && (
           <div className="glass-card rounded-xl p-12 text-center">
             <Users className="mx-auto h-12 w-12 text-muted-foreground/40" />
@@ -115,7 +134,6 @@ const Dashboard = () => {
 
         {servidores.length > 0 && (
           <>
-            {/* Controls */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -153,7 +171,6 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Content */}
             {view === "hierarchy" ? (
               <div className="space-y-6">
                 {diretorias.map((dir) => {
@@ -183,7 +200,6 @@ const Dashboard = () => {
                     </div>
                   );
                 })}
-                {/* Servidores sem diretoria */}
                 {filteredServidores.filter((s) => !s.diretoria_id).length > 0 && (
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
@@ -215,6 +231,22 @@ const Dashboard = () => {
       </main>
     </div>
   );
+}
+
+const Dashboard = () => {
+  const { session, loading: authLoading, signOut, user } = useAuth();
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!session) return <LoginForm />;
+
+  return <DashboardContent signOut={signOut} userEmail={user?.email} />;
 };
 
 export default Dashboard;
