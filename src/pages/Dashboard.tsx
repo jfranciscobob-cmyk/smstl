@@ -7,9 +7,10 @@ import { ServidorRow } from "@/components/ServidorRow";
 import { Link } from "react-router-dom";
 import { UnidadeSection } from "@/components/UnidadeSection";
 import { EditServidorModal } from "@/components/EditServidorModal";
+import { CreateServidorModal } from "@/components/CreateServidorModal";
 import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB, type CoordenacaoDB } from "@/hooks/useServidores";
 import {
-  Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Search, Filter, LogOut, Loader2, Network
+  Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Search, Filter, LogOut, Loader2, Network, UserPlus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,6 +26,7 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
   const [filterStatus, setFilterStatus] = useState<string>("todos");
   const [view, setView] = useState<"hierarchy" | "list">("hierarchy");
   const [editingServidor, setEditingServidor] = useState<ServidorDB | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -101,6 +103,13 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
                 <div className="flex h-2 w-2 rounded-full bg-status-present animate-pulse" />
                 <span className="text-xs font-medium text-muted-foreground">Tempo real</span>
               </div>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                <UserPlus className="h-3.5 w-3.5" />
+                Novo Servidor
+              </button>
               <Link
                 to="/estrutura"
                 className="flex h-8 items-center gap-1.5 rounded-lg bg-primary/10 px-3 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
@@ -261,6 +270,15 @@ function DashboardContent({ signOut, userEmail }: { signOut: () => void; userEma
         servidor={editingServidor}
         open={!!editingServidor}
         onClose={() => setEditingServidor(null)}
+        onSaved={loadData}
+        diretorias={diretorias}
+        unidades={unidades}
+        coordenacoes={coordenacoes}
+      />
+
+      <CreateServidorModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
         onSaved={loadData}
         diretorias={diretorias}
         unidades={unidades}

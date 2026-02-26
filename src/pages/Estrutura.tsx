@@ -2,18 +2,20 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginForm } from "@/components/LoginForm";
 import { supabase } from "@/integrations/supabase/client";
-import type { DiretoriaDB, UnidadeDB, CoordenacaoDB } from "@/hooks/useServidores";
+import type { DiretoriaDB, UnidadeDB, CoordenacaoDB, ServidorDB } from "@/hooks/useServidores";
 import {
-  Building2, Plus, Trash2, Edit2, ChevronDown, ChevronRight, ArrowLeft, Loader2, Shield, X, Check, Network
+  Building2, Plus, Trash2, Edit2, ChevronDown, ChevronRight, ArrowLeft, Loader2, Shield, X, Check, Network, Users, UserPlus
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { CreateServidorModal } from "@/components/CreateServidorModal";
 
 function EstruturaContent() {
   const { toast } = useToast();
   const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
   const [coordenacoes, setCoordenacoes] = useState<CoordenacaoDB[]>([]);
+  const [servidores, setServidores] = useState<ServidorDB[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
@@ -23,17 +25,22 @@ function EstruturaContent() {
   const [newCoord, setNewCoord] = useState<{ nome: string; unidade_id: string } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
+  const [createServidorTarget, setCreateServidorTarget] = useState<{ diretoria_id?: string; unidade_id?: string; coordenacao_id?: string } | null>(null);
+  const [assigningTo, setAssigningTo] = useState<{ type: "unidade" | "coordenacao"; id: string; diretoria_id: string } | null>(null);
+  const [assignSearch, setAssignSearch] = useState("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [d, u, c] = await Promise.all([
+    const [d, u, c, s] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenacoes").select("*").order("nome"),
+      supabase.from("servidores").select("id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id").order("nome").limit(2000),
     ]);
     setDiretorias((d.data ?? []) as DiretoriaDB[]);
     setUnidades((u.data ?? []) as UnidadeDB[]);
     setCoordenacoes((c.data ?? []) as CoordenacaoDB[]);
+    setServidores((s.data ?? []) as ServidorDB[]);
     setLoading(false);
   }, []);
 
@@ -93,6 +100,26 @@ function EstruturaContent() {
     toast({ title: "Coordenação criada!" });
     loadData();
   };
+
+  // Assign servidor to unidade/coordenação
+  const assignServidor = async (servidorId: string, diretoriaId: string, unidadeId: string, coordenacaoId?: string) => {
+    const updateData: any = { diretoria_id: diretoriaId, unidade_id: unidadeId };
+    if (coordenacaoId) updateData.coordenacao_id = coordenacaoId;
+    const { error } = await supabase.from("servidores").update(updateData).eq("id", servidorId);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Servidor vinculado!" });
+    setAssigningTo(null);
+    setAssignSearch("");
+    loadData();
+  };
+
+  const unassignedServidores = servidores.filter(s => !s.unidade_id);
+  const getServidoresByUnidade = (unidadeId: string) => servidores.filter(s => s.unidade_id === unidadeId);
+  const getServidoresByCoord = (coordId: string) => servidores.filter(s => s.coordenacao_id === coordId);
+
+  const filteredAssignResults = assignSearch.length >= 2
+    ? servidores.filter(s => s.nome.toLowerCase().includes(assignSearch.toLowerCase()) || s.matricula.includes(assignSearch)).slice(0, 8)
+    : unassignedServidores.slice(0, 8);
 
   const deleteCoord = async (id: string) => {
     await supabase.from("coordenacoes").delete().eq("id", id);
@@ -271,14 +298,30 @@ function EstruturaContent() {
                                 <button onClick={() => setEditingId(null)} className="text-muted-foreground"><X className="h-3.5 w-3.5" /></button>
                               </div>
                             ) : (
-                              <div>
+                              <div className="flex items-center gap-2">
                                 <span className="text-sm font-bold text-foreground">{uni.sigla}</span>
-                                <span className="text-sm text-muted-foreground ml-2">— {uni.nome}</span>
-                                <span className="text-xs text-muted-foreground ml-2">({uniCoords.length} coord.)</span>
+                                <span className="text-sm text-muted-foreground">— {uni.nome}</span>
+                                <span className="text-xs text-muted-foreground">({uniCoords.length} coord.)</span>
+                                <span className="flex items-center gap-1 text-xs font-medium text-primary ml-2">
+                                  <Users className="h-3 w-3" />
+                                  {getServidoresByUnidade(uni.id).length} servidores
+                                </span>
                               </div>
                             )}
                           </button>
                           <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => setCreateServidorTarget({ diretoria_id: dir.id, unidade_id: uni.id })}
+                              className="p-1.5 rounded text-primary hover:bg-primary/10 transition-colors" title="Novo servidor nesta unidade"
+                            >
+                              <UserPlus className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setAssigningTo({ type: "unidade", id: uni.id, diretoria_id: dir.id })}
+                              className="p-1.5 rounded text-primary hover:bg-primary/10 transition-colors" title="Vincular servidor existente"
+                            >
+                              <Users className="h-3.5 w-3.5" />
+                            </button>
                             <button onClick={() => { setEditingId(uni.id); setEditingValue(uni.nome); }} className="p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                               <Edit2 className="h-3.5 w-3.5" />
                             </button>
@@ -288,10 +331,42 @@ function EstruturaContent() {
                           </div>
                         </div>
 
+                        {/* Assign to unidade dropdown */}
+                        {assigningTo?.type === "unidade" && assigningTo.id === uni.id && (
+                          <div className="px-5 py-3 border-t border-border/30 space-y-2">
+                            <input
+                              autoFocus
+                              value={assignSearch}
+                              onChange={e => setAssignSearch(e.target.value)}
+                              placeholder="Buscar servidor por nome ou matrícula..."
+                              className="w-full h-8 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                            />
+                            <div className="max-h-40 overflow-y-auto space-y-1">
+                              {filteredAssignResults.map(s => (
+                                <button
+                                  key={s.id}
+                                  onClick={() => assignServidor(s.id, assigningTo.diretoria_id, uni.id)}
+                                  className="w-full text-left px-2 py-1.5 rounded text-xs hover:bg-primary/10 transition-colors text-foreground"
+                                >
+                                  <span className="font-medium">{s.nome}</span>
+                                  <span className="text-muted-foreground ml-2">({s.matricula})</span>
+                                </button>
+                              ))}
+                              {filteredAssignResults.length === 0 && (
+                                <p className="text-xs text-muted-foreground py-1 px-2">Nenhum servidor encontrado</p>
+                              )}
+                            </div>
+                            <button onClick={() => { setAssigningTo(null); setAssignSearch(""); }} className="text-xs text-muted-foreground hover:text-foreground">Cancelar</button>
+                          </div>
+                        )}
+
                         {uniExpanded && (
                           <div className="px-4 pb-3 pt-2 space-y-2 ml-6">
-                            {uniCoords.map(coord => (
-                              <div key={coord.id} className="flex items-center justify-between py-1.5 px-3 rounded bg-muted/20">
+                            {uniCoords.map(coord => {
+                              const coordServs = getServidoresByCoord(coord.id);
+                              return (
+                              <div key={coord.id} className="rounded bg-muted/20">
+                                <div className="flex items-center justify-between py-1.5 px-3">
                                 {editingId === coord.id ? (
                                   <div className="flex items-center gap-2">
                                     <input
@@ -305,9 +380,18 @@ function EstruturaContent() {
                                     <button onClick={() => setEditingId(null)} className="text-muted-foreground"><X className="h-3.5 w-3.5" /></button>
                                   </div>
                                 ) : (
-                                  <span className="text-sm text-foreground">{coord.nome}</span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm text-foreground">{coord.nome}</span>
+                                    <span className="text-xs text-muted-foreground">({coordServs.length})</span>
+                                  </div>
                                 )}
                                 <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => setAssigningTo({ type: "coordenacao", id: coord.id, diretoria_id: dir.id })}
+                                    className="p-1 rounded text-primary hover:bg-primary/10 transition-colors" title="Vincular servidor"
+                                  >
+                                    <UserPlus className="h-3.5 w-3.5" />
+                                  </button>
                                   <button onClick={() => { setEditingId(coord.id); setEditingValue(coord.nome); }} className="p-1 rounded text-muted-foreground hover:text-foreground">
                                     <Edit2 className="h-3 w-3" />
                                   </button>
@@ -315,8 +399,48 @@ function EstruturaContent() {
                                     <Trash2 className="h-3 w-3" />
                                   </button>
                                 </div>
+                                </div>
+                                {/* Assign dropdown for this coord */}
+                                {assigningTo?.type === "coordenacao" && assigningTo.id === coord.id && (
+                                  <div className="px-3 pb-2 space-y-2">
+                                    <input
+                                      autoFocus
+                                      value={assignSearch}
+                                      onChange={e => setAssignSearch(e.target.value)}
+                                      placeholder="Buscar servidor por nome ou matrícula..."
+                                      className="w-full h-8 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                                    />
+                                    <div className="max-h-40 overflow-y-auto space-y-1">
+                                      {filteredAssignResults.map(s => (
+                                        <button
+                                          key={s.id}
+                                          onClick={() => assignServidor(s.id, assigningTo.diretoria_id, uni.id, coord.id)}
+                                          className="w-full text-left px-2 py-1.5 rounded text-xs hover:bg-primary/10 transition-colors text-foreground"
+                                        >
+                                          <span className="font-medium">{s.nome}</span>
+                                          <span className="text-muted-foreground ml-2">({s.matricula})</span>
+                                        </button>
+                                      ))}
+                                      {filteredAssignResults.length === 0 && (
+                                        <p className="text-xs text-muted-foreground py-1 px-2">Nenhum servidor encontrado</p>
+                                      )}
+                                    </div>
+                                    <button onClick={() => { setAssigningTo(null); setAssignSearch(""); }} className="text-xs text-muted-foreground hover:text-foreground">Cancelar</button>
+                                  </div>
+                                )}
+                                {/* List servidores in coord */}
+                                {coordServs.length > 0 && (
+                                  <div className="px-3 pb-2">
+                                    {coordServs.map(s => (
+                                      <div key={s.id} className="text-xs text-muted-foreground py-0.5 pl-2 border-l-2 border-primary/20">
+                                        {s.nome} <span className="text-muted-foreground/60">— {s.cargo}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
-                            ))}
+                              );
+                            })}
 
                             {newCoord?.unidade_id === uni.id ? (
                               <div className="flex items-center gap-2">
@@ -350,6 +474,18 @@ function EstruturaContent() {
           );
         })}
       </main>
+
+      <CreateServidorModal
+        open={!!createServidorTarget}
+        onClose={() => setCreateServidorTarget(null)}
+        onSaved={loadData}
+        diretorias={diretorias}
+        unidades={unidades}
+        coordenacoes={coordenacoes}
+        defaultDiretoriaId={createServidorTarget?.diretoria_id}
+        defaultUnidadeId={createServidorTarget?.unidade_id}
+        defaultCoordenacaoId={createServidorTarget?.coordenacao_id}
+      />
     </div>
   );
 }
