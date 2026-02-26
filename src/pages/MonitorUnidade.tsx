@@ -279,7 +279,7 @@ function MonitorContent() {
   const UnitSummaryCard = ({ uni }: { uni: UnidadeDB }) => {
     const uniServs = servidores.filter(s => s.unidade_id === uni.id);
     const uniPresentes = uniServs.filter(s => s.status_presenca === "presente").length;
-    const uniFolha = uniServs.reduce((sum, s) => sum + ((s as any).salario || 0), 0);
+    const uniFolha = uniServs.reduce((sum, s) => sum + (s.salario || 0), 0);
     const pct = uniServs.length > 0 ? Math.round((uniPresentes / uniServs.length) * 100) : 0;
     const pctColor = pct >= 80 ? "text-success bg-success/10" : pct >= 50 ? "text-warning bg-warning/10" : "text-destructive bg-destructive/10";
 
