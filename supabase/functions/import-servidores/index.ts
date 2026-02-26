@@ -44,8 +44,9 @@ serve(async (req) => {
       const cargo = (parts[5] || "").trim();
       const dataAdmissao = (parts[6] || "").trim();
       const cargaHoraria = parseInt(parts[7] || "0", 10) || 0;
-      const salarioRaw = (parts[8] || "").trim().replace(/[^\d.,]/g, "").replace(",", ".");
-      const salario = parseFloat(salarioRaw) || 0;
+      const salarioRaw = (parts[8] || "").trim().replace(/[^\d.,]/g, "");
+      // Brazilian format: 5.470,00 → remove dots (thousands sep), then replace comma with dot
+      const salario = parseFloat(salarioRaw.replace(/\./g, "").replace(",", ".")) || 0;
 
       if (!nome) continue;
 
