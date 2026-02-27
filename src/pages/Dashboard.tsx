@@ -279,7 +279,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
 
   const stats = useMemo(() => computeStats(filteredServidores), [filteredServidores]);
 
-  const folhaTotal = useMemo(() => servidores.reduce((sum, s) => sum + (s.salario || 0), 0), [servidores]);
+  const folhaTotal = useMemo(() => filteredServidores.reduce((sum, s) => sum + (s.salario || 0), 0), [filteredServidores]);
 
   const statusData = useMemo(() => [
     { name: "Presentes", value: stats.presentes },
