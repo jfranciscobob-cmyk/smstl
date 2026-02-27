@@ -68,6 +68,16 @@ export function EditServidorModal({
     duplo_vinculo: false,
   });
 
+  const loadExtraUnidades = useCallback(async (servId: string) => {
+    setLoadingExtras(true);
+    const { data } = await supabase
+      .from("servidores_unidades")
+      .select("unidade_id")
+      .eq("servidor_id", servId);
+    setExtraUnidadeIds((data ?? []).map(d => d.unidade_id));
+    setLoadingExtras(false);
+  }, []);
+
   useEffect(() => {
     if (servidor) {
       setForm({
@@ -105,8 +115,9 @@ export function EditServidorModal({
         vinculo2: (servidor as any).vinculo2 || "",
         duplo_vinculo: (servidor as any).duplo_vinculo || false,
       });
+      loadExtraUnidades(servidor.id);
     }
-  }, [servidor]);
+  }, [servidor, loadExtraUnidades]);
 
   const filteredUnidades = unidades.filter(
     (u) => !form.diretoria_id || u.diretoria_id === form.diretoria_id
