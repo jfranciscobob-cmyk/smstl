@@ -171,6 +171,25 @@ export default function AdminUsuarios() {
     loadData();
   };
 
+  const deleteUser = async (userId: string, userName: string) => {
+    if (!window.confirm(`Tem certeza que deseja excluir o usuário "${userName}"? Esta ação não pode ser desfeita.`)) return;
+    setDeleting(userId);
+
+    const { data, error } = await supabase.functions.invoke("delete-user", {
+      body: { user_id: userId },
+    });
+
+    if (error || !data?.success) {
+      toast({ title: "Erro ao excluir", description: data?.error || error?.message, variant: "destructive" });
+      setDeleting(null);
+      return;
+    }
+
+    toast({ title: "Usuário excluído com sucesso!" });
+    setDeleting(null);
+    loadData();
+  };
+
   const pendingRequests = requests.filter(r => r.status === "pendente");
   const onlineCount = profiles.filter(p => isOnline(p.last_seen_at)).length;
 
