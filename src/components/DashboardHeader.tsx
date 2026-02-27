@@ -34,6 +34,18 @@ export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, direto
     };
     loadCount();
 
+    // Load online users count
+    const loadOnline = async () => {
+      const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+      const { count } = await supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .gte("last_seen_at", twoMinAgo);
+      setOnlineCount(count ?? 0);
+    };
+    loadOnline();
+    const onlineInterval = setInterval(loadOnline, 30_000);
+
     const channel = supabase
       .channel("transferencias-badge")
       .on("postgres_changes", { event: "*", schema: "public", table: "transferencias" }, () => {
@@ -41,7 +53,7 @@ export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, direto
       })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => { supabase.removeChannel(channel); clearInterval(onlineInterval); };
   }, []);
 
   return (
