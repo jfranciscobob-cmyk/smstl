@@ -25,6 +25,7 @@ function EstruturaContent() {
   const [funcoes, setFuncoes] = useState<FuncaoDB[]>([]);
   const [coordenadoresUnidades, setCoordenadoresUnidades] = useState<CoordenadorUnidadeDB[]>([]);
   const [agrupamentos, setAgrupamentos] = useState<AgrupamentoDB[]>([]);
+  const [servidoresUnidades, setServidoresUnidades] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
@@ -58,7 +59,7 @@ function EstruturaContent() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [d, u, c, st, fc, cu, ag] = await Promise.all([
+    const [d, u, c, st, fc, cu, ag, su] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenacoes").select("*").order("nome"),
@@ -66,6 +67,7 @@ function EstruturaContent() {
       supabase.from("funcoes").select("*").order("nome"),
       supabase.from("coordenadores_unidades").select("*"),
       supabase.from("agrupamentos").select("*").order("nome"),
+      supabase.from("servidores_unidades").select("servidor_id, unidade_id"),
     ]);
     // Fetch all servidores with pagination (bypass 1000 limit)
     const selectCols = "id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, setor_id, funcao_id, is_diretor, is_coordenador, is_secretario, is_diretor_geral";
@@ -91,6 +93,7 @@ function EstruturaContent() {
     setFuncoes((fc.data ?? []) as FuncaoDB[]);
     setCoordenadoresUnidades((cu.data ?? []) as CoordenadorUnidadeDB[]);
     setAgrupamentos((ag.data ?? []) as AgrupamentoDB[]);
+    setServidoresUnidades((su.data ?? []) as { servidor_id: string; unidade_id: string }[]);
     setServidores(allServidores as ServidorDB[]);
     setLoading(false);
   }, []);
@@ -221,7 +224,12 @@ function EstruturaContent() {
 
   const unassignedServidores = servidores.filter(s => !s.unidade_id);
   const secretariaServidores = servidores.filter(s => !s.diretoria_id && !s.unidade_id);
-  const getServidoresByUnidade = (unidadeId: string) => servidores.filter(s => s.unidade_id === unidadeId);
+  const getServidoresByUnidade = (unidadeId: string) => {
+    const primaryIds = servidores.filter(s => s.unidade_id === unidadeId).map(s => s.id);
+    const extraIds = servidoresUnidades.filter(su => su.unidade_id === unidadeId).map(su => su.servidor_id);
+    const allIds = [...new Set([...primaryIds, ...extraIds])];
+    return allIds.map(id => servidores.find(s => s.id === id)).filter(Boolean) as ServidorDB[];
+  };
   const getServidoresByCoord = (coordId: string) => servidores.filter(s => s.coordenacao_id === coordId);
   const getDiretor = (diretoriaId: string) => servidores.find(s => s.diretoria_id === diretoriaId && s.is_diretor);
   const getAgrupamentosByDiretoria = (diretoriaId: string) => agrupamentos.filter(a => a.diretoria_id === diretoriaId);

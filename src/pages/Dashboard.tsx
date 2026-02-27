@@ -132,6 +132,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
   const [coordenacoes, setCoordenacoes] = useState<CoordenacaoDB[]>([]);
   const [coordUnidades, setCoordUnidades] = useState<{ id: string; servidor_id: string; unidade_id: string }[]>([]);
+  const [servidoresUnidades, setServidoresUnidades] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
   const [faltasAbonadas, setFaltasAbonadas] = useState<{ servidor_id: string; data: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -163,13 +164,14 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
     };
 
     try {
-      const [allServidores, diretoriasRes, unidadesRes, coordenacoesRes, coordUnidadesRes, faltasRes] = await Promise.all([
+      const [allServidores, diretoriasRes, unidadesRes, coordenacoesRes, coordUnidadesRes, faltasRes, srvUnidadesRes] = await Promise.all([
         fetchAllServidores(),
         supabase.from("diretorias").select("*").order("nome"),
         supabase.from("unidades").select("*").order("nome"),
         supabase.from("coordenacoes").select("*").order("nome"),
         supabase.from("coordenadores_unidades").select("*"),
         supabase.from("faltas_abonadas").select("servidor_id, data"),
+        supabase.from("servidores_unidades").select("servidor_id, unidade_id"),
       ]);
 
       if (diretoriasRes.error || unidadesRes.error || coordenacoesRes.error) {
@@ -181,6 +183,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
       setUnidades((unidadesRes.data ?? []) as UnidadeDB[]);
       setCoordenacoes((coordenacoesRes.data ?? []) as CoordenacaoDB[]);
       setCoordUnidades(coordUnidadesRes.data ?? []);
+      setServidoresUnidades((srvUnidadesRes.data ?? []) as { servidor_id: string; unidade_id: string }[]);
       setFaltasAbonadas((faltasRes.data ?? []) as { servidor_id: string; data: string }[]);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : "Erro ao carregar dados");
@@ -223,12 +226,22 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
         .filter(cu => cu.servidor_id === servidorId)
         .map(cu => cu.unidade_id);
       if (myUnidadeIds.length > 0) {
-        return servidores.filter(s => s.unidade_id && myUnidadeIds.includes(s.unidade_id));
+        // Include servidores with primary unidade_id OR via junction table
+        const extraServidorIds = servidoresUnidades
+          .filter(su => myUnidadeIds.includes(su.unidade_id))
+          .map(su => su.servidor_id);
+        return servidores.filter(s =>
+          (s.unidade_id && myUnidadeIds.includes(s.unidade_id)) ||
+          extraServidorIds.includes(s.id)
+        );
       }
       // Also check is_coordenador flag on servidor
       const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
       if (myServidor?.unidade_id) {
-        return servidores.filter(s => s.unidade_id === myServidor.unidade_id);
+        const extraIds = servidoresUnidades
+          .filter(su => su.unidade_id === myServidor.unidade_id)
+          .map(su => su.servidor_id);
+        return servidores.filter(s => s.unidade_id === myServidor.unidade_id || extraIds.includes(s.id));
       }
       return [];
     }
