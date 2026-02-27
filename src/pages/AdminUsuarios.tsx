@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Loader2, UserPlus, Shield, Building2, Users, Pencil, Key, X } from "lucide-react";
+import { ArrowLeft, Loader2, UserPlus, Shield, Building2, Users, Pencil, Key, X, Check, XCircle, Clock, Circle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface ProfileRow {
@@ -11,6 +11,7 @@ interface ProfileRow {
   servidor_id: string | null;
   acesso_financeiro: boolean;
   created_at: string;
+  last_seen_at: string | null;
 }
 
 interface RoleRow {
@@ -19,10 +20,28 @@ interface RoleRow {
   role: string;
 }
 
+interface RegistrationRequest {
+  id: string;
+  email: string;
+  nome: string;
+  role_requested: string;
+  diretoria_id: string | null;
+  status: string;
+  created_at: string;
+  motivo_rejeicao: string | null;
+}
+
+function isOnline(lastSeen: string | null): boolean {
+  if (!lastSeen) return false;
+  const diff = Date.now() - new Date(lastSeen).getTime();
+  return diff < 2 * 60 * 1000; // 2 minutes
+}
+
 export default function AdminUsuarios() {
   const { toast } = useToast();
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [roles, setRoles] = useState<RoleRow[]>([]);
+  const [requests, setRequests] = useState<RegistrationRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Create user form
@@ -35,13 +54,18 @@ export default function AdminUsuarios() {
   const [editForm, setEditForm] = useState({ nome: "", role: "", password: "", acesso_financeiro: false });
   const [saving, setSaving] = useState(false);
 
+  // Approval
+  const [processing, setProcessing] = useState<string | null>(null);
+
   const loadData = useCallback(async () => {
-    const [p, r] = await Promise.all([
+    const [p, r, req] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("user_roles").select("*"),
+      supabase.from("registration_requests").select("*").order("created_at", { ascending: false }),
     ]);
     setProfiles((p.data ?? []) as ProfileRow[]);
     setRoles((r.data ?? []) as RoleRow[]);
+    setRequests((req.data ?? []) as RegistrationRequest[]);
     setLoading(false);
   }, []);
 
@@ -126,6 +150,27 @@ export default function AdminUsuarios() {
     loadData();
   };
 
+  const handleRequest = async (requestId: string, action: "aprovar" | "rejeitar") => {
+    setProcessing(requestId);
+
+    const { data, error } = await supabase.functions.invoke("approve-registration", {
+      body: { request_id: requestId, action },
+    });
+
+    if (error || !data?.success) {
+      toast({ title: "Erro", description: data?.error || error?.message, variant: "destructive" });
+      setProcessing(null);
+      return;
+    }
+
+    toast({ title: action === "aprovar" ? "Usuário aprovado e criado!" : "Solicitação rejeitada." });
+    setProcessing(null);
+    loadData();
+  };
+
+  const pendingRequests = requests.filter(r => r.status === "pendente");
+  const onlineCount = profiles.filter(p => isOnline(p.last_seen_at)).length;
+
   if (loading) {
     return <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
@@ -143,7 +188,12 @@ export default function AdminUsuarios() {
                 <Key className="h-5 w-5 text-primary" />
                 <div>
                   <h1 className="text-lg font-bold text-foreground">Gerenciar Usuários</h1>
-                  <p className="text-xs text-muted-foreground">Criar e gerenciar acessos ao sistema</p>
+                  <p className="text-xs text-muted-foreground">
+                    {profiles.length} usuários • <span className="text-green-500">{onlineCount} online</span>
+                    {pendingRequests.length > 0 && (
+                      <span className="text-amber-500 ml-2">• {pendingRequests.length} pendente(s)</span>
+                    )}
+                  </p>
                 </div>
               </div>
             </div>
@@ -151,13 +201,61 @@ export default function AdminUsuarios() {
               onClick={() => setShowForm(true)}
               className="flex items-center gap-2 h-9 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
             >
-              <UserPlus className="h-4 w-4" /> Novo Usuário
+              <UserPlus className="h-4 w-4" /> <span className="hidden sm:inline">Novo Usuário</span>
             </button>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-3xl space-y-6">
+        {/* Pending registration requests */}
+        {pendingRequests.length > 0 && (
+          <div className="space-y-3">
+            <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <Clock className="h-4 w-4 text-amber-500" />
+              Solicitações Pendentes ({pendingRequests.length})
+            </h2>
+            {pendingRequests.map(req => (
+              <div key={req.id} className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground">{req.nome || req.email}</p>
+                    <p className="text-xs text-muted-foreground">{req.email}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${roleColor[req.role_requested] || "bg-muted text-muted-foreground"}`}>
+                        {req.role_requested === "diretor" && <Building2 className="h-3 w-3 mr-1" />}
+                        {req.role_requested === "coordenador" && <Users className="h-3 w-3 mr-1" />}
+                        {roleLabel[req.role_requested] || req.role_requested}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {new Date(req.created_at).toLocaleDateString("pt-BR")}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => handleRequest(req.id, "aprovar")}
+                      disabled={processing === req.id}
+                      className="flex items-center gap-1 h-8 px-3 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
+                    >
+                      {processing === req.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                      Aprovar
+                    </button>
+                    <button
+                      onClick={() => handleRequest(req.id, "rejeitar")}
+                      disabled={processing === req.id}
+                      className="flex items-center gap-1 h-8 px-3 rounded-lg bg-destructive text-destructive-foreground text-xs font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50"
+                    >
+                      <XCircle className="h-3 w-3" />
+                      Rejeitar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Create user form */}
         {showForm && (
           <div className="rounded-xl border border-primary/30 bg-primary/5 p-5 space-y-4">
@@ -296,13 +394,23 @@ export default function AdminUsuarios() {
 
         {/* Users list */}
         <div className="space-y-2">
+          <h2 className="text-sm font-bold text-foreground">Usuários Ativos</h2>
           {profiles.map(p => {
             const userRoles = getRoles(p.id);
+            const online = isOnline(p.last_seen_at);
             return (
               <div key={p.id} className="rounded-xl border border-border bg-card p-4 flex items-center justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{p.nome || p.email}</p>
-                  <p className="text-xs text-muted-foreground">{p.email}</p>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="relative flex-shrink-0">
+                    <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center">
+                      <span className="text-xs font-bold text-foreground">{(p.nome || p.email).charAt(0).toUpperCase()}</span>
+                    </div>
+                    <div className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card ${online ? "bg-green-500" : "bg-muted-foreground/30"}`} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{p.nome || p.email}</p>
+                    <p className="text-xs text-muted-foreground">{p.email}</p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {userRoles.map(r => (

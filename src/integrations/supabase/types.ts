@@ -353,6 +353,7 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          last_seen_at: string | null
           nome: string | null
           servidor_id: string | null
           updated_at: string
@@ -362,6 +363,7 @@ export type Database = {
           created_at?: string
           email: string
           id: string
+          last_seen_at?: string | null
           nome?: string | null
           servidor_id?: string | null
           updated_at?: string
@@ -371,6 +373,7 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          last_seen_at?: string | null
           nome?: string | null
           servidor_id?: string | null
           updated_at?: string
@@ -381,6 +384,56 @@ export type Database = {
             columns: ["servidor_id"]
             isOneToOne: false
             referencedRelation: "servidores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      registration_requests: {
+        Row: {
+          created_at: string
+          diretoria_id: string | null
+          email: string
+          id: string
+          motivo_rejeicao: string | null
+          nome: string
+          respondido_at: string | null
+          respondido_por: string | null
+          role_requested: string
+          senha: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          diretoria_id?: string | null
+          email: string
+          id?: string
+          motivo_rejeicao?: string | null
+          nome?: string
+          respondido_at?: string | null
+          respondido_por?: string | null
+          role_requested: string
+          senha: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          diretoria_id?: string | null
+          email?: string
+          id?: string
+          motivo_rejeicao?: string | null
+          nome?: string
+          respondido_at?: string | null
+          respondido_por?: string | null
+          role_requested?: string
+          senha?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registration_requests_diretoria_id_fkey"
+            columns: ["diretoria_id"]
+            isOneToOne: false
+            referencedRelation: "diretorias"
             referencedColumns: ["id"]
           },
         ]

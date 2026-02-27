@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Shield, Network, LogOut, UserPlus, Key, ArrowRightLeft, Bell, BookOpen } from "lucide-react";
+import { Shield, Network, LogOut, UserPlus, Key, ArrowRightLeft, BookOpen, Circle } from "lucide-react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { supabase } from "@/integrations/supabase/client";
 import type { DiretoriaDB, ServidorDB } from "@/hooks/useServidores";
@@ -17,6 +17,7 @@ interface DashboardHeaderProps {
 export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, diretorias = [], servidores = [] }: DashboardHeaderProps) {
   const { hasFullAccess, user, isAdmin, isDiretor, servidorId } = useAuthSession();
   const [pendingCount, setPendingCount] = useState(0);
+  const [onlineCount, setOnlineCount] = useState(0);
   const [showTransferencias, setShowTransferencias] = useState(false);
 
   // Find user's diretoria (if they are a director)
@@ -33,6 +34,18 @@ export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, direto
     };
     loadCount();
 
+    // Load online users count
+    const loadOnline = async () => {
+      const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+      const { count } = await supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .gte("last_seen_at", twoMinAgo);
+      setOnlineCount(count ?? 0);
+    };
+    loadOnline();
+    const onlineInterval = setInterval(loadOnline, 30_000);
+
     const channel = supabase
       .channel("transferencias-badge")
       .on("postgres_changes", { event: "*", schema: "public", table: "transferencias" }, () => {
@@ -40,7 +53,7 @@ export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, direto
       })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => { supabase.removeChannel(channel); clearInterval(onlineInterval); };
   }, []);
 
   return (
@@ -64,8 +77,10 @@ export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, direto
 
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               <div className="hidden lg:flex items-center gap-2 mr-2">
-                <div className="flex h-2 w-2 rounded-full bg-success animate-pulse" />
-                <span className="text-[11px] font-medium text-primary-foreground/40">Tempo real</span>
+                <div className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-[11px] font-medium text-primary-foreground/40">
+                  {onlineCount} online
+                </span>
               </div>
 
               {/* Transferências */}
