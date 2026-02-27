@@ -305,10 +305,34 @@ function EstruturaContent() {
   };
 
   const assignServidorToSetor = async (servidorId: string, setorId: string, diretoriaId: string | null) => {
+    const servidor = servidores.find(s => s.id === servidorId);
+    if (!servidor) return;
+
+    const setorIdsAtuais = new Set<string>();
+    if (servidor.setor_id) setorIdsAtuais.add(servidor.setor_id);
+    servidoresSetores
+      .filter(ss => ss.servidor_id === servidorId)
+      .forEach(ss => setorIdsAtuais.add(ss.setor_id));
+
+    if (setorIdsAtuais.has(setorId)) {
+      toast({ title: "Servidor já vinculado a este setor." });
+      return;
+    }
+
+    if (setorIdsAtuais.size > 0) {
+      await keepInBothSetores(servidorId, setorId);
+      return;
+    }
+
     const updateData: any = { setor_id: setorId };
     if (diretoriaId) updateData.diretoria_id = diretoriaId;
+
     const { error } = await supabase.from("servidores").update(updateData).eq("id", servidorId);
-    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+
     toast({ title: "Servidor vinculado ao setor!" });
     setAssigningSetor(null);
     setSetorAssignSearch("");
@@ -316,11 +340,82 @@ function EstruturaContent() {
   };
 
   const bulkAssignServidorToSetor = async (servidorIds: string[], setorId: string, diretoriaId: string | null) => {
-    const updateData: any = { setor_id: setorId };
-    if (diretoriaId) updateData.diretoria_id = diretoriaId;
-    const { error } = await supabase.from("servidores").update(updateData).in("id", servidorIds);
-    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    toast({ title: `${servidorIds.length} servidor(es) vinculado(s) ao setor!` });
+    if (servidorIds.length === 0) return;
+
+    const semSetorAtual: string[] = [];
+    const manterEmAmbos: string[] = [];
+
+    servidorIds.forEach(servidorId => {
+      const servidor = servidores.find(s => s.id === servidorId);
+      if (!servidor) return;
+
+      const setorIdsAtuais = new Set<string>();
+      if (servidor.setor_id) setorIdsAtuais.add(servidor.setor_id);
+      servidoresSetores
+        .filter(ss => ss.servidor_id === servidorId)
+        .forEach(ss => setorIdsAtuais.add(ss.setor_id));
+
+      if (setorIdsAtuais.has(setorId)) return;
+      if (setorIdsAtuais.size > 0) {
+        manterEmAmbos.push(servidorId);
+      } else {
+        semSetorAtual.push(servidorId);
+      }
+    });
+
+    if (semSetorAtual.length > 0) {
+      const updateData: any = { setor_id: setorId };
+      if (diretoriaId) updateData.diretoria_id = diretoriaId;
+
+      const { error } = await supabase.from("servidores").update(updateData).in("id", semSetorAtual);
+      if (error) {
+        toast({ title: "Erro", description: error.message, variant: "destructive" });
+        return;
+      }
+    }
+
+    let extrasInseridos = 0;
+
+    if (manterEmAmbos.length > 0) {
+      const { data: existentes, error: consultaErro } = await supabase
+        .from("servidores_setores")
+        .select("servidor_id")
+        .eq("setor_id", setorId)
+        .in("servidor_id", manterEmAmbos);
+
+      if (consultaErro) {
+        toast({ title: "Erro", description: consultaErro.message, variant: "destructive" });
+        return;
+      }
+
+      const existentesSet = new Set((existentes ?? []).map(row => row.servidor_id));
+      const payload = manterEmAmbos
+        .filter(servidorId => !existentesSet.has(servidorId))
+        .map(servidor_id => ({ servidor_id, setor_id: setorId }));
+
+      extrasInseridos = payload.length;
+
+      if (payload.length > 0) {
+        const { error } = await supabase.from("servidores_setores").insert(payload);
+        if (error) {
+          toast({ title: "Erro", description: error.message, variant: "destructive" });
+          return;
+        }
+      }
+    }
+
+    const totalNovos = semSetorAtual.length + extrasInseridos;
+
+    if (totalNovos === 0) {
+      toast({ title: "Nenhuma alteração", description: "Os servidores selecionados já estavam neste setor." });
+      return;
+    }
+
+    toast({
+      title: `${totalNovos} servidor(es) vinculado(s) ao setor!`,
+      description: extrasInseridos > 0 ? `${extrasInseridos} mantido(s) em múltiplos setores.` : undefined,
+    });
+
     loadData();
   };
 
