@@ -1281,17 +1281,19 @@ function MonitorContent() {
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                   <Clock className="h-3.5 w-3.5" /> Carga Horária Individual
                 </h3>
-                {canEditEscalasFerias && !showBulkEscala ? (
-                  <button onClick={initBulkEscalas} className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80">
-                    <Pencil className="h-3.5 w-3.5" /> Editar Escalas em Massa
-                  </button>
-                ) : (
-                  <div className="flex gap-2">
-                    <button onClick={saveBulkEscalas} disabled={savingBulk} className="flex items-center gap-1 h-7 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50">
-                      {savingBulk ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />} Salvar Todos
+                {canEditEscalasFerias && (
+                  !showBulkEscala ? (
+                    <button onClick={initBulkEscalas} className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80">
+                      <Pencil className="h-3.5 w-3.5" /> Editar Escalas em Massa
                     </button>
-                    <button onClick={() => setShowBulkEscala(false)} className="text-xs text-muted-foreground">Cancelar</button>
-                  </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button onClick={saveBulkEscalas} disabled={savingBulk} className="flex items-center gap-1 h-7 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50">
+                        {savingBulk ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />} Salvar Todos
+                      </button>
+                      <button onClick={() => setShowBulkEscala(false)} className="text-xs text-muted-foreground">Cancelar</button>
+                    </div>
+                  )
                 )}
               </div>
               <div className="overflow-x-auto -mx-3 sm:-mx-5 px-3 sm:px-5">
