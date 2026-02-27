@@ -171,14 +171,24 @@ export function EditServidorModal({
       .update(updateData)
       .eq("id", servidor.id);
 
-    setSaving(false);
-
     if (error) {
+      setSaving(false);
       toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Servidor atualizado!", description: `${form.nome} foi atualizado com sucesso.` });
-      onSaved();
-      onClose();
+      return;
+    }
+
+    // Sync extra unidades (junction table)
+    await supabase.from("servidores_unidades").delete().eq("servidor_id", servidor.id);
+    if (extraUnidadeIds.length > 0) {
+      await supabase.from("servidores_unidades").insert(
+        extraUnidadeIds.map(uid => ({ servidor_id: servidor.id, unidade_id: uid }))
+      );
+    }
+
+    setSaving(false);
+    toast({ title: "Servidor atualizado!", description: `${form.nome} foi atualizado com sucesso.` });
+    onSaved();
+    onClose();
     }
   };
 
