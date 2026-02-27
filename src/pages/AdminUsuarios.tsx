@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Loader2, UserPlus, Shield, Building2, Users, Pencil, Key, X, Check, XCircle, Clock, Circle } from "lucide-react";
+import { ArrowLeft, Loader2, UserPlus, Shield, Building2, Users, Pencil, Key, X, Check, XCircle, Clock, Circle, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface ProfileRow {
