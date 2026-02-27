@@ -224,7 +224,12 @@ function EstruturaContent() {
 
   const unassignedServidores = servidores.filter(s => !s.unidade_id);
   const secretariaServidores = servidores.filter(s => !s.diretoria_id && !s.unidade_id);
-  const getServidoresByUnidade = (unidadeId: string) => servidores.filter(s => s.unidade_id === unidadeId);
+  const getServidoresByUnidade = (unidadeId: string) => {
+    const primaryIds = servidores.filter(s => s.unidade_id === unidadeId).map(s => s.id);
+    const extraIds = servidoresUnidades.filter(su => su.unidade_id === unidadeId).map(su => su.servidor_id);
+    const allIds = [...new Set([...primaryIds, ...extraIds])];
+    return allIds.map(id => servidores.find(s => s.id === id)).filter(Boolean) as ServidorDB[];
+  };
   const getServidoresByCoord = (coordId: string) => servidores.filter(s => s.coordenacao_id === coordId);
   const getDiretor = (diretoriaId: string) => servidores.find(s => s.diretoria_id === diretoriaId && s.is_diretor);
   const getAgrupamentosByDiretoria = (diretoriaId: string) => agrupamentos.filter(a => a.diretoria_id === diretoriaId);
