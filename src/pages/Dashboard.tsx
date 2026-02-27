@@ -315,6 +315,16 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
 
   // Servidores em férias agrupados por diretoria - computados nos cards abaixo
 
+  // ── Servidores sem escala ou férias atualizadas ──
+  const semEscala = useMemo(() =>
+    filteredServidores.filter(s => !s.escala_inicio1 && !s.escala_total_horas),
+    [filteredServidores]
+  );
+  const semFerias = useMemo(() =>
+    filteredServidores.filter(s => !s.ferias_ano_referencia && !s.ferias_periodo1_inicio),
+    [filteredServidores]
+  );
+
   const statusColors = ["hsl(152 60% 40%)", "hsl(38 92% 50%)", "hsl(0 72% 51%)", "hsl(200 10% 46%)"];
   const vinculoColors = ["hsl(174 62% 30%)", "hsl(38 92% 50%)", "hsl(210 75% 50%)", "hsl(270 50% 55%)", "hsl(200 10% 46%)"];
 
