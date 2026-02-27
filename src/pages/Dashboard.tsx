@@ -777,9 +777,9 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
 }
 
 const Dashboard = () => {
-  const { signOut, user, hasFinancialAccess } = useAuthSession();
+  const { signOut, user, hasFinancialAccess, isAdmin, isDiretor, isCoordenador, servidorId } = useAuthSession();
   useHeartbeat(user?.id);
-  return <DashboardContent signOut={signOut} userEmail={user?.email} hasFinancialAccess={hasFinancialAccess} />;
+  return <DashboardContent signOut={signOut} userEmail={user?.email} hasFinancialAccess={hasFinancialAccess} isAdmin={isAdmin} isDiretor={isDiretor} isCoordenador={isCoordenador} servidorId={servidorId} />;
 };
 
 export default Dashboard;
