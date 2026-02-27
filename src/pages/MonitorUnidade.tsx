@@ -35,6 +35,7 @@ function MonitorContent() {
   const [faltasAbonadas, setFaltasAbonadas] = useState<FaltaAbonadaDB[]>([]);
   const [afastamentos, setAfastamentos] = useState<AfastamentoDB[]>([]);
   const [loading, setLoading] = useState(true);
+  const [coordUniData, setCoordUniData] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
 
   // Atestado form
   const [showAtestadoForm, setShowAtestadoForm] = useState(false);
