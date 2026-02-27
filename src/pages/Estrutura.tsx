@@ -28,6 +28,7 @@ function EstruturaContent() {
   const [coordenadoresUnidades, setCoordenadoresUnidades] = useState<CoordenadorUnidadeDB[]>([]);
   const [agrupamentos, setAgrupamentos] = useState<AgrupamentoDB[]>([]);
   const [servidoresUnidades, setServidoresUnidades] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
+  const [servidoresSetores, setServidoresSetores] = useState<{ servidor_id: string; setor_id: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
@@ -61,7 +62,7 @@ function EstruturaContent() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [d, u, c, st, fc, cu, ag, su] = await Promise.all([
+    const [d, u, c, st, fc, cu, ag, su, ss] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenacoes").select("*").order("nome"),
@@ -70,6 +71,7 @@ function EstruturaContent() {
       supabase.from("coordenadores_unidades").select("*"),
       supabase.from("agrupamentos").select("*").order("nome"),
       supabase.from("servidores_unidades").select("servidor_id, unidade_id"),
+      supabase.from("servidores_setores").select("servidor_id, setor_id"),
     ]);
     // Fetch all servidores with pagination (bypass 1000 limit)
     const selectCols = "id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, setor_id, funcao_id, is_diretor, is_coordenador, is_coordenador_medico, is_secretario, is_diretor_geral";
@@ -96,6 +98,7 @@ function EstruturaContent() {
     setCoordenadoresUnidades((cu.data ?? []) as CoordenadorUnidadeDB[]);
     setAgrupamentos((ag.data ?? []) as AgrupamentoDB[]);
     setServidoresUnidades((su.data ?? []) as { servidor_id: string; unidade_id: string }[]);
+    setServidoresSetores((ss.data ?? []) as { servidor_id: string; setor_id: string }[]);
     setAllServidores(allServidores as ServidorDB[]);
     setLoading(false);
   }, []);
@@ -232,6 +235,13 @@ function EstruturaContent() {
     const { error } = await supabase.from("servidores").update(updateData).in("id", servidorIds);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: `${servidorIds.length} servidor(es) vinculado(s) ao setor!` });
+    loadData();
+  };
+
+  const keepInBothSetores = async (servidorId: string, newSetorId: string) => {
+    const { error } = await supabase.from("servidores_setores").insert({ servidor_id: servidorId, setor_id: newSetorId });
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Servidor mantido em ambos os setores!" });
     loadData();
   };
 
@@ -698,6 +708,8 @@ function EstruturaContent() {
                   onBulkAssignServidor={bulkAssignServidorToSetor}
                   onSetResponsavel={setResponsavelSetor}
                   contextServidores={secretariaServidores}
+                  onKeepInBothSetores={keepInBothSetores}
+                  servidoresSetores={servidoresSetores}
                 />
               </div>
             </div>
@@ -851,6 +863,8 @@ function EstruturaContent() {
                           onBulkAssignServidor={bulkAssignServidorToSetor}
                           onSetResponsavel={setResponsavelSetor}
                           contextServidores={servidores.filter(s => s.diretoria_id === dir.id)}
+                          onKeepInBothSetores={keepInBothSetores}
+                          servidoresSetores={servidoresSetores}
                         />
 
                         {/* ═══ Agrupamentos ═══ */}

@@ -632,6 +632,42 @@ export type Database = {
           },
         ]
       }
+      servidores_setores: {
+        Row: {
+          created_at: string
+          id: string
+          servidor_id: string
+          setor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          servidor_id: string
+          setor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          servidor_id?: string
+          setor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "servidores_setores_servidor_id_fkey"
+            columns: ["servidor_id"]
+            isOneToOne: false
+            referencedRelation: "servidores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servidores_setores_setor_id_fkey"
+            columns: ["setor_id"]
+            isOneToOne: false
+            referencedRelation: "setores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       servidores_unidades: {
         Row: {
           created_at: string
