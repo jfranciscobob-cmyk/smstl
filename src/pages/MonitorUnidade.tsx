@@ -82,9 +82,8 @@ function MonitorContent() {
   // Transfer modal
   const [transferServidor, setTransferServidor] = useState<ServidorDB | null>(null);
 
-  // Determine user's diretoria
-  const userServidor = servidores.find(s => s.id === servidorId);
-  const userDiretoriaId = userServidor?.diretoria_id || null;
+  // Determine user's diretoria (use first from array for backwards compat)
+  const userDiretoriaId = userDiretoriaIds[0] ?? null;
   const canTransfer = isAdmin || (isDiretor && !!selectedDiretoriaId && (selectedDiretoriaId === userDiretoriaId || hasFullAccess));
 
   const loadData = useCallback(async () => {
