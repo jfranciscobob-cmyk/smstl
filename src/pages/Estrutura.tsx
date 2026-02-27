@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useAuthSession } from "@/hooks/useAuthSession";
 import { LoginForm } from "@/components/LoginForm";
 import { supabase } from "@/integrations/supabase/client";
 import type { DiretoriaDB, UnidadeDB, CoordenacaoDB, ServidorDB, SetorDB, FuncaoDB, CoordenadorUnidadeDB, AgrupamentoDB } from "@/hooks/useServidores";
@@ -17,10 +18,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 function EstruturaContent() {
   const { toast } = useToast();
-  const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
-  const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
+  const { isAdmin, isDiretor, isCoordenador, diretoriaIds: userDirIds, unidadeIds: userUniIds, loading: authLoading } = useAuthSession();
+  const [allDiretorias, setAllDiretorias] = useState<DiretoriaDB[]>([]);
+  const [allUnidades, setAllUnidades] = useState<UnidadeDB[]>([]);
   const [coordenacoes, setCoordenacoes] = useState<CoordenacaoDB[]>([]);
-  const [servidores, setServidores] = useState<ServidorDB[]>([]);
+  const [allServidores, setAllServidores] = useState<ServidorDB[]>([]);
   const [setores, setSetores] = useState<SetorDB[]>([]);
   const [funcoes, setFuncoes] = useState<FuncaoDB[]>([]);
   const [coordenadoresUnidades, setCoordenadoresUnidades] = useState<CoordenadorUnidadeDB[]>([]);
@@ -70,7 +72,7 @@ function EstruturaContent() {
       supabase.from("servidores_unidades").select("servidor_id, unidade_id"),
     ]);
     // Fetch all servidores with pagination (bypass 1000 limit)
-    const selectCols = "id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, setor_id, funcao_id, is_diretor, is_coordenador, is_secretario, is_diretor_geral";
+    const selectCols = "id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, setor_id, funcao_id, is_diretor, is_coordenador, is_coordenador_medico, is_secretario, is_diretor_geral";
     const PAGE = 1000;
     let offset = 0;
     let allServidores: any[] = [];
@@ -86,19 +88,44 @@ function EstruturaContent() {
       if (data.length < PAGE) break;
       offset += PAGE;
     }
-    setDiretorias((d.data ?? []) as DiretoriaDB[]);
-    setUnidades((u.data ?? []) as UnidadeDB[]);
+    setAllDiretorias((d.data ?? []) as DiretoriaDB[]);
+    setAllUnidades((u.data ?? []) as UnidadeDB[]);
     setCoordenacoes((c.data ?? []) as CoordenacaoDB[]);
     setSetores((st.data ?? []) as SetorDB[]);
     setFuncoes((fc.data ?? []) as FuncaoDB[]);
     setCoordenadoresUnidades((cu.data ?? []) as CoordenadorUnidadeDB[]);
     setAgrupamentos((ag.data ?? []) as AgrupamentoDB[]);
     setServidoresUnidades((su.data ?? []) as { servidor_id: string; unidade_id: string }[]);
-    setServidores(allServidores as ServidorDB[]);
+    setAllServidores(allServidores as ServidorDB[]);
     setLoading(false);
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  // Filter data based on user role
+  const diretorias = useMemo(() => {
+    if (isAdmin) return allDiretorias;
+    if (isDiretor && userDirIds.length > 0) return allDiretorias.filter(d => userDirIds.includes(d.id));
+    if (isCoordenador && userUniIds.length > 0) {
+      const dirIds = allUnidades.filter(u => userUniIds.includes(u.id)).map(u => u.diretoria_id);
+      return allDiretorias.filter(d => dirIds.includes(d.id));
+    }
+    return [];
+  }, [allDiretorias, allUnidades, isAdmin, isDiretor, isCoordenador, userDirIds, userUniIds]);
+
+  const unidades = useMemo(() => {
+    if (isAdmin) return allUnidades;
+    if (isDiretor && userDirIds.length > 0) return allUnidades.filter(u => userDirIds.includes(u.diretoria_id));
+    if (isCoordenador && userUniIds.length > 0) return allUnidades.filter(u => userUniIds.includes(u.id));
+    return [];
+  }, [allUnidades, isAdmin, isDiretor, isCoordenador, userDirIds, userUniIds]);
+
+  const servidores = useMemo(() => {
+    if (isAdmin) return allServidores;
+    if (isDiretor && userDirIds.length > 0) return allServidores.filter(s => s.diretoria_id && userDirIds.includes(s.diretoria_id));
+    if (isCoordenador && userUniIds.length > 0) return allServidores.filter(s => s.unidade_id && userUniIds.includes(s.unidade_id));
+    return [];
+  }, [allServidores, isAdmin, isDiretor, isCoordenador, userDirIds, userUniIds]);
 
   const toggleExpand = (id: string) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
