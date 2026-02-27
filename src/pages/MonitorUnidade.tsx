@@ -35,6 +35,7 @@ function MonitorContent() {
   const [faltasAbonadas, setFaltasAbonadas] = useState<FaltaAbonadaDB[]>([]);
   const [afastamentos, setAfastamentos] = useState<AfastamentoDB[]>([]);
   const [loading, setLoading] = useState(true);
+  const [coordUniData, setCoordUniData] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
 
   // Atestado form
   const [showAtestadoForm, setShowAtestadoForm] = useState(false);
@@ -98,13 +99,14 @@ function MonitorContent() {
       if (data.length < PAGE) break;
       offset += PAGE;
     }
-    const [d, u, f, a, fa, af] = await Promise.all([
+    const [d, u, f, a, fa, af, cu] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("funcoes").select("*").order("nome"),
       supabase.from("atestados").select("*").order("data_inicio", { ascending: false }),
       supabase.from("faltas_abonadas").select("*").order("data", { ascending: false }),
       supabase.from("afastamentos").select("*").order("data_inicio", { ascending: false }),
+      supabase.from("coordenadores_unidades").select("*"),
     ]);
     setServidores(allSrv as ServidorDB[]);
     setDiretorias((d.data ?? []) as DiretoriaDB[]);
@@ -113,6 +115,7 @@ function MonitorContent() {
     setAtestados((a.data ?? []) as AtestadoDB[]);
     setFaltasAbonadas((fa.data ?? []) as FaltaAbonadaDB[]);
     setAfastamentos((af.data ?? []) as AfastamentoDB[]);
+    setCoordUniData((cu.data ?? []) as { servidor_id: string; unidade_id: string }[]);
     setLoading(false);
   }, []);
 
@@ -483,6 +486,10 @@ function MonitorContent() {
     const pct = uniServs.length > 0 ? Math.round((uniPresentes / uniServs.length) * 100) : 0;
     const pctColor = pct >= 80 ? "text-success bg-success/10" : pct >= 50 ? "text-warning bg-warning/10" : "text-destructive bg-destructive/10";
 
+    // Find coordinators for this unit
+    const uniCoordIds = [...new Set(coordUniData.filter(cu => cu.unidade_id === uni.id).map(cu => cu.servidor_id))];
+    const uniCoords = uniCoordIds.map(id => servidores.find(s => s.id === id)).filter(Boolean) as ServidorDB[];
+
     return (
       <button
         onClick={() => setView("unidade", uni.diretoria_id, uni.id)}
@@ -495,6 +502,15 @@ function MonitorContent() {
           </div>
           <span className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold font-mono", pctColor)}>{pct}%</span>
         </div>
+        {uniCoords.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2">
+            {uniCoords.map(c => (
+              <span key={c.id} className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-medium bg-accent text-accent-foreground">
+                👤 {c.nome.split(" ").slice(0, 2).join(" ")}
+              </span>
+            ))}
+          </div>
+        )}
         <div className="flex items-center gap-3 text-[10px] text-muted-foreground flex-wrap">
           <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {uniServs.length}</span>
           <span className="flex items-center gap-1 text-success"><CheckCircle className="h-3 w-3" /> {uniPresentes}</span>
@@ -556,6 +572,19 @@ function MonitorContent() {
               <span className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-primary text-primary-foreground">
                 {currentUnidade.sigla} — {currentUnidade.nome}
               </span>
+              {(() => {
+                const uCoordIds = [...new Set(coordUniData.filter(cu => cu.unidade_id === currentUnidade.id).map(cu => cu.servidor_id))];
+                const uCoords = uCoordIds.map(id => servidores.find(s => s.id === id)).filter(Boolean) as ServidorDB[];
+                return uCoords.length > 0 ? (
+                  <div className="flex flex-wrap gap-1 ml-1">
+                    {uCoords.map(c => (
+                      <span key={c.id} className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[9px] font-medium bg-accent text-accent-foreground">
+                        👤 {c.nome.split(" ").slice(0, 2).join(" ")}
+                      </span>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
             </>
           )}
         </div>

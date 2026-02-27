@@ -131,6 +131,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
   const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
   const [coordenacoes, setCoordenacoes] = useState<CoordenacaoDB[]>([]);
+  const [coordUnidades, setCoordUnidades] = useState<{ id: string; servidor_id: string; unidade_id: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [editingServidor, setEditingServidor] = useState<ServidorDB | null>(null);
@@ -161,11 +162,12 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
     };
 
     try {
-      const [allServidores, diretoriasRes, unidadesRes, coordenacoesRes] = await Promise.all([
+      const [allServidores, diretoriasRes, unidadesRes, coordenacoesRes, coordUnidadesRes] = await Promise.all([
         fetchAllServidores(),
         supabase.from("diretorias").select("*").order("nome"),
         supabase.from("unidades").select("*").order("nome"),
         supabase.from("coordenacoes").select("*").order("nome"),
+        supabase.from("coordenadores_unidades").select("*"),
       ]);
 
       if (diretoriasRes.error || unidadesRes.error || coordenacoesRes.error) {
@@ -176,6 +178,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
       setDiretorias((diretoriasRes.data ?? []) as DiretoriaDB[]);
       setUnidades((unidadesRes.data ?? []) as UnidadeDB[]);
       setCoordenacoes((coordenacoesRes.data ?? []) as CoordenacaoDB[]);
+      setCoordUnidades(coordUnidadesRes.data ?? []);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : "Erro ao carregar dados");
     } finally {
@@ -388,6 +391,17 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                   const cobBg = cob >= 80 ? "bg-success" : cob >= 50 ? "bg-warning" : "bg-destructive";
                   const diretor = servidores.find(s => s.diretoria_id === dir.id && s.is_diretor);
                   const criticas = ds.filter(s => s.funcao_critica && s.status_presenca !== "presente");
+                  
+                  // Find coordinators for units in this diretoria
+                  const dirUnidadeIds = du.map(u => u.id);
+                  const coordServidorIds = [...new Set(
+                    coordUnidades
+                      .filter(cu => dirUnidadeIds.includes(cu.unidade_id))
+                      .map(cu => cu.servidor_id)
+                  )];
+                  const coordenadoresAtivos = coordServidorIds
+                    .map(id => servidores.find(s => s.id === id))
+                    .filter(Boolean) as ServidorDB[];
 
                   return (
                     <Link
@@ -401,8 +415,17 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                           <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors truncate">{dir.nome}</h4>
                           {diretor && (
                             <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
-                              Diretor(a): <span className="font-medium text-foreground/70">{diretor.nome}</span>
+                              👔 Diretor(a): <span className="font-medium text-foreground/70">{diretor.nome}</span>
                             </p>
+                          )}
+                          {coordenadoresAtivos.length > 0 && (
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {coordenadoresAtivos.map(c => (
+                                <span key={c.id} className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-medium bg-accent text-accent-foreground">
+                                  👤 {c.nome.split(" ").slice(0, 2).join(" ")}
+                                </span>
+                              ))}
+                            </div>
                           )}
                         </div>
                         <div className="flex flex-col items-end flex-shrink-0">
