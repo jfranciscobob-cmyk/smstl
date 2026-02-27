@@ -161,11 +161,12 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
     };
 
     try {
-      const [allServidores, diretoriasRes, unidadesRes, coordenacoesRes] = await Promise.all([
+      const [allServidores, diretoriasRes, unidadesRes, coordenacoesRes, coordUnidadesRes] = await Promise.all([
         fetchAllServidores(),
         supabase.from("diretorias").select("*").order("nome"),
         supabase.from("unidades").select("*").order("nome"),
         supabase.from("coordenacoes").select("*").order("nome"),
+        supabase.from("coordenadores_unidades").select("*"),
       ]);
 
       if (diretoriasRes.error || unidadesRes.error || coordenacoesRes.error) {
@@ -176,6 +177,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
       setDiretorias((diretoriasRes.data ?? []) as DiretoriaDB[]);
       setUnidades((unidadesRes.data ?? []) as UnidadeDB[]);
       setCoordenacoes((coordenacoesRes.data ?? []) as CoordenacaoDB[]);
+      setCoordUnidades(coordUnidadesRes.data ?? []);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : "Erro ao carregar dados");
     } finally {
