@@ -825,6 +825,35 @@ export type Database = {
           },
         ]
       }
+      user_diretorias: {
+        Row: {
+          created_at: string
+          diretoria_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          diretoria_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          diretoria_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_diretorias_diretoria_id_fkey"
+            columns: ["diretoria_id"]
+            isOneToOne: false
+            referencedRelation: "diretorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -842,6 +871,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_unidades: {
+        Row: {
+          created_at: string
+          id: string
+          unidade_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          unidade_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          unidade_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_unidades_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
