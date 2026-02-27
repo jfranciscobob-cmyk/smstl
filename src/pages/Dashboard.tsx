@@ -231,45 +231,26 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
 
   const filteredDiretorias = useMemo(() => {
     if (isAdmin) return diretorias;
-    if (isDiretor) {
-      const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
-      if (myServidor?.diretoria_id) {
-        return diretorias.filter(d => d.id === myServidor.diretoria_id);
-      }
-      return diretorias;
+    if (isDiretor && userDiretoriaId) {
+      return diretorias.filter(d => d.id === userDiretoriaId);
     }
-    if (isCoordenador) {
-      // Show only diretorias that have filtered servidores
-      const dirIds = new Set(filteredServidores.map(s => s.diretoria_id).filter(Boolean));
-      return diretorias.filter(d => dirIds.has(d.id));
+    if (isCoordenador && userUnidadeId) {
+      const myUnidade = unidades.find(u => u.id === userUnidadeId);
+      return myUnidade ? diretorias.filter(d => d.id === myUnidade.diretoria_id) : [];
     }
     return diretorias;
-  }, [diretorias, servidores, filteredServidores, isAdmin, isDiretor, isCoordenador, servidorId]);
+  }, [diretorias, unidades, isAdmin, isDiretor, isCoordenador, userDiretoriaId, userUnidadeId]);
 
   const filteredUnidades = useMemo(() => {
     if (isAdmin) return unidades;
-    if (isDiretor) {
-      const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
-      if (myServidor?.diretoria_id) {
-        return unidades.filter(u => u.diretoria_id === myServidor.diretoria_id);
-      }
-      return unidades;
+    if (isDiretor && userDiretoriaId) {
+      return unidades.filter(u => u.diretoria_id === userDiretoriaId);
     }
-    if (isCoordenador) {
-      const myUnidadeIds = coordUnidades
-        .filter(cu => cu.servidor_id === servidorId)
-        .map(cu => cu.unidade_id);
-      if (myUnidadeIds.length > 0) {
-        return unidades.filter(u => myUnidadeIds.includes(u.id));
-      }
-      const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
-      if (myServidor?.unidade_id) {
-        return unidades.filter(u => u.id === myServidor.unidade_id);
-      }
-      return [];
+    if (isCoordenador && userUnidadeId) {
+      return unidades.filter(u => u.id === userUnidadeId);
     }
     return unidades;
-  }, [unidades, servidores, isAdmin, isDiretor, isCoordenador, servidorId, coordUnidades]);
+  }, [unidades, isAdmin, isDiretor, isCoordenador, userDiretoriaId, userUnidadeId]);
 
   const stats = useMemo(() => computeStats(filteredServidores), [filteredServidores]);
 
