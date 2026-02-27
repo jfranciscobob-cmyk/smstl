@@ -619,6 +619,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
 
 const Dashboard = () => {
   const { signOut, user, hasFinancialAccess } = useAuthSession();
+  useHeartbeat(user?.id);
   return <DashboardContent signOut={signOut} userEmail={user?.email} hasFinancialAccess={hasFinancialAccess} />;
 };
 
