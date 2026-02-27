@@ -785,7 +785,7 @@ function MonitorContent() {
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                     <span className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
-                      ⚠ Escala não cadastrada — {semEscala.length} servidor{semEscala.length > 1 ? "es" : ""}
+                      ⚠ Jornada de trabalho não cadastrada — {semEscala.length} servidor{semEscala.length > 1 ? "es" : ""}
                     </span>
                   </div>
                   {alertEscalaOpen ? <ChevronDown className="h-4 w-4 text-amber-600" /> : <ChevronRight className="h-4 w-4 text-amber-600" />}
