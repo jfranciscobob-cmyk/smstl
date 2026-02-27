@@ -189,7 +189,6 @@ export function EditServidorModal({
     toast({ title: "Servidor atualizado!", description: `${form.nome} foi atualizado com sucesso.` });
     onSaved();
     onClose();
-    }
   };
 
   const set = (key: string, value: any) => setForm((prev) => ({ ...prev, [key]: value }));
