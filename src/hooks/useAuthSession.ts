@@ -60,7 +60,7 @@ export function useAuthSession(): AuthSession {
           supabase.from("user_roles").select("role").eq("user_id", currentUser.id),
           supabase
             .from("profiles")
-            .select("servidor_id, acesso_financeiro")
+            .select("servidor_id, acesso_financeiro, diretoria_id, unidade_id")
             .eq("id", currentUser.id)
             .maybeSingle(),
         ]);
