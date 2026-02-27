@@ -126,7 +126,7 @@ function AlertCard({ title, count, icon, color, items }: {
   );
 }
 
-function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isDiretor, isCoordenador, servidorId }: { signOut: () => void; userEmail?: string; hasFinancialAccess?: boolean; isAdmin?: boolean; isDiretor?: boolean; isCoordenador?: boolean; servidorId?: string | null }) {
+function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isDiretor, isCoordenador, servidorId, userDiretoriaId, userUnidadeId }: { signOut: () => void; userEmail?: string; hasFinancialAccess?: boolean; isAdmin?: boolean; isDiretor?: boolean; isCoordenador?: boolean; servidorId?: string | null; userDiretoriaId?: string | null; userUnidadeId?: string | null }) {
   const [servidores, setServidores] = useState<ServidorDB[]>([]);
   const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
