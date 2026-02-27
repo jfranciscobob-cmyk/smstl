@@ -91,6 +91,8 @@ export function useAuthSession(): AuthSession {
         if (!isActive) return;
         setRoles([]);
         setServidorId(null);
+        setDiretoriaId(null);
+        setUnidadeId(null);
         setAcessoFinanceiro(false);
       } finally {
         if (isActive) setLoading(false);
