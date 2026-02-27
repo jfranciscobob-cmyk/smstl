@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuthSession } from "@/hooks/useAuthSession";
+import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { ImportCSVButton } from "@/components/ImportCSVButton";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { EditServidorModal } from "@/components/EditServidorModal";
