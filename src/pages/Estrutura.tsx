@@ -863,6 +863,8 @@ function EstruturaContent() {
                           onBulkAssignServidor={bulkAssignServidorToSetor}
                           onSetResponsavel={setResponsavelSetor}
                           contextServidores={servidores.filter(s => s.diretoria_id === dir.id)}
+                          onKeepInBothSetores={keepInBothSetores}
+                          servidoresSetores={servidoresSetores}
                         />
 
                         {/* ═══ Agrupamentos ═══ */}
