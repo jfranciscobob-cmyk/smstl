@@ -612,6 +612,42 @@ export type Database = {
           },
         ]
       }
+      servidores_unidades: {
+        Row: {
+          created_at: string
+          id: string
+          servidor_id: string
+          unidade_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          servidor_id: string
+          unidade_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          servidor_id?: string
+          unidade_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "servidores_unidades_servidor_id_fkey"
+            columns: ["servidor_id"]
+            isOneToOne: false
+            referencedRelation: "servidores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servidores_unidades_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       setores: {
         Row: {
           cargo_gestao: string | null
