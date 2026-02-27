@@ -1058,6 +1058,13 @@ function EstruturaContent() {
                                       <p className="text-xs text-muted-foreground py-1 px-2">Nenhum servidor encontrado</p>
                                     )}
                                   </div>
+                                  {(() => {
+                                    const allocatedCount = Array.from(assignSelectedIds).filter(id => {
+                                      const s = servidores.find(srv => srv.id === id);
+                                      return s && (s.unidade_id || s.diretoria_id);
+                                    }).length;
+                                    return <ServidorAlreadyAllocatedWarning count={allocatedCount} />;
+                                  })()}
                                   <div className="flex items-center gap-2">
                                     {assignSelectedIds.size > 0 && (
                                       <button
