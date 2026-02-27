@@ -485,7 +485,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {filteredDiretorias.map(dir => {
-                  const ds = servidores.filter(s => s.diretoria_id === dir.id);
+                  const ds = filteredServidores.filter(s => s.diretoria_id === dir.id);
                   const dp = ds.filter(s => s.status_presenca === "presente").length;
                   const dFerias = ds.filter(s => s.status_presenca === "ferias").length;
                   const dAfastados = ds.filter(s => s.status_presenca === "afastado").length;
