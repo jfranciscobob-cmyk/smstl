@@ -10,6 +10,8 @@ export interface AuthSession {
   user: User | null;
   roles: UserRole[];
   servidorId: string | null;
+  diretoriaId: string | null;
+  unidadeId: string | null;
   loading: boolean;
   isAdmin: boolean;
   isDiretor: boolean;
