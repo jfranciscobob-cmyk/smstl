@@ -132,6 +132,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
   const [coordenacoes, setCoordenacoes] = useState<CoordenacaoDB[]>([]);
   const [coordUnidades, setCoordUnidades] = useState<{ id: string; servidor_id: string; unidade_id: string }[]>([]);
+  const [servidoresUnidades, setServidoresUnidades] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
   const [faltasAbonadas, setFaltasAbonadas] = useState<{ servidor_id: string; data: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
