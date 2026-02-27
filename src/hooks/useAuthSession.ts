@@ -50,6 +50,8 @@ export function useAuthSession(): AuthSession {
         if (!currentUser) {
           setRoles([]);
           setServidorId(null);
+          setDiretoriaId(null);
+          setUnidadeId(null);
           setAcessoFinanceiro(false);
           return;
         }
