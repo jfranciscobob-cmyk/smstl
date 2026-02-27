@@ -15,6 +15,7 @@ import { EditServidorModal } from "@/components/EditServidorModal";
 import { SetorList } from "@/components/SetorList";
 import { FuncaoList } from "@/components/FuncaoList";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ServidorConflictBadge, ServidorAlreadyAllocatedWarning } from "@/components/ServidorConflictBadge";
 
 function EstruturaContent() {
   const { toast } = useToast();
@@ -74,7 +75,7 @@ function EstruturaContent() {
       supabase.from("servidores_setores").select("servidor_id, setor_id"),
     ]);
     // Fetch all servidores with pagination (bypass 1000 limit)
-    const selectCols = "id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, setor_id, funcao_id, is_diretor, is_coordenador, is_coordenador_medico, is_secretario, is_diretor_geral";
+    const selectCols = "id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, setor_id, funcao_id, is_diretor, is_coordenador, is_coordenador_medico, is_secretario, is_diretor_geral, escala_inicio1, escala_fim1, escala_inicio2, escala_fim2, escala_total_horas, vinculo";
     const PAGE = 1000;
     let offset = 0;
     let allServidores: any[] = [];
@@ -576,25 +577,29 @@ function EstruturaContent() {
                     className="w-full h-8 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
                   />
                   <div className="max-h-48 overflow-y-auto bg-card rounded border border-border shadow-md">
-                    {filteredSecAssign.map(s => (
-                      <label
-                        key={s.id}
-                        className="flex items-center gap-2 w-full px-2 py-1.5 text-xs hover:bg-primary/10 text-foreground cursor-pointer"
-                      >
-                        <Checkbox
-                          checked={secSelectedIds.has(s.id)}
-                          onCheckedChange={() => {
-                            setSecSelectedIds(prev => {
-                              const next = new Set(prev);
-                              if (next.has(s.id)) next.delete(s.id); else next.add(s.id);
-                              return next;
-                            });
-                          }}
-                        />
-                        <span className="font-medium">{s.nome}</span>
-                        <span className="text-muted-foreground">({s.cargo})</span>
-                      </label>
-                    ))}
+                    {filteredSecAssign.map(s => {
+                      const isAllocated = !!(s.diretoria_id || s.unidade_id);
+                      return (
+                        <label
+                          key={s.id}
+                          className={`flex items-center gap-2 w-full px-2 py-1.5 text-xs hover:bg-primary/10 text-foreground cursor-pointer ${isAllocated ? 'bg-amber-50 dark:bg-amber-950/20' : ''}`}
+                        >
+                          <Checkbox
+                            checked={secSelectedIds.has(s.id)}
+                            onCheckedChange={() => {
+                              setSecSelectedIds(prev => {
+                                const next = new Set(prev);
+                                if (next.has(s.id)) next.delete(s.id); else next.add(s.id);
+                                return next;
+                              });
+                            }}
+                          />
+                          <span className="font-medium">{s.nome}</span>
+                          <span className="text-muted-foreground">({s.cargo})</span>
+                          <ServidorConflictBadge servidor={s} diretorias={allDiretorias} unidades={allUnidades} setores={setores} servidoresSetores={servidoresSetores} />
+                        </label>
+                      );
+                    })}
                   </div>
                   <div className="flex items-center gap-2">
                     {secSelectedIds.size > 0 && (
@@ -644,22 +649,26 @@ function EstruturaContent() {
                       const filtered = alocDirSearch.length >= 2
                         ? secretariaServidores.filter(s => s.nome.toLowerCase().includes(alocDirSearch.toLowerCase()))
                         : secretariaServidores;
-                      return filtered.slice(0, 50).map(s => (
-                        <label key={s.id} className="flex items-center gap-2 w-full px-2 py-1.5 text-xs hover:bg-primary/10 text-foreground cursor-pointer">
-                          <Checkbox
-                            checked={alocDirSelectedIds.has(s.id)}
-                            onCheckedChange={() => {
-                              setAlocDirSelectedIds(prev => {
-                                const next = new Set(prev);
-                                if (next.has(s.id)) next.delete(s.id); else next.add(s.id);
-                                return next;
-                              });
-                            }}
-                          />
-                          <span className="font-medium">{s.nome}</span>
-                          <span className="text-muted-foreground">({s.cargo})</span>
-                        </label>
-                      ));
+                      return filtered.slice(0, 50).map(s => {
+                        const isAllocated = !!(s.diretoria_id || s.unidade_id);
+                        return (
+                          <label key={s.id} className={`flex items-center gap-2 w-full px-2 py-1.5 text-xs hover:bg-primary/10 text-foreground cursor-pointer ${isAllocated ? 'bg-amber-50 dark:bg-amber-950/20' : ''}`}>
+                            <Checkbox
+                              checked={alocDirSelectedIds.has(s.id)}
+                              onCheckedChange={() => {
+                                setAlocDirSelectedIds(prev => {
+                                  const next = new Set(prev);
+                                  if (next.has(s.id)) next.delete(s.id); else next.add(s.id);
+                                  return next;
+                                });
+                              }}
+                            />
+                            <span className="font-medium">{s.nome}</span>
+                            <span className="text-muted-foreground">({s.cargo})</span>
+                            <ServidorConflictBadge servidor={s} diretorias={allDiretorias} unidades={allUnidades} setores={setores} servidoresSetores={servidoresSetores} />
+                          </label>
+                        );
+                      });
                     })()}
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
@@ -1022,29 +1031,40 @@ function EstruturaContent() {
                                     className="w-full h-8 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
                                   />
                                   <div className="max-h-48 overflow-y-auto bg-card rounded border border-border shadow-md">
-                                    {filteredAssignResults.map(s => (
-                                      <label
-                                        key={s.id}
-                                        className="flex items-center gap-2 w-full px-2 py-1.5 text-xs hover:bg-primary/10 text-foreground cursor-pointer"
-                                      >
-                                        <Checkbox
-                                          checked={assignSelectedIds.has(s.id)}
-                                          onCheckedChange={() => {
-                                            setAssignSelectedIds(prev => {
-                                              const next = new Set(prev);
-                                              if (next.has(s.id)) next.delete(s.id); else next.add(s.id);
-                                              return next;
-                                            });
-                                          }}
-                                        />
-                                        <span className="font-medium">{s.nome}</span>
-                                        <span className="text-muted-foreground">({s.matricula})</span>
-                                      </label>
-                                    ))}
+                                    {filteredAssignResults.map(s => {
+                                      const isAllocated = !!(s.unidade_id || s.diretoria_id);
+                                      return (
+                                        <label
+                                          key={s.id}
+                                          className={`flex items-center gap-2 w-full px-2 py-1.5 text-xs hover:bg-primary/10 text-foreground cursor-pointer ${isAllocated ? 'bg-amber-50 dark:bg-amber-950/20' : ''}`}
+                                        >
+                                          <Checkbox
+                                            checked={assignSelectedIds.has(s.id)}
+                                            onCheckedChange={() => {
+                                              setAssignSelectedIds(prev => {
+                                                const next = new Set(prev);
+                                                if (next.has(s.id)) next.delete(s.id); else next.add(s.id);
+                                                return next;
+                                              });
+                                            }}
+                                          />
+                                          <span className="font-medium">{s.nome}</span>
+                                          <span className="text-muted-foreground">({s.matricula})</span>
+                                          <ServidorConflictBadge servidor={s} diretorias={allDiretorias} unidades={allUnidades} setores={setores} servidoresSetores={servidoresSetores} />
+                                        </label>
+                                      );
+                                    })}
                                     {filteredAssignResults.length === 0 && (
                                       <p className="text-xs text-muted-foreground py-1 px-2">Nenhum servidor encontrado</p>
                                     )}
                                   </div>
+                                  {(() => {
+                                    const allocatedCount = Array.from(assignSelectedIds).filter(id => {
+                                      const s = servidores.find(srv => srv.id === id);
+                                      return s && (s.unidade_id || s.diretoria_id);
+                                    }).length;
+                                    return <ServidorAlreadyAllocatedWarning count={allocatedCount} />;
+                                  })()}
                                   <div className="flex items-center gap-2">
                                     {assignSelectedIds.size > 0 && (
                                       <button
