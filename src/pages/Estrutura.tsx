@@ -861,6 +861,7 @@ function EstruturaContent() {
                   onSetResponsavel={setResponsavelSetor}
                   contextServidores={secretariaServidores}
                   onKeepInBothSetores={keepInBothSetores}
+                  onBulkKeepInBothSetores={bulkKeepInBothSetores}
                   servidoresSetores={servidoresSetores}
                 />
               </div>
