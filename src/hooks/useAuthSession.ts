@@ -76,10 +76,14 @@ export function useAuthSession(): AuthSession {
 
         if (profileResult.status === "fulfilled") {
           setServidorId(profileResult.value.data?.servidor_id ?? null);
+          setDiretoriaId(profileResult.value.data?.diretoria_id ?? null);
+          setUnidadeId(profileResult.value.data?.unidade_id ?? null);
           setAcessoFinanceiro(profileResult.value.data?.acesso_financeiro ?? false);
         } else {
           console.error("[useAuthSession/profile] error:", profileResult.reason);
           setServidorId(null);
+          setDiretoriaId(null);
+          setUnidadeId(null);
           setAcessoFinanceiro(false);
         }
       } catch (err) {
