@@ -912,17 +912,19 @@ function MonitorContent() {
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-warning flex items-center gap-2">
                   <Palmtree className="h-3.5 w-3.5" /> Gestão de Férias — {currentUnidade?.sigla || "Unidade"}
                 </h3>
-                {canEditEscalasFerias && !showBulkFerias ? (
-                  <button onClick={initBulkFerias} className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80">
-                    <Pencil className="h-3.5 w-3.5" /> Editar Férias em Massa
-                  </button>
-                ) : (
-                  <div className="flex gap-2">
-                    <button onClick={saveBulkFerias} disabled={savingBulkFerias} className="flex items-center gap-1 h-7 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50">
-                      {savingBulkFerias ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />} Salvar Todos
+                {canEditEscalasFerias && (
+                  !showBulkFerias ? (
+                    <button onClick={initBulkFerias} className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80">
+                      <Pencil className="h-3.5 w-3.5" /> Editar Férias em Massa
                     </button>
-                    <button onClick={() => setShowBulkFerias(false)} className="text-xs text-muted-foreground">Cancelar</button>
-                  </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button onClick={saveBulkFerias} disabled={savingBulkFerias} className="flex items-center gap-1 h-7 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50">
+                        {savingBulkFerias ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />} Salvar Todos
+                      </button>
+                      <button onClick={() => setShowBulkFerias(false)} className="text-xs text-muted-foreground">Cancelar</button>
+                    </div>
+                  )
                 )}
               </div>
               <div className="overflow-x-auto -mx-3 sm:-mx-5 px-3 sm:px-5">
