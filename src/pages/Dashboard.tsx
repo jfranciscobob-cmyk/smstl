@@ -348,8 +348,8 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
         userEmail={userEmail}
         onSignOut={signOut}
         onCreateServidor={() => setShowCreateModal(true)}
-        diretorias={diretorias}
-        servidores={servidores}
+        diretorias={filteredDiretorias}
+        servidores={filteredServidores}
       />
 
       <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
