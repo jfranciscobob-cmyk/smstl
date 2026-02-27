@@ -290,9 +290,9 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
 
   const vinculoData = useMemo(() => {
     const counts: Record<string, number> = {};
-    servidores.forEach(s => { counts[s.vinculo || "Outros"] = (counts[s.vinculo || "Outros"] || 0) + 1; });
+    filteredServidores.forEach(s => { counts[s.vinculo || "Outros"] = (counts[s.vinculo || "Outros"] || 0) + 1; });
     return Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([name, value]) => ({ name, value }));
-  }, [servidores]);
+  }, [filteredServidores]);
 
   const funcoesCriticasDescobertas = useMemo(
     () => servidores.filter(s => s.funcao_critica && s.status_presenca !== "presente"),
