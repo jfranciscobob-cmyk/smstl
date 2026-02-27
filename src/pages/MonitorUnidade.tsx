@@ -1279,7 +1279,7 @@ function MonitorContent() {
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                   <Clock className="h-3.5 w-3.5" /> Carga Horária Individual
                 </h3>
-                {!showBulkEscala ? (
+                {canEditEscalasFerias && !showBulkEscala ? (
                   <button onClick={initBulkEscalas} className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80">
                     <Pencil className="h-3.5 w-3.5" /> Editar Escalas em Massa
                   </button>
