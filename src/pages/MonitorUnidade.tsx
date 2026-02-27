@@ -486,6 +486,10 @@ function MonitorContent() {
     const pct = uniServs.length > 0 ? Math.round((uniPresentes / uniServs.length) * 100) : 0;
     const pctColor = pct >= 80 ? "text-success bg-success/10" : pct >= 50 ? "text-warning bg-warning/10" : "text-destructive bg-destructive/10";
 
+    // Find coordinators for this unit
+    const uniCoordIds = [...new Set(coordUniData.filter(cu => cu.unidade_id === uni.id).map(cu => cu.servidor_id))];
+    const uniCoords = uniCoordIds.map(id => servidores.find(s => s.id === id)).filter(Boolean) as ServidorDB[];
+
     return (
       <button
         onClick={() => setView("unidade", uni.diretoria_id, uni.id)}
@@ -498,6 +502,15 @@ function MonitorContent() {
           </div>
           <span className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold font-mono", pctColor)}>{pct}%</span>
         </div>
+        {uniCoords.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2">
+            {uniCoords.map(c => (
+              <span key={c.id} className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-medium bg-accent text-accent-foreground">
+                👤 {c.nome.split(" ").slice(0, 2).join(" ")}
+              </span>
+            ))}
+          </div>
+        )}
         <div className="flex items-center gap-3 text-[10px] text-muted-foreground flex-wrap">
           <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {uniServs.length}</span>
           <span className="flex items-center gap-1 text-success"><CheckCircle className="h-3 w-3" /> {uniPresentes}</span>
