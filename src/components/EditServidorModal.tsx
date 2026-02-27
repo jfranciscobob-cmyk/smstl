@@ -263,6 +263,7 @@ export function EditServidorModal({
                   <option value="COMISSIONADO">Comissionado</option>
                   <option value="CLT">CLT</option>
                   <option value="AGENTE POLITICO">Agente Político</option>
+                  <option value="ESTAGIARIO">Estagiário</option>
                 </select>
               </div>
               {form.duplo_vinculo && (
@@ -275,33 +276,48 @@ export function EditServidorModal({
                     <option value="COMISSIONADO">Comissionado</option>
                     <option value="CLT">CLT</option>
                     <option value="AGENTE POLITICO">Agente Político</option>
+                    <option value="ESTAGIARIO">Estagiário</option>
                   </select>
                 </div>
               )}
               <div>
-                <label className={labelClass}>Data de Admissão</label>
+                <label className={labelClass}>Data de Admissão {form.vinculo === "ESTAGIARIO" ? "*" : ""}</label>
                 <input type="date" className={inputClass} value={form.data_admissao} onChange={(e) => set("data_admissao", e.target.value)} />
-            <div className="sm:col-span-2">
+              </div>
+              {(form.vinculo === "CONTRATO TEMPORARIO" || form.vinculo === "ESTAGIARIO") && (
+                <div>
+                  <label className={labelClass}>Data Encerramento Contrato *</label>
+                  <input type="date" className={inputClass} value={form.data_encerramento_contrato} onChange={(e) => set("data_encerramento_contrato", e.target.value)} />
+                </div>
+              )}
+              <div className="sm:col-span-2">
                 <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
                   <input type="checkbox" checked={form.duplo_vinculo} onChange={(e) => set("duplo_vinculo", e.target.checked)} className="rounded border-input" />
                   Duplo Vínculo
                 </label>
               </div>
             </div>
-              {form.vinculo === "CONTRATO TEMPORARIO" && (
-                <div>
-                  <label className={labelClass}>Data Encerramento Contrato</label>
-                  <input type="date" className={inputClass} value={form.data_encerramento_contrato} onChange={(e) => set("data_encerramento_contrato", e.target.value)} />
-                </div>
-              )}
-            </div>
-            {form.vinculo === "CONTRATO TEMPORARIO" && !form.data_encerramento_contrato && (
+            {form.vinculo === "ESTAGIARIO" && (
+              <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-violet-100 dark:bg-violet-900/40 px-2.5 py-1 text-xs font-semibold text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-700">
+                🎓 ESTÁGIO — Este servidor é estagiário
+              </div>
+            )}
+            {(form.vinculo === "CONTRATO TEMPORARIO" || form.vinculo === "ESTAGIARIO") && !form.data_encerramento_contrato && (
               <Alert variant="destructive" className="mt-3">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Atenção</AlertTitle>
                 <AlertDescription>
-                  Este servidor possui contrato temporário. Informe a data de encerramento do contrato para monitoramento.
+                  {form.vinculo === "ESTAGIARIO"
+                    ? "Estagiário requer data de início e encerramento do contrato."
+                    : "Contrato temporário requer data de encerramento para monitoramento."}
                 </AlertDescription>
+              </Alert>
+            )}
+            {form.vinculo === "ESTAGIARIO" && !form.data_admissao && (
+              <Alert variant="destructive" className="mt-2">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Atenção</AlertTitle>
+                <AlertDescription>Informe a data de início do estágio.</AlertDescription>
               </Alert>
             )}
           </section>
