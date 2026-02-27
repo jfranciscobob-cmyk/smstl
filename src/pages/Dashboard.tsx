@@ -201,7 +201,83 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
     return () => { supabase.removeChannel(channel); };
   }, [loadData]);
 
-  const stats = useMemo(() => computeStats(servidores), [servidores]);
+  // ── Role-based filtering ──
+  const filteredServidores = useMemo(() => {
+    if (isAdmin) return servidores;
+    if (isDiretor) {
+      // Find diretoria where the user's servidor is diretor
+      const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
+      if (myServidor?.diretoria_id) {
+        return servidores.filter(s => s.diretoria_id === myServidor.diretoria_id);
+      }
+      // fallback: find diretoria where servidor is_diretor
+      const dirServidor = servidores.find(s => s.id === servidorId && s.is_diretor);
+      if (dirServidor?.diretoria_id) {
+        return servidores.filter(s => s.diretoria_id === dirServidor.diretoria_id);
+      }
+      return servidores;
+    }
+    if (isCoordenador) {
+      // Find units the coordenador is responsible for
+      const myUnidadeIds = coordUnidades
+        .filter(cu => cu.servidor_id === servidorId)
+        .map(cu => cu.unidade_id);
+      if (myUnidadeIds.length > 0) {
+        return servidores.filter(s => s.unidade_id && myUnidadeIds.includes(s.unidade_id));
+      }
+      // Also check is_coordenador flag on servidor
+      const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
+      if (myServidor?.unidade_id) {
+        return servidores.filter(s => s.unidade_id === myServidor.unidade_id);
+      }
+      return [];
+    }
+    return servidores;
+  }, [servidores, isAdmin, isDiretor, isCoordenador, servidorId, coordUnidades]);
+
+  const filteredDiretorias = useMemo(() => {
+    if (isAdmin) return diretorias;
+    if (isDiretor) {
+      const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
+      if (myServidor?.diretoria_id) {
+        return diretorias.filter(d => d.id === myServidor.diretoria_id);
+      }
+      return diretorias;
+    }
+    if (isCoordenador) {
+      // Show only diretorias that have filtered servidores
+      const dirIds = new Set(filteredServidores.map(s => s.diretoria_id).filter(Boolean));
+      return diretorias.filter(d => dirIds.has(d.id));
+    }
+    return diretorias;
+  }, [diretorias, servidores, filteredServidores, isAdmin, isDiretor, isCoordenador, servidorId]);
+
+  const filteredUnidades = useMemo(() => {
+    if (isAdmin) return unidades;
+    if (isDiretor) {
+      const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
+      if (myServidor?.diretoria_id) {
+        return unidades.filter(u => u.diretoria_id === myServidor.diretoria_id);
+      }
+      return unidades;
+    }
+    if (isCoordenador) {
+      const myUnidadeIds = coordUnidades
+        .filter(cu => cu.servidor_id === servidorId)
+        .map(cu => cu.unidade_id);
+      if (myUnidadeIds.length > 0) {
+        return unidades.filter(u => myUnidadeIds.includes(u.id));
+      }
+      const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
+      if (myServidor?.unidade_id) {
+        return unidades.filter(u => u.id === myServidor.unidade_id);
+      }
+      return [];
+    }
+    return unidades;
+  }, [unidades, servidores, isAdmin, isDiretor, isCoordenador, servidorId, coordUnidades]);
+
+  const stats = useMemo(() => computeStats(filteredServidores), [filteredServidores]);
 
   const folhaTotal = useMemo(() => servidores.reduce((sum, s) => sum + (s.salario || 0), 0), [servidores]);
 
