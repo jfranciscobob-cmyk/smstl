@@ -136,10 +136,15 @@ export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, direto
               {hasFullAccess && (
                 <Link
                   to="/admin/usuarios"
-                  className="hidden sm:flex h-8 sm:h-9 items-center gap-1.5 sm:gap-2 rounded-lg bg-primary-foreground/10 border border-primary-foreground/10 px-2 sm:px-3.5 text-xs font-semibold text-primary-foreground hover:bg-primary-foreground/20 transition-all"
+                  className="relative hidden sm:flex h-8 sm:h-9 items-center gap-1.5 sm:gap-2 rounded-lg bg-primary-foreground/10 border border-primary-foreground/10 px-2 sm:px-3.5 text-xs font-semibold text-primary-foreground hover:bg-primary-foreground/20 transition-all"
                 >
                   <Key className="h-3.5 w-3.5" />
                   <span className="hidden lg:inline">Usuários</span>
+                  {pendingRegistrations > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground animate-pulse">
+                      {pendingRegistrations}
+                    </span>
+                  )}
                 </Link>
               )}
 
