@@ -77,8 +77,10 @@ export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, direto
 
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               <div className="hidden lg:flex items-center gap-2 mr-2">
-                <div className="flex h-2 w-2 rounded-full bg-success animate-pulse" />
-                <span className="text-[11px] font-medium text-primary-foreground/40">Tempo real</span>
+                <div className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-[11px] font-medium text-primary-foreground/40">
+                  {onlineCount} online
+                </span>
               </div>
 
               {/* Transferências */}
