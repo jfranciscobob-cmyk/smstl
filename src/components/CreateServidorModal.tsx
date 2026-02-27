@@ -46,6 +46,7 @@ const initialForm = {
   ferias_total_dias: "",
   ferias_vencidas: "",
   observacao: "",
+  data_admissao: "",
   data_encerramento_contrato: "",
   tipo_escala: "fixa",
   is_diretor: false,
@@ -81,6 +82,10 @@ export function CreateServidorModal({
       toast({ title: "Campos obrigatórios", description: "Nome, matrícula e cargo são obrigatórios.", variant: "destructive" });
       return;
     }
+    if (form.vinculo === "ESTAGIARIO" && (!form.data_admissao || !form.data_encerramento_contrato)) {
+      toast({ title: "Campos obrigatórios", description: "Estagiário requer data de início e encerramento do contrato.", variant: "destructive" });
+      return;
+    }
     setSaving(true);
 
     const { error } = await supabase.from("servidores").insert({
@@ -111,6 +116,7 @@ export function CreateServidorModal({
       observacao: form.observacao || null,
       is_diretor: form.is_diretor,
       is_coordenador: form.is_coordenador,
+      data_admissao: form.data_admissao || null,
       data_encerramento_contrato: form.data_encerramento_contrato || null,
       tipo_escala: form.tipo_escala,
     });
@@ -169,21 +175,44 @@ export function CreateServidorModal({
                   <option value="COMISSIONADO">Comissionado</option>
                   <option value="CLT">CLT</option>
                   <option value="AGENTE POLITICO">Agente Político</option>
+                  <option value="ESTAGIARIO">Estagiário</option>
                 </select>
               </div>
-              {form.vinculo === "CONTRATO TEMPORARIO" && (
-                <div>
-                  <label className={labelClass}>Data Encerramento Contrato</label>
-                  <input type="date" className={inputClass} value={form.data_encerramento_contrato} onChange={e => set("data_encerramento_contrato", e.target.value)} />
-                </div>
+              {(form.vinculo === "CONTRATO TEMPORARIO" || form.vinculo === "ESTAGIARIO") && (
+                <>
+                  <div>
+                    <label className={labelClass}>Data Início Contrato {form.vinculo === "ESTAGIARIO" ? "*" : ""}</label>
+                    <input type="date" className={inputClass} value={form.data_admissao} onChange={e => set("data_admissao", e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Data Encerramento Contrato *</label>
+                    <input type="date" className={inputClass} value={form.data_encerramento_contrato} onChange={e => set("data_encerramento_contrato", e.target.value)} />
+                  </div>
+                </>
               )}
             </div>
-            {form.vinculo === "CONTRATO TEMPORARIO" && !form.data_encerramento_contrato && (
+            {form.vinculo === "ESTAGIARIO" && (
+              <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-violet-100 dark:bg-violet-900/40 px-2.5 py-1 text-xs font-semibold text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-700">
+                🎓 ESTÁGIO — Servidor será cadastrado como estagiário
+              </div>
+            )}
+            {(form.vinculo === "CONTRATO TEMPORARIO" || form.vinculo === "ESTAGIARIO") && !form.data_encerramento_contrato && (
               <Alert variant="destructive" className="mt-3">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Atenção</AlertTitle>
                 <AlertDescription>
-                  Contrato temporário requer data de encerramento para monitoramento.
+                  {form.vinculo === "ESTAGIARIO"
+                    ? "Estagiário requer data de início e encerramento do contrato."
+                    : "Contrato temporário requer data de encerramento para monitoramento."}
+                </AlertDescription>
+              </Alert>
+            )}
+            {form.vinculo === "ESTAGIARIO" && !form.data_admissao && (
+              <Alert variant="destructive" className="mt-2">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Atenção</AlertTitle>
+                <AlertDescription>
+                  Informe a data de início do estágio.
                 </AlertDescription>
               </Alert>
             )}

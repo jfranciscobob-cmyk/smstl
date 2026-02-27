@@ -47,8 +47,8 @@ export function ServidorRow({ servidor, onEdit }: ServidorRowProps) {
       )}
 
       <div className="hidden text-right lg:block space-y-1">
-        <span className="inline-flex rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
-          {servidor.vinculo.length > 25 ? servidor.vinculo.substring(0, 22) + "..." : servidor.vinculo}
+        <span className={`inline-flex rounded-md px-2 py-0.5 text-xs font-medium ${servidor.vinculo === "ESTAGIARIO" ? "bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-700" : "bg-secondary text-secondary-foreground"}`}>
+          {servidor.vinculo === "ESTAGIARIO" ? "🎓 ESTAGIÁRIO" : servidor.vinculo.length > 25 ? servidor.vinculo.substring(0, 22) + "..." : servidor.vinculo}
         </span>
         {servidor.duplo_vinculo && (
           <span className="flex items-center justify-end gap-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400">
