@@ -912,7 +912,7 @@ function MonitorContent() {
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-warning flex items-center gap-2">
                   <Palmtree className="h-3.5 w-3.5" /> Gestão de Férias — {currentUnidade?.sigla || "Unidade"}
                 </h3>
-                {!showBulkFerias ? (
+                {canEditEscalasFerias && !showBulkFerias ? (
                   <button onClick={initBulkFerias} className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80">
                     <Pencil className="h-3.5 w-3.5" /> Editar Férias em Massa
                   </button>
