@@ -577,25 +577,29 @@ function EstruturaContent() {
                     className="w-full h-8 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
                   />
                   <div className="max-h-48 overflow-y-auto bg-card rounded border border-border shadow-md">
-                    {filteredSecAssign.map(s => (
-                      <label
-                        key={s.id}
-                        className="flex items-center gap-2 w-full px-2 py-1.5 text-xs hover:bg-primary/10 text-foreground cursor-pointer"
-                      >
-                        <Checkbox
-                          checked={secSelectedIds.has(s.id)}
-                          onCheckedChange={() => {
-                            setSecSelectedIds(prev => {
-                              const next = new Set(prev);
-                              if (next.has(s.id)) next.delete(s.id); else next.add(s.id);
-                              return next;
-                            });
-                          }}
-                        />
-                        <span className="font-medium">{s.nome}</span>
-                        <span className="text-muted-foreground">({s.cargo})</span>
-                      </label>
-                    ))}
+                    {filteredSecAssign.map(s => {
+                      const isAllocated = !!(s.diretoria_id || s.unidade_id);
+                      return (
+                        <label
+                          key={s.id}
+                          className={`flex items-center gap-2 w-full px-2 py-1.5 text-xs hover:bg-primary/10 text-foreground cursor-pointer ${isAllocated ? 'bg-amber-50 dark:bg-amber-950/20' : ''}`}
+                        >
+                          <Checkbox
+                            checked={secSelectedIds.has(s.id)}
+                            onCheckedChange={() => {
+                              setSecSelectedIds(prev => {
+                                const next = new Set(prev);
+                                if (next.has(s.id)) next.delete(s.id); else next.add(s.id);
+                                return next;
+                              });
+                            }}
+                          />
+                          <span className="font-medium">{s.nome}</span>
+                          <span className="text-muted-foreground">({s.cargo})</span>
+                          <ServidorConflictBadge servidor={s} diretorias={allDiretorias} unidades={allUnidades} setores={setores} servidoresSetores={servidoresSetores} />
+                        </label>
+                      );
+                    })}
                   </div>
                   <div className="flex items-center gap-2">
                     {secSelectedIds.size > 0 && (
