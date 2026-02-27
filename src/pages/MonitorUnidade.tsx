@@ -19,7 +19,7 @@ function formatCurrency(value: number) {
 }
 
 function MonitorContent() {
-  const { hasFinancialAccess, user, isAdmin, isDiretor, servidorId, hasFullAccess } = useAuthSession();
+  const { hasFinancialAccess, user, isAdmin, isDiretor, isCoordenador, servidorId, hasFullAccess } = useAuthSession();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const viewMode = searchParams.get("view") || "tudo"; // tudo | diretoria | unidade
@@ -117,6 +117,24 @@ function MonitorContent() {
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  // Auto-navigate coordenador to their assigned unit
+  const [coordUnidades, setCoordUnidades] = useState<string[]>([]);
+  useEffect(() => {
+    if (!isCoordenador || !servidorId) return;
+    supabase.from("coordenadores_unidades").select("unidade_id").eq("servidor_id", servidorId).then(({ data }) => {
+      const ids = (data ?? []).map(d => d.unidade_id);
+      setCoordUnidades(ids);
+      // Auto-navigate to first unit if no view selected
+      if (ids.length === 1 && !searchParams.get("view") && !searchParams.get("unidade")) {
+        const uni = unidades.find(u => u.id === ids[0]);
+        if (uni) setView("unidade", uni.diretoria_id, uni.id);
+      }
+    });
+  }, [isCoordenador, servidorId, unidades]);
+
+  // Permission: can edit escalas/férias
+  const canEditEscalasFerias = hasFullAccess || isCoordenador;
 
   const today = new Date();
 
@@ -894,17 +912,19 @@ function MonitorContent() {
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-warning flex items-center gap-2">
                   <Palmtree className="h-3.5 w-3.5" /> Gestão de Férias — {currentUnidade?.sigla || "Unidade"}
                 </h3>
-                {!showBulkFerias ? (
-                  <button onClick={initBulkFerias} className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80">
-                    <Pencil className="h-3.5 w-3.5" /> Editar Férias em Massa
-                  </button>
-                ) : (
-                  <div className="flex gap-2">
-                    <button onClick={saveBulkFerias} disabled={savingBulkFerias} className="flex items-center gap-1 h-7 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50">
-                      {savingBulkFerias ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />} Salvar Todos
+                {canEditEscalasFerias && (
+                  !showBulkFerias ? (
+                    <button onClick={initBulkFerias} className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80">
+                      <Pencil className="h-3.5 w-3.5" /> Editar Férias em Massa
                     </button>
-                    <button onClick={() => setShowBulkFerias(false)} className="text-xs text-muted-foreground">Cancelar</button>
-                  </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button onClick={saveBulkFerias} disabled={savingBulkFerias} className="flex items-center gap-1 h-7 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50">
+                        {savingBulkFerias ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />} Salvar Todos
+                      </button>
+                      <button onClick={() => setShowBulkFerias(false)} className="text-xs text-muted-foreground">Cancelar</button>
+                    </div>
+                  )
                 )}
               </div>
               <div className="overflow-x-auto -mx-3 sm:-mx-5 px-3 sm:px-5">
@@ -1261,17 +1281,19 @@ function MonitorContent() {
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                   <Clock className="h-3.5 w-3.5" /> Carga Horária Individual
                 </h3>
-                {!showBulkEscala ? (
-                  <button onClick={initBulkEscalas} className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80">
-                    <Pencil className="h-3.5 w-3.5" /> Editar Escalas em Massa
-                  </button>
-                ) : (
-                  <div className="flex gap-2">
-                    <button onClick={saveBulkEscalas} disabled={savingBulk} className="flex items-center gap-1 h-7 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50">
-                      {savingBulk ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />} Salvar Todos
+                {canEditEscalasFerias && (
+                  !showBulkEscala ? (
+                    <button onClick={initBulkEscalas} className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80">
+                      <Pencil className="h-3.5 w-3.5" /> Editar Escalas em Massa
                     </button>
-                    <button onClick={() => setShowBulkEscala(false)} className="text-xs text-muted-foreground">Cancelar</button>
-                  </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button onClick={saveBulkEscalas} disabled={savingBulk} className="flex items-center gap-1 h-7 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50">
+                        {savingBulk ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />} Salvar Todos
+                      </button>
+                      <button onClick={() => setShowBulkEscala(false)} className="text-xs text-muted-foreground">Cancelar</button>
+                    </div>
+                  )
                 )}
               </div>
               <div className="overflow-x-auto -mx-3 sm:-mx-5 px-3 sm:px-5">
