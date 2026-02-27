@@ -187,12 +187,97 @@ function EstruturaContent() {
   };
 
   // Assign servidor to unidade/coordenação
+  const assignServidoresToUnidade = async (servidorIds: string[], diretoriaId: string, unidadeId: string) => {
+    if (servidorIds.length === 0) return false;
+
+    const selected = servidores.filter(s => servidorIds.includes(s.id));
+    const hasExtraUnidade = (servidorId: string) => servidoresUnidades.some(su => su.servidor_id === servidorId);
+
+    const semVinculo = selected
+      .filter(s => !s.unidade_id && !hasExtraUnidade(s.id))
+      .map(s => s.id);
+
+    const jaNaUnidade = new Set(
+      selected
+        .filter(
+          s =>
+            s.unidade_id === unidadeId ||
+            servidoresUnidades.some(su => su.servidor_id === s.id && su.unidade_id === unidadeId)
+        )
+        .map(s => s.id)
+    );
+
+    const manterEmAmbas = selected
+      .filter(s => !jaNaUnidade.has(s.id) && (Boolean(s.unidade_id) || hasExtraUnidade(s.id)))
+      .map(s => s.id);
+
+    if (semVinculo.length > 0) {
+      const { error } = await supabase
+        .from("servidores")
+        .update({ diretoria_id: diretoriaId, unidade_id: unidadeId })
+        .in("id", semVinculo);
+
+      if (error) {
+        toast({ title: "Erro", description: error.message, variant: "destructive" });
+        return false;
+      }
+    }
+
+    if (manterEmAmbas.length > 0) {
+      const { data: existentes, error: consultaErro } = await supabase
+        .from("servidores_unidades")
+        .select("servidor_id")
+        .eq("unidade_id", unidadeId)
+        .in("servidor_id", manterEmAmbas);
+
+      if (consultaErro) {
+        toast({ title: "Erro", description: consultaErro.message, variant: "destructive" });
+        return false;
+      }
+
+      const existentesSet = new Set((existentes ?? []).map(row => row.servidor_id));
+      const payload = manterEmAmbas
+        .filter(servidorId => !existentesSet.has(servidorId))
+        .map(servidor_id => ({ servidor_id, unidade_id: unidadeId }));
+
+      if (payload.length > 0) {
+        const { error } = await supabase.from("servidores_unidades").insert(payload);
+        if (error) {
+          toast({ title: "Erro", description: error.message, variant: "destructive" });
+          return false;
+        }
+      }
+    }
+
+    const totalNovos = semVinculo.length + manterEmAmbas.length;
+
+    if (totalNovos === 0) {
+      toast({ title: "Nenhuma alteração", description: "Os servidores selecionados já estavam vinculados a esta unidade." });
+      return true;
+    }
+
+    toast({
+      title: `${totalNovos} servidor(es) vinculado(s)!`,
+      description: manterEmAmbas.length > 0
+        ? `${manterEmAmbas.length} mantido(s) em múltiplas unidades.`
+        : undefined,
+    });
+
+    return true;
+  };
+
   const assignServidor = async (servidorId: string, diretoriaId: string, unidadeId: string, coordenacaoId?: string) => {
-    const updateData: any = { diretoria_id: diretoriaId, unidade_id: unidadeId };
-    if (coordenacaoId) updateData.coordenacao_id = coordenacaoId;
-    const { error } = await supabase.from("servidores").update(updateData).eq("id", servidorId);
-    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    toast({ title: "Servidor vinculado!" });
+    const ok = await assignServidoresToUnidade([servidorId], diretoriaId, unidadeId);
+    if (!ok) return;
+
+    if (coordenacaoId) {
+      const { error } = await supabase.from("servidores").update({ coordenacao_id: coordenacaoId }).eq("id", servidorId);
+      if (error) {
+        toast({ title: "Erro", description: error.message, variant: "destructive" });
+        return;
+      }
+    }
+
     setAssigningTo(null);
     setAssignSearch("");
     loadData();
@@ -240,9 +325,67 @@ function EstruturaContent() {
   };
 
   const keepInBothSetores = async (servidorId: string, newSetorId: string) => {
+    const { data: existente, error: consultaErro } = await supabase
+      .from("servidores_setores")
+      .select("id")
+      .eq("servidor_id", servidorId)
+      .eq("setor_id", newSetorId)
+      .limit(1);
+
+    if (consultaErro) {
+      toast({ title: "Erro", description: consultaErro.message, variant: "destructive" });
+      return;
+    }
+
+    if (existente && existente.length > 0) {
+      toast({ title: "Servidor já vinculado a este setor." });
+      return;
+    }
+
     const { error } = await supabase.from("servidores_setores").insert({ servidor_id: servidorId, setor_id: newSetorId });
-    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+
     toast({ title: "Servidor mantido em ambos os setores!" });
+    loadData();
+  };
+
+  const bulkKeepInBothSetores = async (servidorIds: string[], newSetorId: string) => {
+    if (servidorIds.length === 0) return;
+
+    const { data: existentes, error: consultaErro } = await supabase
+      .from("servidores_setores")
+      .select("servidor_id")
+      .eq("setor_id", newSetorId)
+      .in("servidor_id", servidorIds);
+
+    if (consultaErro) {
+      toast({ title: "Erro", description: consultaErro.message, variant: "destructive" });
+      return;
+    }
+
+    const existentesSet = new Set((existentes ?? []).map(row => row.servidor_id));
+    const payload = servidorIds
+      .filter(servidorId => !existentesSet.has(servidorId))
+      .map(servidor_id => ({ servidor_id, setor_id: newSetorId }));
+
+    if (payload.length === 0) {
+      toast({ title: "Nenhuma alteração", description: "Os servidores selecionados já estavam neste setor." });
+      return;
+    }
+
+    const { error } = await supabase.from("servidores_setores").insert(payload);
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    toast({
+      title: `${payload.length} servidor(es) mantido(s) em múltiplos setores!`,
+      description: payload.length < servidorIds.length ? `${servidorIds.length - payload.length} já estavam vinculados.` : undefined,
+    });
     loadData();
   };
 
@@ -718,6 +861,7 @@ function EstruturaContent() {
                   onSetResponsavel={setResponsavelSetor}
                   contextServidores={secretariaServidores}
                   onKeepInBothSetores={keepInBothSetores}
+                  onBulkKeepInBothSetores={bulkKeepInBothSetores}
                   servidoresSetores={servidoresSetores}
                 />
               </div>
@@ -873,6 +1017,7 @@ function EstruturaContent() {
                           onSetResponsavel={setResponsavelSetor}
                           contextServidores={servidores.filter(s => s.diretoria_id === dir.id)}
                           onKeepInBothSetores={keepInBothSetores}
+                          onBulkKeepInBothSetores={bulkKeepInBothSetores}
                           servidoresSetores={servidoresSetores}
                         />
 
@@ -1069,9 +1214,14 @@ function EstruturaContent() {
                                     {assignSelectedIds.size > 0 && (
                                       <button
                                         onClick={async () => {
-                                          const updateData = { diretoria_id: assigningTo.diretoria_id, unidade_id: uni.id };
-                                          await supabase.from("servidores").update(updateData).in("id", Array.from(assignSelectedIds));
-                                          toast({ title: `${assignSelectedIds.size} servidor(es) vinculado(s)!` });
+                                          const ok = await assignServidoresToUnidade(
+                                            Array.from(assignSelectedIds),
+                                            assigningTo.diretoria_id,
+                                            uni.id
+                                          );
+
+                                          if (!ok) return;
+
                                           setAssigningTo(null);
                                           setAssignSearch("");
                                           setAssignSelectedIds(new Set());
