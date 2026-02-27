@@ -649,22 +649,26 @@ function EstruturaContent() {
                       const filtered = alocDirSearch.length >= 2
                         ? secretariaServidores.filter(s => s.nome.toLowerCase().includes(alocDirSearch.toLowerCase()))
                         : secretariaServidores;
-                      return filtered.slice(0, 50).map(s => (
-                        <label key={s.id} className="flex items-center gap-2 w-full px-2 py-1.5 text-xs hover:bg-primary/10 text-foreground cursor-pointer">
-                          <Checkbox
-                            checked={alocDirSelectedIds.has(s.id)}
-                            onCheckedChange={() => {
-                              setAlocDirSelectedIds(prev => {
-                                const next = new Set(prev);
-                                if (next.has(s.id)) next.delete(s.id); else next.add(s.id);
-                                return next;
-                              });
-                            }}
-                          />
-                          <span className="font-medium">{s.nome}</span>
-                          <span className="text-muted-foreground">({s.cargo})</span>
-                        </label>
-                      ));
+                      return filtered.slice(0, 50).map(s => {
+                        const isAllocated = !!(s.diretoria_id || s.unidade_id);
+                        return (
+                          <label key={s.id} className={`flex items-center gap-2 w-full px-2 py-1.5 text-xs hover:bg-primary/10 text-foreground cursor-pointer ${isAllocated ? 'bg-amber-50 dark:bg-amber-950/20' : ''}`}>
+                            <Checkbox
+                              checked={alocDirSelectedIds.has(s.id)}
+                              onCheckedChange={() => {
+                                setAlocDirSelectedIds(prev => {
+                                  const next = new Set(prev);
+                                  if (next.has(s.id)) next.delete(s.id); else next.add(s.id);
+                                  return next;
+                                });
+                              }}
+                            />
+                            <span className="font-medium">{s.nome}</span>
+                            <span className="text-muted-foreground">({s.cargo})</span>
+                            <ServidorConflictBadge servidor={s} diretorias={allDiretorias} unidades={allUnidades} setores={setores} servidoresSetores={servidoresSetores} />
+                          </label>
+                        );
+                      });
                     })()}
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
