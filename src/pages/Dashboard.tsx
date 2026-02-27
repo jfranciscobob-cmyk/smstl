@@ -237,6 +237,32 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
   const alocados = servidores.filter(s => s.diretoria_id).length;
   const pctAlocados = stats.total > 0 ? Math.round((alocados / stats.total) * 100) : 0;
 
+  // Faltas abonadas risk per servidor
+  const faltasCountByServidor = useMemo(() => {
+    const now = new Date();
+    const counts: Record<string, number> = {};
+    faltasAbonadas.forEach(f => {
+      // Find the servidor to get admissao date for cycle calculation
+      const serv = servidores.find(s => s.id === f.servidor_id);
+      if (!serv) return;
+      const admissao = serv.data_admissao ? new Date(serv.data_admissao) : null;
+      let cycleStart: Date;
+      if (admissao) {
+        cycleStart = new Date(now.getFullYear(), admissao.getMonth(), admissao.getDate());
+        if (cycleStart > now) cycleStart.setFullYear(cycleStart.getFullYear() - 1);
+      } else {
+        cycleStart = new Date(now.getFullYear(), 0, 1);
+      }
+      const fData = new Date(f.data);
+      if (fData >= cycleStart && fData <= now) {
+        counts[f.servidor_id] = (counts[f.servidor_id] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [faltasAbonadas, servidores]);
+
+  // Servidores em férias agrupados por diretoria - computados nos cards abaixo
+
   const statusColors = ["hsl(152 60% 40%)", "hsl(38 92% 50%)", "hsl(0 72% 51%)", "hsl(200 10% 46%)"];
   const vinculoColors = ["hsl(174 62% 30%)", "hsl(38 92% 50%)", "hsl(210 75% 50%)", "hsl(270 50% 55%)", "hsl(200 10% 46%)"];
 
