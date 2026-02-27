@@ -226,12 +226,22 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
         .filter(cu => cu.servidor_id === servidorId)
         .map(cu => cu.unidade_id);
       if (myUnidadeIds.length > 0) {
-        return servidores.filter(s => s.unidade_id && myUnidadeIds.includes(s.unidade_id));
+        // Include servidores with primary unidade_id OR via junction table
+        const extraServidorIds = servidoresUnidades
+          .filter(su => myUnidadeIds.includes(su.unidade_id))
+          .map(su => su.servidor_id);
+        return servidores.filter(s =>
+          (s.unidade_id && myUnidadeIds.includes(s.unidade_id)) ||
+          extraServidorIds.includes(s.id)
+        );
       }
       // Also check is_coordenador flag on servidor
       const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
       if (myServidor?.unidade_id) {
-        return servidores.filter(s => s.unidade_id === myServidor.unidade_id);
+        const extraIds = servidoresUnidades
+          .filter(su => su.unidade_id === myServidor.unidade_id)
+          .map(su => su.servidor_id);
+        return servidores.filter(s => s.unidade_id === myServidor.unidade_id || extraIds.includes(s.id));
       }
       return [];
     }
