@@ -126,7 +126,7 @@ function AlertCard({ title, count, icon, color, items }: {
   );
 }
 
-function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isDiretor, isCoordenador, servidorId }: { signOut: () => void; userEmail?: string; hasFinancialAccess?: boolean; isAdmin?: boolean; isDiretor?: boolean; isCoordenador?: boolean; servidorId?: string | null }) {
+function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isDiretor, isCoordenador, servidorId, userDiretoriaId, userUnidadeId }: { signOut: () => void; userEmail?: string; hasFinancialAccess?: boolean; isAdmin?: boolean; isDiretor?: boolean; isCoordenador?: boolean; servidorId?: string | null; userDiretoriaId?: string | null; userUnidadeId?: string | null }) {
   const [servidores, setServidores] = useState<ServidorDB[]>([]);
   const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
@@ -207,88 +207,50 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
   // ── Role-based filtering ──
   const filteredServidores = useMemo(() => {
     if (isAdmin) return servidores;
-    if (isDiretor) {
-      // Find diretoria where the user's servidor is diretor
-      const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
-      if (myServidor?.diretoria_id) {
-        return servidores.filter(s => s.diretoria_id === myServidor.diretoria_id);
-      }
-      // fallback: find diretoria where servidor is_diretor
-      const dirServidor = servidores.find(s => s.id === servidorId && s.is_diretor);
-      if (dirServidor?.diretoria_id) {
-        return servidores.filter(s => s.diretoria_id === dirServidor.diretoria_id);
-      }
-      return servidores;
+    if (isDiretor && userDiretoriaId) {
+      // Director sees all servidores in their diretoria
+      const dirUnidadeIds = unidades.filter(u => u.diretoria_id === userDiretoriaId).map(u => u.id);
+      const extraServidorIds = servidoresUnidades
+        .filter(su => dirUnidadeIds.includes(su.unidade_id))
+        .map(su => su.servidor_id);
+      return servidores.filter(s =>
+        s.diretoria_id === userDiretoriaId || extraServidorIds.includes(s.id)
+      );
     }
-    if (isCoordenador) {
-      // Find units the coordenador is responsible for
-      const myUnidadeIds = coordUnidades
-        .filter(cu => cu.servidor_id === servidorId)
-        .map(cu => cu.unidade_id);
-      if (myUnidadeIds.length > 0) {
-        // Include servidores with primary unidade_id OR via junction table
-        const extraServidorIds = servidoresUnidades
-          .filter(su => myUnidadeIds.includes(su.unidade_id))
-          .map(su => su.servidor_id);
-        return servidores.filter(s =>
-          (s.unidade_id && myUnidadeIds.includes(s.unidade_id)) ||
-          extraServidorIds.includes(s.id)
-        );
-      }
-      // Also check is_coordenador flag on servidor
-      const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
-      if (myServidor?.unidade_id) {
-        const extraIds = servidoresUnidades
-          .filter(su => su.unidade_id === myServidor.unidade_id)
-          .map(su => su.servidor_id);
-        return servidores.filter(s => s.unidade_id === myServidor.unidade_id || extraIds.includes(s.id));
-      }
-      return [];
+    if (isCoordenador && userUnidadeId) {
+      // Coordinator sees only servidores in their unidade
+      const extraServidorIds = servidoresUnidades
+        .filter(su => su.unidade_id === userUnidadeId)
+        .map(su => su.servidor_id);
+      return servidores.filter(s =>
+        s.unidade_id === userUnidadeId || extraServidorIds.includes(s.id)
+      );
     }
     return servidores;
-  }, [servidores, isAdmin, isDiretor, isCoordenador, servidorId, coordUnidades]);
+  }, [servidores, unidades, isAdmin, isDiretor, isCoordenador, userDiretoriaId, userUnidadeId, servidoresUnidades]);
 
   const filteredDiretorias = useMemo(() => {
     if (isAdmin) return diretorias;
-    if (isDiretor) {
-      const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
-      if (myServidor?.diretoria_id) {
-        return diretorias.filter(d => d.id === myServidor.diretoria_id);
-      }
-      return diretorias;
+    if (isDiretor && userDiretoriaId) {
+      return diretorias.filter(d => d.id === userDiretoriaId);
     }
-    if (isCoordenador) {
-      // Show only diretorias that have filtered servidores
-      const dirIds = new Set(filteredServidores.map(s => s.diretoria_id).filter(Boolean));
-      return diretorias.filter(d => dirIds.has(d.id));
+    if (isCoordenador && userUnidadeId) {
+      const myUnidade = unidades.find(u => u.id === userUnidadeId);
+      return myUnidade ? diretorias.filter(d => d.id === myUnidade.diretoria_id) : [];
     }
     return diretorias;
-  }, [diretorias, servidores, filteredServidores, isAdmin, isDiretor, isCoordenador, servidorId]);
+  }, [diretorias, unidades, isAdmin, isDiretor, isCoordenador, userDiretoriaId, userUnidadeId]);
 
   const filteredUnidades = useMemo(() => {
     if (isAdmin) return unidades;
-    if (isDiretor) {
-      const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
-      if (myServidor?.diretoria_id) {
-        return unidades.filter(u => u.diretoria_id === myServidor.diretoria_id);
-      }
-      return unidades;
+    if (isDiretor && userDiretoriaId) {
+      return unidades.filter(u => u.diretoria_id === userDiretoriaId);
     }
-    if (isCoordenador) {
-      const myUnidadeIds = coordUnidades
-        .filter(cu => cu.servidor_id === servidorId)
-        .map(cu => cu.unidade_id);
-      if (myUnidadeIds.length > 0) {
-        return unidades.filter(u => myUnidadeIds.includes(u.id));
-      }
-      const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
-      if (myServidor?.unidade_id) {
-        return unidades.filter(u => u.id === myServidor.unidade_id);
-      }
-      return [];
+    if (isCoordenador && userUnidadeId) {
+      return unidades.filter(u => u.id === userUnidadeId);
     }
     return unidades;
-  }, [unidades, servidores, isAdmin, isDiretor, isCoordenador, servidorId, coordUnidades]);
+  }, [unidades, isAdmin, isDiretor, isCoordenador, userDiretoriaId, userUnidadeId]);
 
   const stats = useMemo(() => computeStats(filteredServidores), [filteredServidores]);
 
@@ -790,9 +752,9 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
 }
 
 const Dashboard = () => {
-  const { signOut, user, hasFinancialAccess, isAdmin, isDiretor, isCoordenador, servidorId } = useAuthSession();
+  const { signOut, user, hasFinancialAccess, isAdmin, isDiretor, isCoordenador, servidorId, diretoriaId, unidadeId } = useAuthSession();
   useHeartbeat(user?.id);
-  return <DashboardContent signOut={signOut} userEmail={user?.email} hasFinancialAccess={hasFinancialAccess} isAdmin={isAdmin} isDiretor={isDiretor} isCoordenador={isCoordenador} servidorId={servidorId} />;
+  return <DashboardContent signOut={signOut} userEmail={user?.email} hasFinancialAccess={hasFinancialAccess} isAdmin={isAdmin} isDiretor={isDiretor} isCoordenador={isCoordenador} servidorId={servidorId} userDiretoriaId={diretoriaId} userUnidadeId={unidadeId} />;
 };
 
 export default Dashboard;

@@ -351,39 +351,59 @@ export type Database = {
         Row: {
           acesso_financeiro: boolean
           created_at: string
+          diretoria_id: string | null
           email: string
           id: string
           last_seen_at: string | null
           nome: string | null
           servidor_id: string | null
+          unidade_id: string | null
           updated_at: string
         }
         Insert: {
           acesso_financeiro?: boolean
           created_at?: string
+          diretoria_id?: string | null
           email: string
           id: string
           last_seen_at?: string | null
           nome?: string | null
           servidor_id?: string | null
+          unidade_id?: string | null
           updated_at?: string
         }
         Update: {
           acesso_financeiro?: boolean
           created_at?: string
+          diretoria_id?: string | null
           email?: string
           id?: string
           last_seen_at?: string | null
           nome?: string | null
           servidor_id?: string | null
+          unidade_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_diretoria_id_fkey"
+            columns: ["diretoria_id"]
+            isOneToOne: false
+            referencedRelation: "diretorias"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_servidor_id_fkey"
             columns: ["servidor_id"]
             isOneToOne: false
             referencedRelation: "servidores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
             referencedColumns: ["id"]
           },
         ]
