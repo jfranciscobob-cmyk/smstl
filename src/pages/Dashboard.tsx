@@ -512,7 +512,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
                       .map(cu => cu.servidor_id)
                   )];
                   const coordenadoresAtivos = coordServidorIds
-                    .map(id => servidores.find(s => s.id === id))
+                    .map(id => filteredServidores.find(s => s.id === id))
                     .filter(Boolean) as ServidorDB[];
 
                   return (
