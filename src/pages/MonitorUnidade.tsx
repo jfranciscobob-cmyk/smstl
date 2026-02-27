@@ -440,6 +440,10 @@ function MonitorContent() {
   }, [servidores, selectedDiretoriaId, selectedUnidadeId, allocSearch]);
 
 
+  // Servidores sem escala ou férias
+  const semEscala = useMemo(() => filteredServidores.filter(s => !s.escala_inicio1 && !s.escala_total_horas), [filteredServidores]);
+  const semFerias = useMemo(() => filteredServidores.filter(s => !s.ferias_ano_referencia && !s.ferias_periodo1_inicio), [filteredServidores]);
+
   const contractAlerts = useMemo(() => {
     return filteredServidores.filter(s => {
       if (!s.vinculo?.includes("CONTRATO") && !s.vinculo?.includes("TEMPORARIO")) return false;
