@@ -24,6 +24,7 @@ interface SetorListProps {
   onBulkAssignServidor?: (servidorIds: string[], setorId: string, diretoriaId: string | null) => void;
   onSetResponsavel: (setorId: string, servidorId: string) => void;
   onKeepInBothSetores?: (servidorId: string, newSetorId: string) => void;
+  onBulkKeepInBothSetores?: (servidorIds: string[], newSetorId: string) => void;
   contextServidores: ServidorDB[];
   servidoresSetores?: ServidorSetorJunction[];
 }
