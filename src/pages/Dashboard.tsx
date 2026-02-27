@@ -505,6 +505,30 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                         </div>
                       </div>
 
+                      {/* Risk indicators: faltas abonadas + férias vencidas */}
+                      {(faltasRisco.length > 0 || feriasVencidas.length > 0) && (
+                        <div className="space-y-1.5 mb-2">
+                          {faltasLimite.length > 0 && (
+                            <div className="flex items-center gap-1.5 rounded-md bg-destructive/10 px-2.5 py-1.5 text-[10px] font-semibold text-destructive">
+                              <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+                              {faltasLimite.length} no limite (5/5 faltas)
+                            </div>
+                          )}
+                          {faltasRisco.filter(s => (faltasCountByServidor[s.id] || 0) === 4).length > 0 && (
+                            <div className="flex items-center gap-1.5 rounded-md bg-warning/10 px-2.5 py-1.5 text-[10px] font-semibold text-warning">
+                              <Clock className="h-3 w-3 flex-shrink-0" />
+                              {faltasRisco.filter(s => (faltasCountByServidor[s.id] || 0) === 4).length} próximo(s) do limite (4/5 faltas)
+                            </div>
+                          )}
+                          {feriasVencidas.length > 0 && (
+                            <div className="flex items-center gap-1.5 rounded-md bg-warning/10 px-2.5 py-1.5 text-[10px] font-semibold text-warning">
+                              <Palmtree className="h-3 w-3 flex-shrink-0" />
+                              {feriasVencidas.length} com férias vencidas
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       {/* Footer: units + financial + alerts */}
                       <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/50">
                         <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
