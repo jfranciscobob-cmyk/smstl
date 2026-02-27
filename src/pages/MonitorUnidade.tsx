@@ -79,6 +79,10 @@ function MonitorContent() {
   // Expanded diretorias
   const [expandedDirs, setExpandedDirs] = useState<Record<string, boolean>>({});
 
+  // Collapsed alerts
+  const [alertEscalaOpen, setAlertEscalaOpen] = useState(true);
+  const [alertFeriasOpen, setAlertFeriasOpen] = useState(true);
+
   // Transfer modal
   const [transferServidor, setTransferServidor] = useState<ServidorDB | null>(null);
 
