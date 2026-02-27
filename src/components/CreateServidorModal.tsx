@@ -82,6 +82,10 @@ export function CreateServidorModal({
       toast({ title: "Campos obrigatórios", description: "Nome, matrícula e cargo são obrigatórios.", variant: "destructive" });
       return;
     }
+    if (form.vinculo === "ESTAGIARIO" && (!form.data_admissao || !form.data_encerramento_contrato)) {
+      toast({ title: "Campos obrigatórios", description: "Estagiário requer data de início e encerramento do contrato.", variant: "destructive" });
+      return;
+    }
     setSaving(true);
 
     const { error } = await supabase.from("servidores").insert({
