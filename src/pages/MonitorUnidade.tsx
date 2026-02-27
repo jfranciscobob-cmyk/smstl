@@ -118,6 +118,24 @@ function MonitorContent() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  // Auto-navigate coordenador to their assigned unit
+  const [coordUnidades, setCoordUnidades] = useState<string[]>([]);
+  useEffect(() => {
+    if (!isCoordenador || !servidorId) return;
+    supabase.from("coordenadores_unidades").select("unidade_id").eq("servidor_id", servidorId).then(({ data }) => {
+      const ids = (data ?? []).map(d => d.unidade_id);
+      setCoordUnidades(ids);
+      // Auto-navigate to first unit if no view selected
+      if (ids.length === 1 && !searchParams.get("view") && !searchParams.get("unidade")) {
+        const uni = unidades.find(u => u.id === ids[0]);
+        if (uni) setView("unidade", uni.diretoria_id, uni.id);
+      }
+    });
+  }, [isCoordenador, servidorId, unidades]);
+
+  // Permission: can edit escalas/férias
+  const canEditEscalasFerias = hasFullAccess || isCoordenador;
+
   const today = new Date();
 
   // Filter servidores based on view
