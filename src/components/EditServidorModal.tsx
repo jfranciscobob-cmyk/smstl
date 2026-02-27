@@ -291,13 +291,42 @@ export function EditServidorModal({
                 </select>
               </div>
               <div>
-                <label className={labelClass}>Unidade</label>
+                <label className={labelClass}>Unidade Principal</label>
                 <select className={selectClass} value={form.unidade_id} onChange={(e) => { set("unidade_id", e.target.value); set("coordenacao_id", ""); }}>
                   <option value="">— Sem unidade —</option>
                   {filteredUnidades.map((u) => (
                     <option key={u.id} value={u.id}>{u.nome} ({u.sigla})</option>
                   ))}
                 </select>
+              </div>
+              <div className="sm:col-span-2">
+                <label className={labelClass}>Unidades Adicionais (múltiplas)</label>
+                <div className="border border-input rounded-md bg-background p-2 max-h-32 overflow-y-auto space-y-1">
+                  {unidades
+                    .filter(u => u.id !== form.unidade_id)
+                    .map(u => {
+                      const checked = extraUnidadeIds.includes(u.id);
+                      return (
+                        <label key={u.id} className="flex items-center gap-2 text-xs text-foreground cursor-pointer hover:bg-muted/50 px-1 py-0.5 rounded">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => {
+                              setExtraUnidadeIds(prev =>
+                                checked ? prev.filter(id => id !== u.id) : [...prev, u.id]
+                              );
+                            }}
+                            className="rounded border-input h-3.5 w-3.5"
+                          />
+                          {u.nome} ({u.sigla})
+                          <span className="text-muted-foreground/60 ml-auto">{diretorias.find(d => d.id === u.diretoria_id)?.nome}</span>
+                        </label>
+                      );
+                    })}
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Marque as unidades adicionais onde este servidor também atua.
+                </p>
               </div>
               <div>
                 <label className={labelClass}>Coordenação</label>
