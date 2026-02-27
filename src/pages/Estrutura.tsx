@@ -1212,9 +1212,14 @@ function EstruturaContent() {
                                     {assignSelectedIds.size > 0 && (
                                       <button
                                         onClick={async () => {
-                                          const updateData = { diretoria_id: assigningTo.diretoria_id, unidade_id: uni.id };
-                                          await supabase.from("servidores").update(updateData).in("id", Array.from(assignSelectedIds));
-                                          toast({ title: `${assignSelectedIds.size} servidor(es) vinculado(s)!` });
+                                          const ok = await assignServidoresToUnidade(
+                                            Array.from(assignSelectedIds),
+                                            assigningTo.diretoria_id,
+                                            uni.id
+                                          );
+
+                                          if (!ok) return;
+
                                           setAssigningTo(null);
                                           setAssignSearch("");
                                           setAssignSelectedIds(new Set());
