@@ -153,22 +153,22 @@ export function SetorList({
   const handleBulkAssign = (setorId: string) => {
     if (selectedIds.size === 0) return;
 
-    // Check for conflicts in bulk
-    const conflictServidores: ServidorDB[] = [];
+    const conflictIds: string[] = [];
     const noConflictIds: string[] = [];
 
     selectedIds.forEach(id => {
       const srv = servidores.find(s => s.id === id) || contextServidores.find(s => s.id === id);
       if (!srv) return;
       const currentSetorIds = getServidorSetores(id);
-      if (currentSetorIds.length > 0 && !currentSetorIds.includes(setorId)) {
-        conflictServidores.push(srv);
-      } else if (!currentSetorIds.includes(setorId)) {
+
+      if (currentSetorIds.includes(setorId)) return;
+      if (currentSetorIds.length > 0) {
+        conflictIds.push(id);
+      } else {
         noConflictIds.push(id);
       }
     });
 
-    // Assign servidores without conflict immediately
     if (noConflictIds.length > 0) {
       if (onBulkAssignServidor) {
         onBulkAssignServidor(noConflictIds, setorId, diretoriaId);
@@ -177,12 +177,31 @@ export function SetorList({
       }
     }
 
-    // Show conflict for first conflicting servidor
-    if (conflictServidores.length > 0) {
-      const srv = conflictServidores[0];
+    if (conflictIds.length > 0) {
+      if (onBulkKeepInBothSetores) {
+        onBulkKeepInBothSetores(conflictIds, setorId);
+        setSelectedIds(new Set());
+        setAssigningSetorId(null);
+        setAssignSearch("");
+        return;
+      }
+
+      if (onKeepInBothSetores) {
+        conflictIds.forEach(id => onKeepInBothSetores(id, setorId));
+        setSelectedIds(new Set());
+        setAssigningSetorId(null);
+        setAssignSearch("");
+        return;
+      }
+
+      const firstConflictId = conflictIds[0];
+      const srv = servidores.find(s => s.id === firstConflictId) || contextServidores.find(s => s.id === firstConflictId);
+      if (!srv) return;
+
       const currentSetorIds = getServidorSetores(srv.id);
       const currentSetorName = currentSetorIds.map(id => getSetorNameById(id)).join(", ");
       const scheduleCheck = checkScheduleConflict(srv);
+
       setConflictDialog({
         servidor: srv,
         currentSetorName,
@@ -190,11 +209,12 @@ export function SetorList({
         hasScheduleConflict: scheduleCheck.hasConflict,
         escalaInfo: scheduleCheck.info,
       });
-    } else {
-      setSelectedIds(new Set());
-      setAssigningSetorId(null);
-      setAssignSearch("");
+      return;
     }
+
+    setSelectedIds(new Set());
+    setAssigningSetorId(null);
+    setAssignSearch("");
   };
 
   const handleConflictMove = () => {

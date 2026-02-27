@@ -1017,6 +1017,7 @@ function EstruturaContent() {
                           onSetResponsavel={setResponsavelSetor}
                           contextServidores={servidores.filter(s => s.diretoria_id === dir.id)}
                           onKeepInBothSetores={keepInBothSetores}
+                          onBulkKeepInBothSetores={bulkKeepInBothSetores}
                           servidoresSetores={servidoresSetores}
                         />
 
