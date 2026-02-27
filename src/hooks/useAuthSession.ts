@@ -137,6 +137,6 @@ export function useAuthSession(): AuthSession {
     await supabase.auth.signOut();
   };
 
-  return { user, roles, servidorId, loading, isAdmin, isDiretor, isCoordenador, hasFullAccess, hasFinancialAccess, signOut };
+  return { user, roles, servidorId, diretoriaId, unidadeId, loading, isAdmin, isDiretor, isCoordenador, hasFullAccess, hasFinancialAccess, signOut };
 }
 
