@@ -455,6 +455,14 @@ export default function AdminUsuarios() {
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
+                  <button
+                    onClick={() => deleteUser(p.id, p.nome || p.email)}
+                    disabled={deleting === p.id}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-destructive/10 hover:bg-destructive/20 text-destructive transition-colors disabled:opacity-50"
+                    title="Excluir usuário"
+                  >
+                    {deleting === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                  </button>
                 </div>
               </div>
             );
