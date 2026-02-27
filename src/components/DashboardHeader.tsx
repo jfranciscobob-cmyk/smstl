@@ -17,6 +17,7 @@ interface DashboardHeaderProps {
 export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, diretorias = [], servidores = [] }: DashboardHeaderProps) {
   const { hasFullAccess, user, isAdmin, isDiretor, servidorId } = useAuthSession();
   const [pendingCount, setPendingCount] = useState(0);
+  const [onlineCount, setOnlineCount] = useState(0);
   const [showTransferencias, setShowTransferencias] = useState(false);
 
   // Find user's diretoria (if they are a director)
