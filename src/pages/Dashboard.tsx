@@ -126,7 +126,7 @@ function AlertCard({ title, count, icon, color, items }: {
   );
 }
 
-function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut: () => void; userEmail?: string; hasFinancialAccess?: boolean }) {
+function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isDiretor, isCoordenador, servidorId }: { signOut: () => void; userEmail?: string; hasFinancialAccess?: boolean; isAdmin?: boolean; isDiretor?: boolean; isCoordenador?: boolean; servidorId?: string | null }) {
   const [servidores, setServidores] = useState<ServidorDB[]>([]);
   const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
@@ -201,9 +201,85 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
     return () => { supabase.removeChannel(channel); };
   }, [loadData]);
 
-  const stats = useMemo(() => computeStats(servidores), [servidores]);
+  // ── Role-based filtering ──
+  const filteredServidores = useMemo(() => {
+    if (isAdmin) return servidores;
+    if (isDiretor) {
+      // Find diretoria where the user's servidor is diretor
+      const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
+      if (myServidor?.diretoria_id) {
+        return servidores.filter(s => s.diretoria_id === myServidor.diretoria_id);
+      }
+      // fallback: find diretoria where servidor is_diretor
+      const dirServidor = servidores.find(s => s.id === servidorId && s.is_diretor);
+      if (dirServidor?.diretoria_id) {
+        return servidores.filter(s => s.diretoria_id === dirServidor.diretoria_id);
+      }
+      return servidores;
+    }
+    if (isCoordenador) {
+      // Find units the coordenador is responsible for
+      const myUnidadeIds = coordUnidades
+        .filter(cu => cu.servidor_id === servidorId)
+        .map(cu => cu.unidade_id);
+      if (myUnidadeIds.length > 0) {
+        return servidores.filter(s => s.unidade_id && myUnidadeIds.includes(s.unidade_id));
+      }
+      // Also check is_coordenador flag on servidor
+      const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
+      if (myServidor?.unidade_id) {
+        return servidores.filter(s => s.unidade_id === myServidor.unidade_id);
+      }
+      return [];
+    }
+    return servidores;
+  }, [servidores, isAdmin, isDiretor, isCoordenador, servidorId, coordUnidades]);
 
-  const folhaTotal = useMemo(() => servidores.reduce((sum, s) => sum + (s.salario || 0), 0), [servidores]);
+  const filteredDiretorias = useMemo(() => {
+    if (isAdmin) return diretorias;
+    if (isDiretor) {
+      const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
+      if (myServidor?.diretoria_id) {
+        return diretorias.filter(d => d.id === myServidor.diretoria_id);
+      }
+      return diretorias;
+    }
+    if (isCoordenador) {
+      // Show only diretorias that have filtered servidores
+      const dirIds = new Set(filteredServidores.map(s => s.diretoria_id).filter(Boolean));
+      return diretorias.filter(d => dirIds.has(d.id));
+    }
+    return diretorias;
+  }, [diretorias, servidores, filteredServidores, isAdmin, isDiretor, isCoordenador, servidorId]);
+
+  const filteredUnidades = useMemo(() => {
+    if (isAdmin) return unidades;
+    if (isDiretor) {
+      const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
+      if (myServidor?.diretoria_id) {
+        return unidades.filter(u => u.diretoria_id === myServidor.diretoria_id);
+      }
+      return unidades;
+    }
+    if (isCoordenador) {
+      const myUnidadeIds = coordUnidades
+        .filter(cu => cu.servidor_id === servidorId)
+        .map(cu => cu.unidade_id);
+      if (myUnidadeIds.length > 0) {
+        return unidades.filter(u => myUnidadeIds.includes(u.id));
+      }
+      const myServidor = servidorId ? servidores.find(s => s.id === servidorId) : null;
+      if (myServidor?.unidade_id) {
+        return unidades.filter(u => u.id === myServidor.unidade_id);
+      }
+      return [];
+    }
+    return unidades;
+  }, [unidades, servidores, isAdmin, isDiretor, isCoordenador, servidorId, coordUnidades]);
+
+  const stats = useMemo(() => computeStats(filteredServidores), [filteredServidores]);
+
+  const folhaTotal = useMemo(() => filteredServidores.reduce((sum, s) => sum + (s.salario || 0), 0), [filteredServidores]);
 
   const statusData = useMemo(() => [
     { name: "Presentes", value: stats.presentes },
@@ -214,27 +290,27 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
 
   const vinculoData = useMemo(() => {
     const counts: Record<string, number> = {};
-    servidores.forEach(s => { counts[s.vinculo || "Outros"] = (counts[s.vinculo || "Outros"] || 0) + 1; });
+    filteredServidores.forEach(s => { counts[s.vinculo || "Outros"] = (counts[s.vinculo || "Outros"] || 0) + 1; });
     return Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([name, value]) => ({ name, value }));
-  }, [servidores]);
+  }, [filteredServidores]);
 
   const funcoesCriticasDescobertas = useMemo(
-    () => servidores.filter(s => s.funcao_critica && s.status_presenca !== "presente"),
-    [servidores]
+    () => filteredServidores.filter(s => s.funcao_critica && s.status_presenca !== "presente"),
+    [filteredServidores]
   );
 
   const contratosVencendo = useMemo(() => {
     const now = new Date();
     const in30 = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-    return servidores.filter(s => {
+    return filteredServidores.filter(s => {
       if (!s.data_encerramento_contrato) return false;
       const d = new Date(s.data_encerramento_contrato);
       return d >= now && d <= in30;
     });
-  }, [servidores]);
+  }, [filteredServidores]);
 
   const coberturaGeral = stats.total > 0 ? Math.round((stats.presentes / stats.total) * 100) : 0;
-  const alocados = servidores.filter(s => s.diretoria_id).length;
+  const alocados = filteredServidores.filter(s => s.diretoria_id).length;
   const pctAlocados = stats.total > 0 ? Math.round((alocados / stats.total) * 100) : 0;
 
   // Faltas abonadas risk per servidor
@@ -272,8 +348,8 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
         userEmail={userEmail}
         onSignOut={signOut}
         onCreateServidor={() => setShowCreateModal(true)}
-        diretorias={diretorias}
-        servidores={servidores}
+        diretorias={filteredDiretorias}
+        servidores={filteredServidores}
       />
 
       <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
@@ -341,7 +417,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                         <p className="text-[9px] sm:text-[10px] text-primary-foreground/50 font-medium">Alocados</p>
                       </Link>
                       <Link to="/monitor" className="text-center hover:opacity-80 transition-opacity hidden sm:block">
-                        <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold font-mono">{diretorias.length}</p>
+                        <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold font-mono">{filteredDiretorias.length}</p>
                         <p className="text-[9px] sm:text-[10px] text-primary-foreground/50 font-medium">Diretorias</p>
                       </Link>
                       {hasFinancialAccess && (
@@ -384,7 +460,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                 <p className="text-[9px] font-semibold text-info/70 uppercase tracking-wider">Contratados</p>
               </Link>
               <Link to="/monitor" className="rounded-xl border border-border bg-card p-3 text-center transition-all hover:shadow-md hover:-translate-y-0.5">
-                <p className="text-lg font-extrabold font-mono text-foreground">{unidades.length}</p>
+                <p className="text-lg font-extrabold font-mono text-foreground">{filteredUnidades.length}</p>
                 <p className="text-[9px] font-semibold text-muted-foreground/70 uppercase tracking-wider">Unidades</p>
               </Link>
               <Link to="/estrutura" className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-center transition-all hover:shadow-md hover:-translate-y-0.5" title={`${alocados} alocados em diretorias / ${stats.total - alocados} sem diretoria`}>
@@ -392,7 +468,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                 <p className="text-[9px] font-semibold text-primary/70 uppercase tracking-wider">Alocados</p>
               </Link>
               <Link to="/monitor?filter=duplo_vinculo" className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-center transition-all hover:shadow-md hover:-translate-y-0.5" title="Servidores com dois vínculos">
-                <p className="text-lg font-extrabold font-mono text-amber-600 dark:text-amber-400">{servidores.filter(s => s.duplo_vinculo).length}</p>
+                <p className="text-lg font-extrabold font-mono text-amber-600 dark:text-amber-400">{filteredServidores.filter(s => s.duplo_vinculo).length}</p>
                 <p className="text-[9px] font-semibold text-amber-600/70 dark:text-amber-400/70 uppercase tracking-wider">Duplo Vínculo</p>
               </Link>
             </div>
@@ -408,17 +484,17 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {diretorias.map(dir => {
-                  const ds = servidores.filter(s => s.diretoria_id === dir.id);
+                {filteredDiretorias.map(dir => {
+                  const ds = filteredServidores.filter(s => s.diretoria_id === dir.id);
                   const dp = ds.filter(s => s.status_presenca === "presente").length;
                   const dFerias = ds.filter(s => s.status_presenca === "ferias").length;
                   const dAfastados = ds.filter(s => s.status_presenca === "afastado").length;
-                  const du = unidades.filter(u => u.diretoria_id === dir.id);
+                  const du = filteredUnidades.filter(u => u.diretoria_id === dir.id);
                   const df = ds.reduce((sum, s) => sum + (s.salario || 0), 0);
                   const cob = ds.length > 0 ? Math.round((dp / ds.length) * 100) : 0;
                   const cobColor = cob >= 80 ? "text-success" : cob >= 50 ? "text-warning" : "text-destructive";
                   const cobBg = cob >= 80 ? "bg-success" : cob >= 50 ? "bg-warning" : "bg-destructive";
-                  const diretor = servidores.find(s => s.diretoria_id === dir.id && s.is_diretor);
+                  const diretor = filteredServidores.find(s => s.diretoria_id === dir.id && s.is_diretor);
                   const criticas = ds.filter(s => s.funcao_critica && s.status_presenca !== "presente");
                   
                   // Faltas abonadas risk for this diretoria
@@ -436,7 +512,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                       .map(cu => cu.servidor_id)
                   )];
                   const coordenadoresAtivos = coordServidorIds
-                    .map(id => servidores.find(s => s.id === id))
+                    .map(id => filteredServidores.find(s => s.id === id))
                     .filter(Boolean) as ServidorDB[];
 
                   return (
@@ -552,7 +628,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
 
                 {/* Sem diretoria */}
                 {(() => {
-                  const semDir = servidores.filter(s => !s.diretoria_id);
+                  const semDir = filteredServidores.filter(s => !s.diretoria_id);
                   if (semDir.length === 0) return null;
                   const sp = semDir.filter(s => s.status_presenca === "presente").length;
                   const folha = semDir.reduce((s, sv) => s + (sv.salario || 0), 0);
@@ -592,7 +668,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                 <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
                   Presença vs Ausências por Diretoria
                 </h3>
-                <DiretoriaBarChart diretorias={diretorias} servidores={servidores} />
+                <DiretoriaBarChart diretorias={filteredDiretorias} servidores={filteredServidores} />
               </div>
 
               {/* Alertas */}
@@ -701,9 +777,9 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
 }
 
 const Dashboard = () => {
-  const { signOut, user, hasFinancialAccess } = useAuthSession();
+  const { signOut, user, hasFinancialAccess, isAdmin, isDiretor, isCoordenador, servidorId } = useAuthSession();
   useHeartbeat(user?.id);
-  return <DashboardContent signOut={signOut} userEmail={user?.email} hasFinancialAccess={hasFinancialAccess} />;
+  return <DashboardContent signOut={signOut} userEmail={user?.email} hasFinancialAccess={hasFinancialAccess} isAdmin={isAdmin} isDiretor={isDiretor} isCoordenador={isCoordenador} servidorId={servidorId} />;
 };
 
 export default Dashboard;

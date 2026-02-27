@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Loader2, UserPlus, Shield, Building2, Users, Pencil, Key, X, Check, XCircle, Clock, Circle } from "lucide-react";
+import { ArrowLeft, Loader2, UserPlus, Shield, Building2, Users, Pencil, Key, X, Check, XCircle, Clock, Circle, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface ProfileRow {
@@ -53,6 +53,9 @@ export default function AdminUsuarios() {
   const [editUser, setEditUser] = useState<ProfileRow | null>(null);
   const [editForm, setEditForm] = useState({ nome: "", role: "", password: "", acesso_financeiro: false });
   const [saving, setSaving] = useState(false);
+
+  // Delete user
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   // Approval
   const [processing, setProcessing] = useState<string | null>(null);
@@ -165,6 +168,25 @@ export default function AdminUsuarios() {
 
     toast({ title: action === "aprovar" ? "Usuário aprovado e criado!" : "Solicitação rejeitada." });
     setProcessing(null);
+    loadData();
+  };
+
+  const deleteUser = async (userId: string, userName: string) => {
+    if (!window.confirm(`Tem certeza que deseja excluir o usuário "${userName}"? Esta ação não pode ser desfeita.`)) return;
+    setDeleting(userId);
+
+    const { data, error } = await supabase.functions.invoke("delete-user", {
+      body: { user_id: userId },
+    });
+
+    if (error || !data?.success) {
+      toast({ title: "Erro ao excluir", description: data?.error || error?.message, variant: "destructive" });
+      setDeleting(null);
+      return;
+    }
+
+    toast({ title: "Usuário excluído com sucesso!" });
+    setDeleting(null);
     loadData();
   };
 
@@ -432,6 +454,14 @@ export default function AdminUsuarios() {
                     title="Editar usuário"
                   >
                     <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={() => deleteUser(p.id, p.nome || p.email)}
+                    disabled={deleting === p.id}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-destructive/10 hover:bg-destructive/20 text-destructive transition-colors disabled:opacity-50"
+                    title="Excluir usuário"
+                  >
+                    {deleting === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                   </button>
                 </div>
               </div>
