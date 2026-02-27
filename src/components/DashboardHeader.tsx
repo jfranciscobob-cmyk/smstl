@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Shield, Network, LogOut, UserPlus, Key, ArrowRightLeft, BookOpen, Circle } from "lucide-react";
+import { Shield, Network, LogOut, UserPlus, Key, ArrowRightLeft, BookOpen, Circle, UserCheck } from "lucide-react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { supabase } from "@/integrations/supabase/client";
 import type { DiretoriaDB, ServidorDB } from "@/hooks/useServidores";
@@ -17,6 +17,7 @@ interface DashboardHeaderProps {
 export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, diretorias = [], servidores = [] }: DashboardHeaderProps) {
   const { hasFullAccess, user, isAdmin, isDiretor, isCoordenador, servidorId, diretoriaIds } = useAuthSession();
   const [pendingCount, setPendingCount] = useState(0);
+  const [pendingRegistrations, setPendingRegistrations] = useState(0);
   const [onlineCount, setOnlineCount] = useState(0);
   const [showTransferencias, setShowTransferencias] = useState(false);
 
@@ -45,15 +46,29 @@ export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, direto
     loadOnline();
     const onlineInterval = setInterval(loadOnline, 30_000);
 
+    // Load pending registration requests
+    const loadRegistrations = async () => {
+      if (!isAdmin) return;
+      const { count } = await supabase
+        .from("registration_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pendente");
+      setPendingRegistrations(count ?? 0);
+    };
+    loadRegistrations();
+
     const channel = supabase
       .channel("transferencias-badge")
       .on("postgres_changes", { event: "*", schema: "public", table: "transferencias" }, () => {
         loadCount();
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "registration_requests" }, () => {
+        loadRegistrations();
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); clearInterval(onlineInterval); };
-  }, []);
+  }, [isAdmin]);
 
   return (
     <>
@@ -121,10 +136,15 @@ export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, direto
               {hasFullAccess && (
                 <Link
                   to="/admin/usuarios"
-                  className="hidden sm:flex h-8 sm:h-9 items-center gap-1.5 sm:gap-2 rounded-lg bg-primary-foreground/10 border border-primary-foreground/10 px-2 sm:px-3.5 text-xs font-semibold text-primary-foreground hover:bg-primary-foreground/20 transition-all"
+                  className="relative hidden sm:flex h-8 sm:h-9 items-center gap-1.5 sm:gap-2 rounded-lg bg-primary-foreground/10 border border-primary-foreground/10 px-2 sm:px-3.5 text-xs font-semibold text-primary-foreground hover:bg-primary-foreground/20 transition-all"
                 >
                   <Key className="h-3.5 w-3.5" />
                   <span className="hidden lg:inline">Usuários</span>
+                  {pendingRegistrations > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground animate-pulse">
+                      {pendingRegistrations}
+                    </span>
+                  )}
                 </Link>
               )}
 
