@@ -15,14 +15,13 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, diretorias = [], servidores = [] }: DashboardHeaderProps) {
-  const { hasFullAccess, user, isAdmin, isDiretor, isCoordenador, servidorId } = useAuthSession();
+  const { hasFullAccess, user, isAdmin, isDiretor, isCoordenador, servidorId, diretoriaIds } = useAuthSession();
   const [pendingCount, setPendingCount] = useState(0);
   const [onlineCount, setOnlineCount] = useState(0);
   const [showTransferencias, setShowTransferencias] = useState(false);
 
-  // Find user's diretoria (if they are a director)
-  const userServidor = servidores.find(s => s.id === servidorId);
-  const userDiretoriaId = userServidor?.diretoria_id || null;
+  // Find user's diretoria (use first from array)
+  const userDiretoriaId = diretoriaIds[0] ?? null;
 
   useEffect(() => {
     const loadCount = async () => {
