@@ -19,7 +19,7 @@ function formatCurrency(value: number) {
 }
 
 function MonitorContent() {
-  const { hasFinancialAccess, user, isAdmin, isDiretor, isCoordenador, servidorId, hasFullAccess } = useAuthSession();
+  const { hasFinancialAccess, user, isAdmin, isDiretor, isCoordenador, servidorId, hasFullAccess, diretoriaIds: userDiretoriaIds, unidadeIds: userUnidadeIds } = useAuthSession();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const viewMode = searchParams.get("view") || "tudo"; // tudo | diretoria | unidade
@@ -82,9 +82,8 @@ function MonitorContent() {
   // Transfer modal
   const [transferServidor, setTransferServidor] = useState<ServidorDB | null>(null);
 
-  // Determine user's diretoria
-  const userServidor = servidores.find(s => s.id === servidorId);
-  const userDiretoriaId = userServidor?.diretoria_id || null;
+  // Determine user's diretoria (use first from array for backwards compat)
+  const userDiretoriaId = userDiretoriaIds[0] ?? null;
   const canTransfer = isAdmin || (isDiretor && !!selectedDiretoriaId && (selectedDiretoriaId === userDiretoriaId || hasFullAccess));
 
   const loadData = useCallback(async () => {

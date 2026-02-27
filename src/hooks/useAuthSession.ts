@@ -10,8 +10,8 @@ export interface AuthSession {
   user: User | null;
   roles: UserRole[];
   servidorId: string | null;
-  diretoriaId: string | null;
-  unidadeId: string | null;
+  diretoriaIds: string[];
+  unidadeIds: string[];
   loading: boolean;
   isAdmin: boolean;
   isDiretor: boolean;
@@ -19,14 +19,18 @@ export interface AuthSession {
   hasFullAccess: boolean;
   hasFinancialAccess: boolean;
   signOut: () => Promise<void>;
+  /** @deprecated Use diretoriaIds instead */
+  diretoriaId: string | null;
+  /** @deprecated Use unidadeIds instead */
+  unidadeId: string | null;
 }
 
 export function useAuthSession(): AuthSession {
   const [user, setUser] = useState<User | null>(null);
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [servidorId, setServidorId] = useState<string | null>(null);
-  const [diretoriaId, setDiretoriaId] = useState<string | null>(null);
-  const [unidadeId, setUnidadeId] = useState<string | null>(null);
+  const [diretoriaIds, setDiretoriaIds] = useState<string[]>([]);
+  const [unidadeIds, setUnidadeIds] = useState<string[]>([]);
   const [acessoFinanceiro, setAcessoFinanceiro] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -50,19 +54,21 @@ export function useAuthSession(): AuthSession {
         if (!currentUser) {
           setRoles([]);
           setServidorId(null);
-          setDiretoriaId(null);
-          setUnidadeId(null);
+          setDiretoriaIds([]);
+          setUnidadeIds([]);
           setAcessoFinanceiro(false);
           return;
         }
 
-        const [rolesResult, profileResult] = await Promise.allSettled([
+        const [rolesResult, profileResult, userDiretoriasResult, userUnidadesResult] = await Promise.allSettled([
           supabase.from("user_roles").select("role").eq("user_id", currentUser.id),
           supabase
             .from("profiles")
-            .select("servidor_id, acesso_financeiro, diretoria_id, unidade_id")
+            .select("servidor_id, acesso_financeiro")
             .eq("id", currentUser.id)
             .maybeSingle(),
+          supabase.from("user_diretorias").select("diretoria_id").eq("user_id", currentUser.id),
+          supabase.from("user_unidades").select("unidade_id").eq("user_id", currentUser.id),
         ]);
 
         if (!isActive) return;
@@ -70,29 +76,35 @@ export function useAuthSession(): AuthSession {
         if (rolesResult.status === "fulfilled") {
           setRoles((rolesResult.value.data ?? []) as UserRole[]);
         } else {
-          console.error("[useAuthSession/roles] error:", rolesResult.reason);
           setRoles([]);
         }
 
         if (profileResult.status === "fulfilled") {
           setServidorId(profileResult.value.data?.servidor_id ?? null);
-          setDiretoriaId(profileResult.value.data?.diretoria_id ?? null);
-          setUnidadeId(profileResult.value.data?.unidade_id ?? null);
           setAcessoFinanceiro(profileResult.value.data?.acesso_financeiro ?? false);
         } else {
-          console.error("[useAuthSession/profile] error:", profileResult.reason);
           setServidorId(null);
-          setDiretoriaId(null);
-          setUnidadeId(null);
           setAcessoFinanceiro(false);
+        }
+
+        if (userDiretoriasResult.status === "fulfilled") {
+          setDiretoriaIds((userDiretoriasResult.value.data ?? []).map((d: any) => d.diretoria_id));
+        } else {
+          setDiretoriaIds([]);
+        }
+
+        if (userUnidadesResult.status === "fulfilled") {
+          setUnidadeIds((userUnidadesResult.value.data ?? []).map((u: any) => u.unidade_id));
+        } else {
+          setUnidadeIds([]);
         }
       } catch (err) {
         console.error("[useAuthSession] error:", err);
         if (!isActive) return;
         setRoles([]);
         setServidorId(null);
-        setDiretoriaId(null);
-        setUnidadeId(null);
+        setDiretoriaIds([]);
+        setUnidadeIds([]);
         setAcessoFinanceiro(false);
       } finally {
         if (isActive) setLoading(false);
@@ -137,6 +149,12 @@ export function useAuthSession(): AuthSession {
     await supabase.auth.signOut();
   };
 
-  return { user, roles, servidorId, diretoriaId, unidadeId, loading, isAdmin, isDiretor, isCoordenador, hasFullAccess, hasFinancialAccess, signOut };
+  return {
+    user, roles, servidorId,
+    diretoriaIds, unidadeIds,
+    // backwards compat
+    diretoriaId: diretoriaIds[0] ?? null,
+    unidadeId: unidadeIds[0] ?? null,
+    loading, isAdmin, isDiretor, isCoordenador, hasFullAccess, hasFinancialAccess, signOut,
+  };
 }
-

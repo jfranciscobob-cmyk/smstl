@@ -3,14 +3,13 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Loader2, UserPlus, Shield, Building2, Users, Pencil, Key, X, Check, XCircle, Clock, Trash2, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface ProfileRow {
   id: string;
   email: string;
   nome: string | null;
   servidor_id: string | null;
-  diretoria_id: string | null;
-  unidade_id: string | null;
   acesso_financeiro: boolean;
   created_at: string;
   last_seen_at: string | null;
@@ -35,6 +34,8 @@ interface RegistrationRequest {
 
 interface DiretoriaOption { id: string; nome: string; }
 interface UnidadeOption { id: string; nome: string; sigla: string; diretoria_id: string; }
+interface UserDiretoria { id: string; user_id: string; diretoria_id: string; }
+interface UserUnidade { id: string; user_id: string; unidade_id: string; }
 
 function isOnline(lastSeen: string | null): boolean {
   if (!lastSeen) return false;
@@ -49,41 +50,69 @@ export default function AdminUsuarios() {
   const [requests, setRequests] = useState<RegistrationRequest[]>([]);
   const [diretorias, setDiretorias] = useState<DiretoriaOption[]>([]);
   const [unidades, setUnidades] = useState<UnidadeOption[]>([]);
+  const [userDiretorias, setUserDiretorias] = useState<UserDiretoria[]>([]);
+  const [userUnidades, setUserUnidades] = useState<UserUnidade[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ email: "", password: "", nome: "", role: "coordenador", diretoria_id: "", unidade_id: "" });
+  const [form, setForm] = useState({ email: "", password: "", nome: "", role: "coordenador" });
+  const [formDiretoriaIds, setFormDiretoriaIds] = useState<Set<string>>(new Set());
+  const [formUnidadeIds, setFormUnidadeIds] = useState<Set<string>>(new Set());
   const [creating, setCreating] = useState(false);
 
   const [editUser, setEditUser] = useState<ProfileRow | null>(null);
-  const [editForm, setEditForm] = useState({ nome: "", role: "", password: "", acesso_financeiro: false, diretoria_id: "", unidade_id: "" });
+  const [editForm, setEditForm] = useState({ nome: "", role: "", password: "", acesso_financeiro: false });
+  const [editDiretoriaIds, setEditDiretoriaIds] = useState<Set<string>>(new Set());
+  const [editUnidadeIds, setEditUnidadeIds] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
 
   const [deleting, setDeleting] = useState<string | null>(null);
   const [processing, setProcessing] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
-    const [p, r, req, dir, uni] = await Promise.all([
-      supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+    const [p, r, req, dir, uni, ud, uu] = await Promise.all([
+      supabase.from("profiles").select("id, email, nome, servidor_id, acesso_financeiro, created_at, last_seen_at").order("created_at", { ascending: false }),
       supabase.from("user_roles").select("*"),
       supabase.from("registration_requests").select("*").order("created_at", { ascending: false }),
       supabase.from("diretorias").select("id, nome").order("nome"),
       supabase.from("unidades").select("id, nome, sigla, diretoria_id").order("nome"),
+      supabase.from("user_diretorias").select("*"),
+      supabase.from("user_unidades").select("*"),
     ]);
     setProfiles((p.data ?? []) as ProfileRow[]);
     setRoles((r.data ?? []) as RoleRow[]);
     setRequests((req.data ?? []) as RegistrationRequest[]);
     setDiretorias((dir.data ?? []) as DiretoriaOption[]);
     setUnidades((uni.data ?? []) as UnidadeOption[]);
+    setUserDiretorias((ud.data ?? []) as UserDiretoria[]);
+    setUserUnidades((uu.data ?? []) as UserUnidade[]);
     setLoading(false);
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
 
   const getRoles = (userId: string) => roles.filter(r => r.user_id === userId).map(r => r.role);
+  const getUserDiretoriaIds = (userId: string) => userDiretorias.filter(ud => ud.user_id === userId).map(ud => ud.diretoria_id);
+  const getUserUnidadeIds = (userId: string) => userUnidades.filter(uu => uu.user_id === userId).map(uu => uu.unidade_id);
 
   const roleLabel: Record<string, string> = { admin: "Administrador", diretor: "Diretor", coordenador: "Coordenador" };
   const roleColor: Record<string, string> = { admin: "bg-primary/10 text-primary", diretor: "bg-amber-500/10 text-amber-600", coordenador: "bg-accent text-accent-foreground" };
+
+  const syncUserDiretorias = async (userId: string, newIds: Set<string>) => {
+    await supabase.from("user_diretorias").delete().eq("user_id", userId);
+    if (newIds.size > 0) {
+      const rows = Array.from(newIds).map(diretoria_id => ({ user_id: userId, diretoria_id }));
+      await supabase.from("user_diretorias").insert(rows);
+    }
+  };
+
+  const syncUserUnidades = async (userId: string, newIds: Set<string>) => {
+    await supabase.from("user_unidades").delete().eq("user_id", userId);
+    if (newIds.size > 0) {
+      const rows = Array.from(newIds).map(unidade_id => ({ user_id: userId, unidade_id }));
+      await supabase.from("user_unidades").insert(rows);
+    }
+  };
 
   const createUser = async () => {
     if (!form.email || !form.password || form.password.length < 6) {
@@ -99,16 +128,16 @@ export default function AdminUsuarios() {
       setCreating(false);
       return;
     }
-    // Set diretoria/unidade on profile
-    const profileUpdate: Record<string, unknown> = {};
-    if (form.role === "diretor" && form.diretoria_id) profileUpdate.diretoria_id = form.diretoria_id;
-    if (form.role === "coordenador" && form.unidade_id) profileUpdate.unidade_id = form.unidade_id;
-    if (Object.keys(profileUpdate).length > 0 && data.user_id) {
-      await supabase.from("profiles").update(profileUpdate).eq("id", data.user_id);
+    const newUserId = data.user_id;
+    if (newUserId) {
+      if (form.role === "diretor") await syncUserDiretorias(newUserId, formDiretoriaIds);
+      if (form.role === "coordenador") await syncUserUnidades(newUserId, formUnidadeIds);
     }
     toast({ title: "Usuário criado com sucesso!" });
     setShowForm(false);
-    setForm({ email: "", password: "", nome: "", role: "coordenador", diretoria_id: "", unidade_id: "" });
+    setForm({ email: "", password: "", nome: "", role: "coordenador" });
+    setFormDiretoriaIds(new Set());
+    setFormUnidadeIds(new Set());
     setCreating(false);
     loadData();
   };
@@ -121,9 +150,9 @@ export default function AdminUsuarios() {
       role: userRoles[0] || "coordenador",
       password: "",
       acesso_financeiro: profile.acesso_financeiro ?? false,
-      diretoria_id: profile.diretoria_id || "",
-      unidade_id: profile.unidade_id || "",
     });
+    setEditDiretoriaIds(new Set(getUserDiretoriaIds(profile.id)));
+    setEditUnidadeIds(new Set(getUserUnidadeIds(profile.id)));
   };
 
   const saveEdit = async () => {
@@ -144,11 +173,18 @@ export default function AdminUsuarios() {
       setSaving(false);
       return;
     }
-    // Update diretoria/unidade on profile
-    await supabase.from("profiles").update({
-      diretoria_id: editForm.role === "diretor" ? (editForm.diretoria_id || null) : null,
-      unidade_id: editForm.role === "coordenador" ? (editForm.unidade_id || null) : null,
-    }).eq("id", editUser.id);
+    // Sync pastas
+    if (editForm.role === "diretor") {
+      await syncUserDiretorias(editUser.id, editDiretoriaIds);
+      await syncUserUnidades(editUser.id, new Set()); // clear unidades
+    } else if (editForm.role === "coordenador") {
+      await syncUserUnidades(editUser.id, editUnidadeIds);
+      await syncUserDiretorias(editUser.id, new Set()); // clear diretorias
+    } else {
+      // admin - clear both
+      await syncUserDiretorias(editUser.id, new Set());
+      await syncUserUnidades(editUser.id, new Set());
+    }
 
     toast({ title: "Usuário atualizado com sucesso!" });
     setEditUser(null);
@@ -186,48 +222,76 @@ export default function AdminUsuarios() {
   const pendingRequests = requests.filter(r => r.status === "pendente");
   const onlineCount = profiles.filter(p => isOnline(p.last_seen_at)).length;
 
-  // Helper to get location label
-  const getLocationLabel = (profile: ProfileRow, userRoles: string[]) => {
-    if (userRoles.includes("diretor") && profile.diretoria_id) {
-      return diretorias.find(d => d.id === profile.diretoria_id)?.nome || null;
+  // Helper to get location labels
+  const getLocationLabels = (userId: string, userRoles: string[]) => {
+    const labels: string[] = [];
+    if (userRoles.includes("diretor")) {
+      const ids = getUserDiretoriaIds(userId);
+      ids.forEach(id => {
+        const d = diretorias.find(d => d.id === id);
+        if (d) labels.push(d.nome);
+      });
     }
-    if (userRoles.includes("coordenador") && profile.unidade_id) {
-      const u = unidades.find(u => u.id === profile.unidade_id);
-      return u ? `${u.nome} (${u.sigla})` : null;
+    if (userRoles.includes("coordenador")) {
+      const ids = getUserUnidadeIds(userId);
+      ids.forEach(id => {
+        const u = unidades.find(u => u.id === id);
+        if (u) labels.push(`${u.nome} (${u.sigla})`);
+      });
     }
-    return null;
+    return labels;
   };
 
-  // Selector component for role-based assignment
-  const RoleAssignment = ({ role, diretoriaId, unidadeId, onDiretoriaChange, onUnidadeChange }: {
-    role: string; diretoriaId: string; unidadeId: string;
-    onDiretoriaChange: (v: string) => void; onUnidadeChange: (v: string) => void;
+  // Multi-select checkbox component for pastas
+  const MultiPastaSelector = ({ role, diretoriaIds, unidadeIds, onDiretoriasChange, onUnidadesChange }: {
+    role: string; diretoriaIds: Set<string>; unidadeIds: Set<string>;
+    onDiretoriasChange: (ids: Set<string>) => void; onUnidadesChange: (ids: Set<string>) => void;
   }) => {
     if (role === "admin") return null;
     if (role === "diretor") return (
-      <div className="space-y-1">
+      <div className="space-y-2">
         <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-          <MapPin className="h-3 w-3" /> Diretoria do Diretor
+          <MapPin className="h-3 w-3" /> Diretorias do Diretor (múltiplas)
         </label>
-        <select value={diretoriaId} onChange={e => onDiretoriaChange(e.target.value)}
-          className="w-full h-9 rounded-lg border border-input bg-card px-3 text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none">
-          <option value="">— Selecione a diretoria —</option>
-          {diretorias.map(d => <option key={d.id} value={d.id}>{d.nome}</option>)}
-        </select>
-        <p className="text-[10px] text-muted-foreground">O diretor verá todos os dados desta diretoria.</p>
+        <div className="max-h-48 overflow-y-auto rounded-lg border border-input bg-card p-2 space-y-1">
+          {diretorias.map(d => (
+            <label key={d.id} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 cursor-pointer text-sm">
+              <Checkbox
+                checked={diretoriaIds.has(d.id)}
+                onCheckedChange={(checked) => {
+                  const next = new Set(diretoriaIds);
+                  if (checked) next.add(d.id); else next.delete(d.id);
+                  onDiretoriasChange(next);
+                }}
+              />
+              {d.nome}
+            </label>
+          ))}
+        </div>
+        <p className="text-[10px] text-muted-foreground">O diretor verá os dados de todas as diretorias selecionadas.</p>
       </div>
     );
     if (role === "coordenador") return (
-      <div className="space-y-1">
+      <div className="space-y-2">
         <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-          <MapPin className="h-3 w-3" /> Unidade do Coordenador
+          <MapPin className="h-3 w-3" /> Unidades do Coordenador (múltiplas)
         </label>
-        <select value={unidadeId} onChange={e => onUnidadeChange(e.target.value)}
-          className="w-full h-9 rounded-lg border border-input bg-card px-3 text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none">
-          <option value="">— Selecione a unidade —</option>
-          {unidades.map(u => <option key={u.id} value={u.id}>{u.nome} ({u.sigla})</option>)}
-        </select>
-        <p className="text-[10px] text-muted-foreground">O coordenador verá apenas os dados desta unidade.</p>
+        <div className="max-h-48 overflow-y-auto rounded-lg border border-input bg-card p-2 space-y-1">
+          {unidades.map(u => (
+            <label key={u.id} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 cursor-pointer text-sm">
+              <Checkbox
+                checked={unidadeIds.has(u.id)}
+                onCheckedChange={(checked) => {
+                  const next = new Set(unidadeIds);
+                  if (checked) next.add(u.id); else next.delete(u.id);
+                  onUnidadesChange(next);
+                }}
+              />
+              {u.nome} ({u.sigla})
+            </label>
+          ))}
+        </div>
+        <p className="text-[10px] text-muted-foreground">O coordenador verá apenas os dados das unidades selecionadas.</p>
       </div>
     );
     return null;
@@ -333,9 +397,8 @@ export default function AdminUsuarios() {
                 </select>
               </div>
             </div>
-            <RoleAssignment role={form.role} diretoriaId={form.diretoria_id} unidadeId={form.unidade_id}
-              onDiretoriaChange={v => setForm(f => ({ ...f, diretoria_id: v }))}
-              onUnidadeChange={v => setForm(f => ({ ...f, unidade_id: v }))} />
+            <MultiPastaSelector role={form.role} diretoriaIds={formDiretoriaIds} unidadeIds={formUnidadeIds}
+              onDiretoriasChange={setFormDiretoriaIds} onUnidadesChange={setFormUnidadeIds} />
             <div className="flex items-center gap-2">
               <button onClick={createUser} disabled={creating}
                 className="flex items-center gap-2 h-9 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
@@ -371,9 +434,8 @@ export default function AdminUsuarios() {
                     <option value="admin">Administrador</option>
                   </select>
                 </div>
-                <RoleAssignment role={editForm.role} diretoriaId={editForm.diretoria_id} unidadeId={editForm.unidade_id}
-                  onDiretoriaChange={v => setEditForm(f => ({ ...f, diretoria_id: v }))}
-                  onUnidadeChange={v => setEditForm(f => ({ ...f, unidade_id: v }))} />
+                <MultiPastaSelector role={editForm.role} diretoriaIds={editDiretoriaIds} unidadeIds={editUnidadeIds}
+                  onDiretoriasChange={setEditDiretoriaIds} onUnidadesChange={setEditUnidadeIds} />
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-muted-foreground">Nova Senha (deixe vazio para manter)</label>
                   <input type="text" value={editForm.password} onChange={e => setEditForm(f => ({ ...f, password: e.target.value }))} placeholder="Mínimo 6 caracteres"
@@ -404,7 +466,7 @@ export default function AdminUsuarios() {
           {profiles.map(p => {
             const userRoles = getRoles(p.id);
             const online = isOnline(p.last_seen_at);
-            const locationLabel = getLocationLabel(p, userRoles);
+            const locationLabels = getLocationLabels(p.id, userRoles);
             return (
               <div key={p.id} className="rounded-xl border border-border bg-card p-4 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3 min-w-0">
@@ -417,12 +479,16 @@ export default function AdminUsuarios() {
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{p.nome || p.email}</p>
                     <p className="text-xs text-muted-foreground">{p.email}</p>
-                    {locationLabel && (
-                      <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                        <MapPin className="h-2.5 w-2.5" /> {locationLabel}
-                      </p>
+                    {locationLabels.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-0.5">
+                        {locationLabels.map((label, i) => (
+                          <span key={i} className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                            <MapPin className="h-2.5 w-2.5" /> {label}
+                          </span>
+                        ))}
+                      </div>
                     )}
-                    {!locationLabel && userRoles.some(r => r !== "admin") && (
+                    {locationLabels.length === 0 && userRoles.some(r => r !== "admin") && (
                       <p className="text-[10px] text-amber-500 mt-0.5">⚠ Sem pasta vinculada</p>
                     )}
                   </div>
