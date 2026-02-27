@@ -17,6 +17,7 @@ interface DashboardHeaderProps {
 export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, diretorias = [], servidores = [] }: DashboardHeaderProps) {
   const { hasFullAccess, user, isAdmin, isDiretor, isCoordenador, servidorId, diretoriaIds } = useAuthSession();
   const [pendingCount, setPendingCount] = useState(0);
+  const [pendingRegistrations, setPendingRegistrations] = useState(0);
   const [onlineCount, setOnlineCount] = useState(0);
   const [showTransferencias, setShowTransferencias] = useState(false);
 
