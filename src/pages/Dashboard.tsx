@@ -421,6 +421,13 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                   const diretor = servidores.find(s => s.diretoria_id === dir.id && s.is_diretor);
                   const criticas = ds.filter(s => s.funcao_critica && s.status_presenca !== "presente");
                   
+                  // Faltas abonadas risk for this diretoria
+                  const faltasRisco = ds.filter(s => (faltasCountByServidor[s.id] || 0) >= 4);
+                  const faltasLimite = ds.filter(s => (faltasCountByServidor[s.id] || 0) >= 5);
+
+                  // Férias: servidores com férias vencidas
+                  const feriasVencidas = ds.filter(s => (s.ferias_vencidas || 0) > 0);
+
                   // Find coordinators for units in this diretoria
                   const dirUnidadeIds = du.map(u => u.id);
                   const coordServidorIds = [...new Set(
