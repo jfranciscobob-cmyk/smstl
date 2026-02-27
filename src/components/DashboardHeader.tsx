@@ -46,15 +46,29 @@ export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, direto
     loadOnline();
     const onlineInterval = setInterval(loadOnline, 30_000);
 
+    // Load pending registration requests
+    const loadRegistrations = async () => {
+      if (!isAdmin) return;
+      const { count } = await supabase
+        .from("registration_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pendente");
+      setPendingRegistrations(count ?? 0);
+    };
+    loadRegistrations();
+
     const channel = supabase
       .channel("transferencias-badge")
       .on("postgres_changes", { event: "*", schema: "public", table: "transferencias" }, () => {
         loadCount();
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "registration_requests" }, () => {
+        loadRegistrations();
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); clearInterval(onlineInterval); };
-  }, []);
+  }, [isAdmin]);
 
   return (
     <>
