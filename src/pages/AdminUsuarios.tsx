@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Loader2, UserPlus, Shield, Building2, Users, Pencil, Key, X, Check, XCircle, Clock, Circle, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, UserPlus, Shield, Building2, Users, Pencil, Key, X, Check, XCircle, Clock, Circle, Trash2, LinkIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface ProfileRow {
@@ -31,10 +31,24 @@ interface RegistrationRequest {
   motivo_rejeicao: string | null;
 }
 
+interface ServidorOption {
+  id: string;
+  nome: string;
+  diretoria_id: string | null;
+  unidade_id: string | null;
+  is_diretor: boolean;
+  is_coordenador: boolean;
+}
+
+interface DiretoriaOption {
+  id: string;
+  nome: string;
+}
+
 function isOnline(lastSeen: string | null): boolean {
   if (!lastSeen) return false;
   const diff = Date.now() - new Date(lastSeen).getTime();
-  return diff < 2 * 60 * 1000; // 2 minutes
+  return diff < 2 * 60 * 1000;
 }
 
 export default function AdminUsuarios() {
@@ -42,16 +56,18 @@ export default function AdminUsuarios() {
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [roles, setRoles] = useState<RoleRow[]>([]);
   const [requests, setRequests] = useState<RegistrationRequest[]>([]);
+  const [servidores, setServidores] = useState<ServidorOption[]>([]);
+  const [diretorias, setDiretorias] = useState<DiretoriaOption[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Create user form
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ email: "", password: "", nome: "", role: "coordenador" as string });
+  const [form, setForm] = useState({ email: "", password: "", nome: "", role: "coordenador" as string, servidor_id: "" });
   const [creating, setCreating] = useState(false);
 
   // Edit user
   const [editUser, setEditUser] = useState<ProfileRow | null>(null);
-  const [editForm, setEditForm] = useState({ nome: "", role: "", password: "", acesso_financeiro: false });
+  const [editForm, setEditForm] = useState({ nome: "", role: "", password: "", acesso_financeiro: false, servidor_id: "" });
   const [saving, setSaving] = useState(false);
 
   // Delete user
@@ -61,20 +77,36 @@ export default function AdminUsuarios() {
   const [processing, setProcessing] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
-    const [p, r, req] = await Promise.all([
+    const [p, r, req, srv, dir] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("user_roles").select("*"),
       supabase.from("registration_requests").select("*").order("created_at", { ascending: false }),
+      supabase.from("servidores").select("id, nome, diretoria_id, unidade_id, is_diretor, is_coordenador").order("nome"),
+      supabase.from("diretorias").select("id, nome").order("nome"),
     ]);
     setProfiles((p.data ?? []) as ProfileRow[]);
     setRoles((r.data ?? []) as RoleRow[]);
     setRequests((req.data ?? []) as RegistrationRequest[]);
+    setServidores((srv.data ?? []) as ServidorOption[]);
+    setDiretorias((dir.data ?? []) as DiretoriaOption[]);
     setLoading(false);
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
 
   const getRoles = (userId: string) => roles.filter(r => r.user_id === userId).map(r => r.role);
+
+  const getServidorNome = (servidorId: string | null) => {
+    if (!servidorId) return null;
+    return servidores.find(s => s.id === servidorId)?.nome ?? null;
+  };
+
+  const getDiretoriaNome = (servidorId: string | null) => {
+    if (!servidorId) return null;
+    const srv = servidores.find(s => s.id === servidorId);
+    if (!srv?.diretoria_id) return null;
+    return diretorias.find(d => d.id === srv.diretoria_id)?.nome ?? null;
+  };
 
   const roleLabel: Record<string, string> = {
     admin: "Administrador",
@@ -96,7 +128,7 @@ export default function AdminUsuarios() {
     setCreating(true);
 
     const { data, error } = await supabase.functions.invoke("create-user", {
-      body: { email: form.email, password: form.password, nome: form.nome, role: form.role },
+      body: { email: form.email, password: form.password, nome: form.nome, role: form.role, servidor_id: form.servidor_id || undefined },
     });
 
     if (error || !data?.success) {
@@ -107,7 +139,7 @@ export default function AdminUsuarios() {
 
     toast({ title: "Usuário criado com sucesso!" });
     setShowForm(false);
-    setForm({ email: "", password: "", nome: "", role: "coordenador" });
+    setForm({ email: "", password: "", nome: "", role: "coordenador", servidor_id: "" });
     setCreating(false);
     loadData();
   };
@@ -120,6 +152,7 @@ export default function AdminUsuarios() {
       role: userRoles[0] || "coordenador",
       password: "",
       acesso_financeiro: profile.acesso_financeiro ?? false,
+      servidor_id: profile.servidor_id || "",
     });
   };
 
@@ -131,6 +164,7 @@ export default function AdminUsuarios() {
     }
     setSaving(true);
 
+    // Update user via edge function
     const { data, error } = await supabase.functions.invoke("update-user", {
       body: {
         user_id: editUser.id,
@@ -145,6 +179,11 @@ export default function AdminUsuarios() {
       toast({ title: "Erro ao salvar", description: data?.error || error?.message, variant: "destructive" });
       setSaving(false);
       return;
+    }
+
+    // Update servidor_id link separately
+    if (editForm.servidor_id !== (editUser.servidor_id || "")) {
+      await supabase.from("profiles").update({ servidor_id: editForm.servidor_id || null }).eq("id", editUser.id);
     }
 
     toast({ title: "Usuário atualizado com sucesso!" });
@@ -190,8 +229,40 @@ export default function AdminUsuarios() {
     loadData();
   };
 
+  // Filter servidores based on selected role
+  const filteredServidores = useMemo(() => {
+    return servidores; // show all servidores, admin can pick any
+  }, [servidores]);
+
   const pendingRequests = requests.filter(r => r.status === "pendente");
   const onlineCount = profiles.filter(p => isOnline(p.last_seen_at)).length;
+
+  const ServidorSelector = ({ value, onChange, label }: { value: string; onChange: (v: string) => void; label?: string }) => (
+    <div className="space-y-1">
+      <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+        <LinkIcon className="h-3 w-3" />
+        {label || "Vincular a Servidor"}
+      </label>
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="w-full h-9 rounded-lg border border-input bg-card px-3 text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+      >
+        <option value="">— Sem vínculo —</option>
+        {filteredServidores.map(s => {
+          const dir = s.diretoria_id ? diretorias.find(d => d.id === s.diretoria_id)?.nome : null;
+          return (
+            <option key={s.id} value={s.id}>
+              {s.nome}{dir ? ` (${dir})` : ""}
+            </option>
+          );
+        })}
+      </select>
+      <p className="text-[10px] text-muted-foreground">
+        Vincula o usuário ao servidor correspondente, determinando a diretoria/unidade que ele poderá visualizar.
+      </p>
+    </div>
+  );
 
   if (loading) {
     return <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
@@ -327,6 +398,12 @@ export default function AdminUsuarios() {
                 </select>
               </div>
             </div>
+            {form.role !== "admin" && (
+              <ServidorSelector
+                value={form.servidor_id}
+                onChange={v => setForm(f => ({ ...f, servidor_id: v }))}
+              />
+            )}
             <div className="flex items-center gap-2">
               <button
                 onClick={createUser}
@@ -346,7 +423,7 @@ export default function AdminUsuarios() {
         {/* Edit user modal */}
         {editUser && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 space-y-4 shadow-lg">
+            <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 space-y-4 shadow-lg max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-bold text-foreground">Editar Usuário</h2>
                 <button onClick={() => setEditUser(null)} className="text-muted-foreground hover:text-foreground">
@@ -375,6 +452,13 @@ export default function AdminUsuarios() {
                     <option value="admin">Administrador</option>
                   </select>
                 </div>
+                {editForm.role !== "admin" && (
+                  <ServidorSelector
+                    value={editForm.servidor_id}
+                    onChange={v => setEditForm(f => ({ ...f, servidor_id: v }))}
+                    label="Vincular a Servidor"
+                  />
+                )}
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-muted-foreground">Nova Senha (deixe vazio para manter)</label>
                   <input
@@ -420,6 +504,8 @@ export default function AdminUsuarios() {
           {profiles.map(p => {
             const userRoles = getRoles(p.id);
             const online = isOnline(p.last_seen_at);
+            const servidorNome = getServidorNome(p.servidor_id);
+            const diretoriaNome = getDiretoriaNome(p.servidor_id);
             return (
               <div key={p.id} className="rounded-xl border border-border bg-card p-4 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3 min-w-0">
@@ -432,6 +518,16 @@ export default function AdminUsuarios() {
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{p.nome || p.email}</p>
                     <p className="text-xs text-muted-foreground">{p.email}</p>
+                    {servidorNome && (
+                      <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                        <LinkIcon className="h-2.5 w-2.5" />
+                        {servidorNome}
+                        {diretoriaNome && <span className="text-muted-foreground/60">• {diretoriaNome}</span>}
+                      </p>
+                    )}
+                    {!p.servidor_id && userRoles.some(r => r !== "admin") && (
+                      <p className="text-[10px] text-amber-500 mt-0.5">⚠ Sem vínculo a servidor</p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
