@@ -460,7 +460,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
                 <p className="text-[9px] font-semibold text-info/70 uppercase tracking-wider">Contratados</p>
               </Link>
               <Link to="/monitor" className="rounded-xl border border-border bg-card p-3 text-center transition-all hover:shadow-md hover:-translate-y-0.5">
-                <p className="text-lg font-extrabold font-mono text-foreground">{unidades.length}</p>
+                <p className="text-lg font-extrabold font-mono text-foreground">{filteredUnidades.length}</p>
                 <p className="text-[9px] font-semibold text-muted-foreground/70 uppercase tracking-wider">Unidades</p>
               </Link>
               <Link to="/estrutura" className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-center transition-all hover:shadow-md hover:-translate-y-0.5" title={`${alocados} alocados em diretorias / ${stats.total - alocados} sem diretoria`}>
