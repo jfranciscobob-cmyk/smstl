@@ -47,6 +47,7 @@ export function SetorList({
   onBulkAssignServidor,
   onSetResponsavel,
   onKeepInBothSetores,
+  onBulkKeepInBothSetores,
   contextServidores,
   servidoresSetores = [],
 }: SetorListProps) {
