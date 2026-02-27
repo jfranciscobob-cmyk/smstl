@@ -310,7 +310,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
   }, [filteredServidores]);
 
   const coberturaGeral = stats.total > 0 ? Math.round((stats.presentes / stats.total) * 100) : 0;
-  const alocados = servidores.filter(s => s.diretoria_id).length;
+  const alocados = filteredServidores.filter(s => s.diretoria_id).length;
   const pctAlocados = stats.total > 0 ? Math.round((alocados / stats.total) * 100) : 0;
 
   // Faltas abonadas risk per servidor
