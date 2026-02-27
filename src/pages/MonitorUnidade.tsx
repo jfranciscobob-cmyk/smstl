@@ -572,6 +572,19 @@ function MonitorContent() {
               <span className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-primary text-primary-foreground">
                 {currentUnidade.sigla} — {currentUnidade.nome}
               </span>
+              {(() => {
+                const uCoordIds = [...new Set(coordUniData.filter(cu => cu.unidade_id === currentUnidade.id).map(cu => cu.servidor_id))];
+                const uCoords = uCoordIds.map(id => servidores.find(s => s.id === id)).filter(Boolean) as ServidorDB[];
+                return uCoords.length > 0 ? (
+                  <div className="flex flex-wrap gap-1 ml-1">
+                    {uCoords.map(c => (
+                      <span key={c.id} className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[9px] font-medium bg-accent text-accent-foreground">
+                        👤 {c.nome.split(" ").slice(0, 2).join(" ")}
+                      </span>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
             </>
           )}
         </div>
