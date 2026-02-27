@@ -29,6 +29,8 @@ export function EditServidorModal({
 }: EditServidorModalProps) {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
+  const [extraUnidadeIds, setExtraUnidadeIds] = useState<string[]>([]);
+  const [loadingExtras, setLoadingExtras] = useState(false);
 
   const [form, setForm] = useState({
     nome: "",
