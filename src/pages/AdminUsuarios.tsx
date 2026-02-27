@@ -54,6 +54,9 @@ export default function AdminUsuarios() {
   const [editForm, setEditForm] = useState({ nome: "", role: "", password: "", acesso_financeiro: false });
   const [saving, setSaving] = useState(false);
 
+  // Delete user
+  const [deleting, setDeleting] = useState<string | null>(null);
+
   // Approval
   const [processing, setProcessing] = useState<string | null>(null);
 
