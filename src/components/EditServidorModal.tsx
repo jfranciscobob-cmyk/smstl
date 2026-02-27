@@ -205,7 +205,38 @@ export function EditServidorModal({
         </DialogHeader>
 
         <div className="space-y-5 pt-2">
-          {/* Informações Básicas */}
+          {/* Alerta Duplo Vínculo */}
+          {servidor?.duplo_vinculo && (
+            <Alert className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/30">
+              <Link2 className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <AlertTitle className="text-amber-700 dark:text-amber-300 font-bold">
+                ⚡ Duplo Vínculo Identificado
+              </AlertTitle>
+              <AlertDescription className="text-amber-700/80 dark:text-amber-300/80 space-y-1 mt-1">
+                <p className="font-semibold">Vínculo 1: <span className="font-normal">{servidor.vinculo || "Não informado"}</span></p>
+                <p className="text-xs">
+                  Pasta: {diretorias.find(d => d.id === servidor.diretoria_id)?.nome || "Sem diretoria"} 
+                  {servidor.unidade_id && ` → ${unidades.find(u => u.id === servidor.unidade_id)?.nome || ""}`}
+                </p>
+                {(servidor as any).vinculo2 && (
+                  <>
+                    <p className="font-semibold mt-2">Vínculo 2: <span className="font-normal">{(servidor as any).vinculo2}</span></p>
+                    {extraUnidadeIds.length > 0 ? (
+                      <p className="text-xs">
+                        Unidades adicionais: {extraUnidadeIds.map(uid => {
+                          const u = unidades.find(u => u.id === uid);
+                          const d = u ? diretorias.find(d => d.id === u.diretoria_id) : null;
+                          return u ? `${d?.nome || "?"} → ${u.nome}` : uid;
+                        }).join("; ")}
+                      </p>
+                    ) : (
+                      <p className="text-xs italic">Nenhuma unidade adicional vinculada ao segundo vínculo.</p>
+                    )}
+                  </>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
           <section>
             <h3 className="text-sm font-semibold text-foreground mb-3 border-b border-border pb-1">
               Informações Básicas
