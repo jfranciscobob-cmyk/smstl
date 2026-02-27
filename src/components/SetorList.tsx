@@ -109,7 +109,7 @@ export function SetorList({
     };
   };
 
-  const availableForAssign = contextServidores.filter(s => !s.setor_id || assigningSetorId === null);
+  const availableForAssign = contextServidores;
   const filteredAssign = assignSearch.length >= 2
     ? availableForAssign.filter(s => s.nome.toLowerCase().includes(assignSearch.toLowerCase()) || s.matricula.includes(assignSearch)).slice(0, 30)
     : availableForAssign.slice(0, 30);
