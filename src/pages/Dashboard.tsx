@@ -302,12 +302,12 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
   const contratosVencendo = useMemo(() => {
     const now = new Date();
     const in30 = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-    return servidores.filter(s => {
+    return filteredServidores.filter(s => {
       if (!s.data_encerramento_contrato) return false;
       const d = new Date(s.data_encerramento_contrato);
       return d >= now && d <= in30;
     });
-  }, [servidores]);
+  }, [filteredServidores]);
 
   const coberturaGeral = stats.total > 0 ? Math.round((stats.presentes / stats.total) * 100) : 0;
   const alocados = servidores.filter(s => s.diretoria_id).length;
