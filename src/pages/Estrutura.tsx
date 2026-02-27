@@ -1061,8 +1061,115 @@ function EstruturaContent() {
                       );
                     })()}
 
-                    {isExpanded && (
+                    {isExpanded && (() => {
+                      const dirServidoresDiretos = servidores.filter(s => s.diretoria_id === dir.id && !s.unidade_id);
+                      return (
                       <div className="px-5 pb-4 space-y-3 pt-3">
+                        {/* Servidores diretamente na diretoria (sem unidade) */}
+                        <div className="border border-border/50 rounded-lg overflow-hidden bg-muted/10">
+                          <div className="flex items-center justify-between px-4 py-2.5">
+                            <div className="flex items-center gap-2">
+                              <Users className="h-4 w-4 text-primary" />
+                              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                Servidores da Diretoria ({dirServidoresDiretos.length})
+                              </span>
+                              <span className="text-[10px] text-muted-foreground">(sem unidade específica)</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => setCreateServidorTarget({ diretoria_id: dir.id })}
+                                className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80 transition-colors"
+                              >
+                                <UserPlus className="h-3.5 w-3.5" /> Novo
+                              </button>
+                              <button
+                                onClick={() => setAssigningTo({ type: "unidade" as any, id: `dir-${dir.id}`, diretoria_id: dir.id })}
+                                className="flex items-center gap-1 text-xs text-primary font-medium hover:text-primary/80 transition-colors"
+                              >
+                                <Users className="h-3.5 w-3.5" /> Vincular
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Assign directly to diretoria */}
+                          {assigningTo?.id === `dir-${dir.id}` && (
+                            <div className="px-4 py-3 border-t border-border/30 space-y-2">
+                              <input
+                                autoFocus
+                                value={assignSearch}
+                                onChange={e => setAssignSearch(e.target.value)}
+                                placeholder="Buscar servidor por nome ou matrícula..."
+                                className="w-full h-8 rounded border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+                              />
+                              <div className="max-h-48 overflow-y-auto bg-card rounded border border-border shadow-md">
+                                {filteredAssignResults.map(s => {
+                                  const isAllocated = !!(s.unidade_id || s.diretoria_id);
+                                  return (
+                                    <label
+                                      key={s.id}
+                                      className={`flex items-center gap-2 w-full px-2 py-1.5 text-xs hover:bg-primary/10 text-foreground cursor-pointer ${isAllocated ? 'bg-amber-50 dark:bg-amber-950/20' : ''}`}
+                                    >
+                                      <Checkbox
+                                        checked={assignSelectedIds.has(s.id)}
+                                        onCheckedChange={() => {
+                                          setAssignSelectedIds(prev => {
+                                            const next = new Set(prev);
+                                            if (next.has(s.id)) next.delete(s.id); else next.add(s.id);
+                                            return next;
+                                          });
+                                        }}
+                                      />
+                                      <span className="font-medium">{s.nome}</span>
+                                      <span className="text-muted-foreground">({s.matricula})</span>
+                                      <ServidorConflictBadge servidor={s} diretorias={allDiretorias} unidades={allUnidades} setores={setores} servidoresSetores={servidoresSetores} />
+                                    </label>
+                                  );
+                                })}
+                                {filteredAssignResults.length === 0 && (
+                                  <p className="text-xs text-muted-foreground py-1 px-2">Nenhum servidor encontrado</p>
+                                )}
+                              </div>
+                              {(() => {
+                                const allocatedCount = Array.from(assignSelectedIds).filter(id => {
+                                  const s = servidores.find(srv => srv.id === id);
+                                  return s && (s.unidade_id || s.diretoria_id);
+                                }).length;
+                                return <ServidorAlreadyAllocatedWarning count={allocatedCount} />;
+                              })()}
+                              <div className="flex items-center gap-2">
+                                {assignSelectedIds.size > 0 && (
+                                  <button
+                                    onClick={async () => {
+                                      const ids = Array.from(assignSelectedIds);
+                                      const { error } = await supabase.from("servidores").update({ diretoria_id: dir.id, unidade_id: null, coordenacao_id: null }).in("id", ids);
+                                      if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+                                      toast({ title: `${ids.length} servidor(es) vinculado(s) à diretoria!` });
+                                      setAssigningTo(null);
+                                      setAssignSearch("");
+                                      setAssignSelectedIds(new Set());
+                                      loadData();
+                                    }}
+                                    className="flex items-center gap-1 h-7 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
+                                  >
+                                    <Check className="h-3 w-3" /> Vincular {assignSelectedIds.size} servidor(es)
+                                  </button>
+                                )}
+                                <button onClick={() => { setAssigningTo(null); setAssignSearch(""); setAssignSelectedIds(new Set()); }} className="text-xs text-muted-foreground hover:text-foreground">Cancelar</button>
+                              </div>
+                            </div>
+                          )}
+
+                          {dirServidoresDiretos.length > 0 && (
+                            <div className="border-t border-border/30">
+                              <UnidadeServidores
+                                servidores={dirServidoresDiretos}
+                                onEditServidor={setEditingServidor}
+                                defaultExpanded={dirServidoresDiretos.length <= 30}
+                              />
+                            </div>
+                          )}
+                        </div>
+
                         {/* Add Unidade */}
                         {newUnidade?.diretoria_id === dir.id ? (
                           <div className="flex gap-2 items-center bg-muted/30 rounded-lg p-3">
