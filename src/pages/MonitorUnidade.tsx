@@ -440,6 +440,10 @@ function MonitorContent() {
   }, [servidores, selectedDiretoriaId, selectedUnidadeId, allocSearch]);
 
 
+  // Servidores sem escala ou férias
+  const semEscala = useMemo(() => filteredServidores.filter(s => !s.escala_inicio1 && !s.escala_total_horas), [filteredServidores]);
+  const semFerias = useMemo(() => filteredServidores.filter(s => !s.ferias_ano_referencia && !s.ferias_periodo1_inicio), [filteredServidores]);
+
   const contractAlerts = useMemo(() => {
     return filteredServidores.filter(s => {
       if (!s.vinculo?.includes("CONTRATO") && !s.vinculo?.includes("TEMPORARIO")) return false;
@@ -727,6 +731,44 @@ function MonitorContent() {
               <PayrollCard servs={filteredServidores} label="Folha Diretoria" />
             </div>
 
+            {/* Alertas de pendências */}
+            {(semEscala.length > 0 || semFerias.length > 0) && (
+              <div className="space-y-3">
+                {semEscala.length > 0 && (
+                  <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                        Escala não cadastrada — {semEscala.length} servidor{semEscala.length > 1 ? "es" : ""}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {semEscala.slice(0, 15).map(s => (
+                        <span key={s.id} className="text-[11px] bg-amber-500/15 text-amber-800 dark:text-amber-200 rounded-md px-2 py-0.5">{s.nome}</span>
+                      ))}
+                      {semEscala.length > 15 && <span className="text-[10px] text-amber-600/60 self-center">+{semEscala.length - 15} mais</span>}
+                    </div>
+                  </div>
+                )}
+                {semFerias.length > 0 && (
+                  <div className="rounded-xl border border-orange-500/40 bg-orange-500/10 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300">
+                        Férias não atualizadas — {semFerias.length} servidor{semFerias.length > 1 ? "es" : ""}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {semFerias.slice(0, 15).map(s => (
+                        <span key={s.id} className="text-[11px] bg-orange-500/15 text-orange-800 dark:text-orange-200 rounded-md px-2 py-0.5">{s.nome}</span>
+                      ))}
+                      {semFerias.length > 15 && <span className="text-[10px] text-orange-600/60 self-center">+{semFerias.length - 15} mais</span>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Units in this diretoria */}
             <div className="space-y-3">
               <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
@@ -826,6 +868,44 @@ function MonitorContent() {
               </div>
               <PayrollCard servs={filteredServidores} label="Folha Unidade" />
             </div>
+
+            {/* Alertas de pendências - Unidade */}
+            {(semEscala.length > 0 || semFerias.length > 0) && (
+              <div className="space-y-3">
+                {semEscala.length > 0 && (
+                  <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                        Escala não cadastrada — {semEscala.length} servidor{semEscala.length > 1 ? "es" : ""}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {semEscala.slice(0, 15).map(s => (
+                        <span key={s.id} className="text-[11px] bg-amber-500/15 text-amber-800 dark:text-amber-200 rounded-md px-2 py-0.5">{s.nome}</span>
+                      ))}
+                      {semEscala.length > 15 && <span className="text-[10px] text-amber-600/60 self-center">+{semEscala.length - 15} mais</span>}
+                    </div>
+                  </div>
+                )}
+                {semFerias.length > 0 && (
+                  <div className="rounded-xl border border-orange-500/40 bg-orange-500/10 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300">
+                        Férias não atualizadas — {semFerias.length} servidor{semFerias.length > 1 ? "es" : ""}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {semFerias.slice(0, 15).map(s => (
+                        <span key={s.id} className="text-[11px] bg-orange-500/15 text-orange-800 dark:text-orange-200 rounded-md px-2 py-0.5">{s.nome}</span>
+                      ))}
+                      {semFerias.length > 15 && <span className="text-[10px] text-orange-600/60 self-center">+{semFerias.length - 15} mais</span>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Alocar Servidores em Massa - Unidade */}
             <div className="rounded-xl border border-border bg-card p-5">
