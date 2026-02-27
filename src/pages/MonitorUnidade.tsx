@@ -445,7 +445,7 @@ function MonitorContent() {
 
 
   // Servidores sem escala ou férias
-  const semEscala = useMemo(() => filteredServidores.filter(s => !s.escala_inicio1 || !s.escala_total_horas), [filteredServidores]);
+  const semEscala = useMemo(() => filteredServidores.filter(s => !s.escala_total_horas || s.escala_total_horas <= 0), [filteredServidores]);
   const semFerias = useMemo(() => filteredServidores.filter(s => !s.ferias_ano_referencia && !s.ferias_periodo1_inicio), [filteredServidores]);
 
   const contractAlerts = useMemo(() => {
