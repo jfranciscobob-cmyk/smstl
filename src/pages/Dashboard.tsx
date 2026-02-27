@@ -132,6 +132,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
   const [coordenacoes, setCoordenacoes] = useState<CoordenacaoDB[]>([]);
   const [coordUnidades, setCoordUnidades] = useState<{ id: string; servidor_id: string; unidade_id: string }[]>([]);
+  const [faltasAbonadas, setFaltasAbonadas] = useState<{ servidor_id: string; data: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [editingServidor, setEditingServidor] = useState<ServidorDB | null>(null);
@@ -162,12 +163,13 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
     };
 
     try {
-      const [allServidores, diretoriasRes, unidadesRes, coordenacoesRes, coordUnidadesRes] = await Promise.all([
+      const [allServidores, diretoriasRes, unidadesRes, coordenacoesRes, coordUnidadesRes, faltasRes] = await Promise.all([
         fetchAllServidores(),
         supabase.from("diretorias").select("*").order("nome"),
         supabase.from("unidades").select("*").order("nome"),
         supabase.from("coordenacoes").select("*").order("nome"),
         supabase.from("coordenadores_unidades").select("*"),
+        supabase.from("faltas_abonadas").select("servidor_id, data"),
       ]);
 
       if (diretoriasRes.error || unidadesRes.error || coordenacoesRes.error) {
@@ -179,6 +181,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
       setUnidades((unidadesRes.data ?? []) as UnidadeDB[]);
       setCoordenacoes((coordenacoesRes.data ?? []) as CoordenacaoDB[]);
       setCoordUnidades(coordUnidadesRes.data ?? []);
+      setFaltasAbonadas((faltasRes.data ?? []) as { servidor_id: string; data: string }[]);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : "Erro ao carregar dados");
     } finally {
@@ -233,6 +236,32 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
   const coberturaGeral = stats.total > 0 ? Math.round((stats.presentes / stats.total) * 100) : 0;
   const alocados = servidores.filter(s => s.diretoria_id).length;
   const pctAlocados = stats.total > 0 ? Math.round((alocados / stats.total) * 100) : 0;
+
+  // Faltas abonadas risk per servidor
+  const faltasCountByServidor = useMemo(() => {
+    const now = new Date();
+    const counts: Record<string, number> = {};
+    faltasAbonadas.forEach(f => {
+      // Find the servidor to get admissao date for cycle calculation
+      const serv = servidores.find(s => s.id === f.servidor_id);
+      if (!serv) return;
+      const admissao = serv.data_admissao ? new Date(serv.data_admissao) : null;
+      let cycleStart: Date;
+      if (admissao) {
+        cycleStart = new Date(now.getFullYear(), admissao.getMonth(), admissao.getDate());
+        if (cycleStart > now) cycleStart.setFullYear(cycleStart.getFullYear() - 1);
+      } else {
+        cycleStart = new Date(now.getFullYear(), 0, 1);
+      }
+      const fData = new Date(f.data);
+      if (fData >= cycleStart && fData <= now) {
+        counts[f.servidor_id] = (counts[f.servidor_id] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [faltasAbonadas, servidores]);
+
+  // Servidores em férias agrupados por diretoria - computados nos cards abaixo
 
   const statusColors = ["hsl(152 60% 40%)", "hsl(38 92% 50%)", "hsl(0 72% 51%)", "hsl(200 10% 46%)"];
   const vinculoColors = ["hsl(174 62% 30%)", "hsl(38 92% 50%)", "hsl(210 75% 50%)", "hsl(270 50% 55%)", "hsl(200 10% 46%)"];
@@ -392,6 +421,13 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                   const diretor = servidores.find(s => s.diretoria_id === dir.id && s.is_diretor);
                   const criticas = ds.filter(s => s.funcao_critica && s.status_presenca !== "presente");
                   
+                  // Faltas abonadas risk for this diretoria
+                  const faltasRisco = ds.filter(s => (faltasCountByServidor[s.id] || 0) >= 4);
+                  const faltasLimite = ds.filter(s => (faltasCountByServidor[s.id] || 0) >= 5);
+
+                  // Férias: servidores com férias vencidas
+                  const feriasVencidas = ds.filter(s => (s.ferias_vencidas || 0) > 0);
+
                   // Find coordinators for units in this diretoria
                   const dirUnidadeIds = du.map(u => u.id);
                   const coordServidorIds = [...new Set(
@@ -468,6 +504,30 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess }: { signOut:
                           <p className="text-[8px] font-semibold text-info/70 uppercase">Contratados</p>
                         </div>
                       </div>
+
+                      {/* Risk indicators: faltas abonadas + férias vencidas */}
+                      {(faltasRisco.length > 0 || feriasVencidas.length > 0) && (
+                        <div className="space-y-1.5 mb-2">
+                          {faltasLimite.length > 0 && (
+                            <div className="flex items-center gap-1.5 rounded-md bg-destructive/10 px-2.5 py-1.5 text-[10px] font-semibold text-destructive">
+                              <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+                              {faltasLimite.length} no limite (5/5 faltas)
+                            </div>
+                          )}
+                          {faltasRisco.filter(s => (faltasCountByServidor[s.id] || 0) === 4).length > 0 && (
+                            <div className="flex items-center gap-1.5 rounded-md bg-warning/10 px-2.5 py-1.5 text-[10px] font-semibold text-warning">
+                              <Clock className="h-3 w-3 flex-shrink-0" />
+                              {faltasRisco.filter(s => (faltasCountByServidor[s.id] || 0) === 4).length} próximo(s) do limite (4/5 faltas)
+                            </div>
+                          )}
+                          {feriasVencidas.length > 0 && (
+                            <div className="flex items-center gap-1.5 rounded-md bg-warning/10 px-2.5 py-1.5 text-[10px] font-semibold text-warning">
+                              <Palmtree className="h-3 w-3 flex-shrink-0" />
+                              {feriasVencidas.length} com férias vencidas
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       {/* Footer: units + financial + alerts */}
                       <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/50">
