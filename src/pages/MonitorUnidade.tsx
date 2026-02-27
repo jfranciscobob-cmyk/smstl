@@ -445,14 +445,14 @@ function MonitorContent() {
 
 
   // Servidores sem escala ou férias
-  const hasEscalaCompleta = (s: ServidorDB) => {
+  const hasEscalaCompleta = useCallback((s: ServidorDB) => {
     const hasCargaHoraria = (s.escala_total_horas ?? 0) > 0;
     const hasTurno1 = Boolean(s.escala_inicio1 && s.escala_fim1);
     const hasTurno2 = Boolean(s.escala_inicio2 && s.escala_fim2);
     return hasCargaHoraria && (hasTurno1 || hasTurno2);
-  };
+  }, []);
 
-  const semEscala = useMemo(() => filteredServidores.filter(s => !hasEscalaCompleta(s)), [filteredServidores]);
+  const semEscala = useMemo(() => filteredServidores.filter(s => !hasEscalaCompleta(s)), [filteredServidores, hasEscalaCompleta]);
   const semFerias = useMemo(() => filteredServidores.filter(s => !s.ferias_ano_referencia && !s.ferias_periodo1_inicio), [filteredServidores]);
 
   const contractAlerts = useMemo(() => {
