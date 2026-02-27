@@ -238,6 +238,13 @@ function EstruturaContent() {
     loadData();
   };
 
+  const keepInBothSetores = async (servidorId: string, newSetorId: string) => {
+    const { error } = await supabase.from("servidores_setores").insert({ servidor_id: servidorId, setor_id: newSetorId });
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Servidor mantido em ambos os setores!" });
+    loadData();
+  };
+
   const setResponsavelSetor = async (setorId: string, servidorId: string) => {
     const { error } = await supabase.from("setores").update({ responsavel_id: servidorId }).eq("id", setorId);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
