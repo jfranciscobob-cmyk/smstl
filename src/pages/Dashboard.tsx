@@ -417,7 +417,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
                         <p className="text-[9px] sm:text-[10px] text-primary-foreground/50 font-medium">Alocados</p>
                       </Link>
                       <Link to="/monitor" className="text-center hover:opacity-80 transition-opacity hidden sm:block">
-                        <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold font-mono">{diretorias.length}</p>
+                        <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold font-mono">{filteredDiretorias.length}</p>
                         <p className="text-[9px] sm:text-[10px] text-primary-foreground/50 font-medium">Diretorias</p>
                       </Link>
                       {hasFinancialAccess && (
