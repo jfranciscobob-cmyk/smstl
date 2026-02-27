@@ -1598,7 +1598,8 @@ function EstruturaContent() {
                           );
                         })}
                       </div>
-                    )}
+                      );
+                    })()}
                   </div>
                 );
               })}
