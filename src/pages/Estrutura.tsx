@@ -18,10 +18,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 function EstruturaContent() {
   const { toast } = useToast();
-  const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
-  const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
+  const { isAdmin, isDiretor, isCoordenador, diretoriaIds: userDirIds, unidadeIds: userUniIds, loading: authLoading } = useAuthSession();
+  const [allDiretorias, setAllDiretorias] = useState<DiretoriaDB[]>([]);
+  const [allUnidades, setAllUnidades] = useState<UnidadeDB[]>([]);
   const [coordenacoes, setCoordenacoes] = useState<CoordenacaoDB[]>([]);
-  const [servidores, setServidores] = useState<ServidorDB[]>([]);
+  const [allServidores, setAllServidores] = useState<ServidorDB[]>([]);
   const [setores, setSetores] = useState<SetorDB[]>([]);
   const [funcoes, setFuncoes] = useState<FuncaoDB[]>([]);
   const [coordenadoresUnidades, setCoordenadoresUnidades] = useState<CoordenadorUnidadeDB[]>([]);
