@@ -164,13 +164,14 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
     };
 
     try {
-      const [allServidores, diretoriasRes, unidadesRes, coordenacoesRes, coordUnidadesRes, faltasRes] = await Promise.all([
+      const [allServidores, diretoriasRes, unidadesRes, coordenacoesRes, coordUnidadesRes, faltasRes, srvUnidadesRes] = await Promise.all([
         fetchAllServidores(),
         supabase.from("diretorias").select("*").order("nome"),
         supabase.from("unidades").select("*").order("nome"),
         supabase.from("coordenacoes").select("*").order("nome"),
         supabase.from("coordenadores_unidades").select("*"),
         supabase.from("faltas_abonadas").select("servidor_id, data"),
+        supabase.from("servidores_unidades").select("servidor_id, unidade_id"),
       ]);
 
       if (diretoriasRes.error || unidadesRes.error || coordenacoesRes.error) {
