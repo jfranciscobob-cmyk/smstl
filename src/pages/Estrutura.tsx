@@ -124,12 +124,8 @@ function EstruturaContent() {
     return [];
   }, [allUnidades, isAdmin, isDiretor, isCoordenador, userDirIds, userUniIds]);
 
-  const servidores = useMemo(() => {
-    if (isAdmin) return allServidores;
-    if (isDiretor && userDirIds.length > 0) return allServidores.filter(s => s.diretoria_id && userDirIds.includes(s.diretoria_id));
-    if (isCoordenador && userUniIds.length > 0) return allServidores.filter(s => s.unidade_id && userUniIds.includes(s.unidade_id));
-    return [];
-  }, [allServidores, isAdmin, isDiretor, isCoordenador, userDirIds, userUniIds]);
+  // Todos os servidores ficam disponíveis para alocação, independente do papel do usuário
+  const servidores = allServidores;
 
   const toggleExpand = (id: string) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
