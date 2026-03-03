@@ -141,15 +141,18 @@ function TVHeader({ title, subtitle, icon }: { title: string; subtitle?: string;
 }
 
 // ─── Mini stat card ───
-function MiniStat({ label, value, color, icon }: { label: string; value: number; color: string; icon: React.ReactNode }) {
+function MiniStat({ label, value, color, icon, delay = 0 }: { label: string; value: number; color: string; icon: React.ReactNode; delay?: number }) {
+  const animatedValue = useAnimatedCount(value);
   return (
-    <div className={`rounded-xl bg-gradient-to-br ${color} p-4 shadow-lg flex flex-col justify-between min-h-[100px]`}>
-      <div className="text-white/70">{icon}</div>
-      <div>
-        <p className="text-3xl font-extrabold text-white font-mono">{value}</p>
-        <p className="text-[10px] font-bold text-white/50 uppercase tracking-wider mt-1">{label}</p>
+    <AnimatedCard delay={delay}>
+      <div className={`rounded-xl bg-gradient-to-br ${color} p-4 shadow-lg flex flex-col justify-between min-h-[100px] hover:scale-105 transition-transform duration-300`}>
+        <div className="text-white/70">{icon}</div>
+        <div>
+          <p className="text-3xl font-extrabold text-white font-mono">{animatedValue}</p>
+          <p className="text-[10px] font-bold text-white/50 uppercase tracking-wider mt-1">{label}</p>
+        </div>
       </div>
-    </div>
+    </AnimatedCard>
   );
 }
 
