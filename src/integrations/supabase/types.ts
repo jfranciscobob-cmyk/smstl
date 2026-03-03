@@ -230,6 +230,51 @@ export type Database = {
         }
         Relationships: []
       }
+      equipes_saude: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          responsavel_id: string | null
+          tipo: string
+          unidade_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          responsavel_id?: string | null
+          tipo?: string
+          unidade_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          responsavel_id?: string | null
+          tipo?: string
+          unidade_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipes_saude_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "servidores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipes_saude_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       escalas_semanais: {
         Row: {
           created_at: string
@@ -628,6 +673,42 @@ export type Database = {
             columns: ["unidade_id"]
             isOneToOne: false
             referencedRelation: "unidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      servidores_equipes: {
+        Row: {
+          created_at: string
+          equipe_id: string
+          id: string
+          servidor_id: string
+        }
+        Insert: {
+          created_at?: string
+          equipe_id: string
+          id?: string
+          servidor_id: string
+        }
+        Update: {
+          created_at?: string
+          equipe_id?: string
+          id?: string
+          servidor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "servidores_equipes_equipe_id_fkey"
+            columns: ["equipe_id"]
+            isOneToOne: false
+            referencedRelation: "equipes_saude"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "servidores_equipes_servidor_id_fkey"
+            columns: ["servidor_id"]
+            isOneToOne: false
+            referencedRelation: "servidores"
             referencedColumns: ["id"]
           },
         ]
