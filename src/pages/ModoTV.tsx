@@ -2,10 +2,10 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB } from "@/hooks/useServidores";
 import {
-  PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
+  PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend,
 } from "recharts";
 import {
-  Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Monitor, Lock, ChevronRight, Activity,
+  Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Monitor, Lock, Activity, MapPin, Briefcase, Heart,
 } from "lucide-react";
 
 const TV_PASSWORD = "S2026";
@@ -59,84 +59,194 @@ function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
   );
 }
 
-// ─── Slide 1: Overview ───
-function SlideOverview({ servidores, diretorias }: { servidores: ServidorDB[]; diretorias: DiretoriaDB[] }) {
-  const stats = computeStats(servidores);
-  const now = new Date();
-  const hora = now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-  const data = now.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
-
-  const kpis = [
-    { label: "Total Servidores", value: stats.total, icon: <Users className="h-8 w-8" />, gradient: "from-slate-600 to-slate-700" },
-    { label: "Presentes", value: stats.presentes, icon: <CheckCircle className="h-8 w-8" />, gradient: "from-emerald-600 to-green-700" },
-    { label: "Férias", value: stats.ferias, icon: <Palmtree className="h-8 w-8" />, gradient: "from-amber-600 to-orange-700" },
-    { label: "Afastados", value: stats.afastados, icon: <AlertTriangle className="h-8 w-8" />, gradient: "from-red-600 to-rose-700" },
-    { label: "Ausentes", value: stats.ausentes, icon: <Shield className="h-8 w-8" />, gradient: "from-purple-600 to-violet-700" },
-    { label: "Funções Críticas", value: stats.funcoesCriticas, icon: <Activity className="h-8 w-8" />, gradient: "from-cyan-600 to-teal-700" },
-  ];
-
-  const presencaPct = stats.total > 0 ? Math.round((stats.presentes / stats.total) * 100) : 0;
-
+// ─── Clock component ───
+function LiveClock() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
   return (
-    <div className="h-full flex flex-col justify-between p-10">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-lg shadow-teal-500/30">
-            <Shield className="h-7 w-7 text-white" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight">Secretaria Municipal de Saúde</h1>
-            <p className="text-sm text-slate-400 mt-0.5">Painel de Monitoramento em Tempo Real</p>
-          </div>
+    <div className="text-right">
+      <p className="text-4xl font-extrabold text-teal-400 font-mono">
+        {now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+      </p>
+      <p className="text-sm text-slate-400 capitalize mt-1">
+        {now.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+      </p>
+    </div>
+  );
+}
+
+// ─── TV Header ───
+function TVHeader({ title, subtitle, icon }: { title: string; subtitle?: string; icon: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center gap-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-lg shadow-teal-500/30">
+          {icon}
         </div>
-        <div className="text-right">
-          <p className="text-4xl font-extrabold text-teal-400 font-mono">{hora}</p>
-          <p className="text-sm text-slate-400 capitalize mt-1">{data}</p>
+        <div>
+          <h1 className="text-2xl font-extrabold text-white tracking-tight">{title}</h1>
+          {subtitle && <p className="text-sm text-slate-400 mt-0.5">{subtitle}</p>}
         </div>
       </div>
+      <LiveClock />
+    </div>
+  );
+}
 
-      {/* KPIs */}
-      <div className="grid grid-cols-6 gap-5 my-8">
-        {kpis.map(kpi => (
-          <div key={kpi.label} className={`rounded-2xl bg-gradient-to-br ${kpi.gradient} p-6 shadow-xl`}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-white/80">{kpi.icon}</div>
-            </div>
-            <p className="text-4xl font-extrabold text-white font-mono">{kpi.value}</p>
-            <p className="text-xs font-semibold text-white/60 uppercase tracking-wider mt-2">{kpi.label}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Presence bar */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Taxa de Presença Geral</span>
-          <span className="text-3xl font-extrabold text-teal-400 font-mono">{presencaPct}%</span>
-        </div>
-        <div className="h-6 rounded-full bg-[#1a2744] overflow-hidden">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-teal-500 to-emerald-400 transition-all duration-1000 ease-out"
-            style={{ width: `${presencaPct}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="flex items-center justify-between pt-4 border-t border-[#1e3a5f]">
-        <div className="flex items-center gap-2">
-          <div className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-xs text-slate-500 uppercase tracking-wider">Atualização automática</span>
-        </div>
-        <span className="text-xs text-slate-600">{diretorias.length} diretorias · SMSTL</span>
+// ─── Mini stat card ───
+function MiniStat({ label, value, color, icon }: { label: string; value: number; color: string; icon: React.ReactNode }) {
+  return (
+    <div className={`rounded-xl bg-gradient-to-br ${color} p-4 shadow-lg flex flex-col justify-between min-h-[100px]`}>
+      <div className="text-white/70">{icon}</div>
+      <div>
+        <p className="text-3xl font-extrabold text-white font-mono">{value}</p>
+        <p className="text-[10px] font-bold text-white/50 uppercase tracking-wider mt-1">{label}</p>
       </div>
     </div>
   );
 }
 
-// ─── Slide 2: Gráficos de Vínculo ───
-function SlideVinculo({ servidores }: { servidores: ServidorDB[] }) {
+// ─── Progress bar ───
+function PresenceBar({ pct, label }: { pct: number; label?: string }) {
+  const barColor = pct >= 80 ? "from-emerald-500 to-green-400" : pct >= 60 ? "from-amber-500 to-yellow-400" : "from-red-500 to-rose-400";
+  return (
+    <div className="space-y-1.5">
+      {label && (
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{label}</span>
+          <span className="text-lg font-extrabold text-teal-400 font-mono">{pct}%</span>
+        </div>
+      )}
+      <div className="h-3 rounded-full bg-[#1a2744] overflow-hidden">
+        <div
+          className={`h-full rounded-full bg-gradient-to-r ${barColor} transition-all duration-1000 ease-out`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// SLIDE 1: OVERVIEW GERAL
+// ═══════════════════════════════════════════════════
+function SlideOverview({ servidores, diretorias, unidades }: { servidores: ServidorDB[]; diretorias: DiretoriaDB[]; unidades: UnidadeDB[] }) {
+  const stats = computeStats(servidores);
+  const presencaPct = stats.total > 0 ? Math.round((stats.presentes / stats.total) * 100) : 0;
+
+  const kpis = [
+    { label: "Total", value: stats.total, icon: <Users className="h-6 w-6" />, color: "from-slate-600 to-slate-700" },
+    { label: "Presentes", value: stats.presentes, icon: <CheckCircle className="h-6 w-6" />, color: "from-emerald-600 to-green-700" },
+    { label: "Férias", value: stats.ferias, icon: <Palmtree className="h-6 w-6" />, color: "from-amber-600 to-orange-700" },
+    { label: "Afastados", value: stats.afastados, icon: <AlertTriangle className="h-6 w-6" />, color: "from-red-600 to-rose-700" },
+    { label: "Ausentes", value: stats.ausentes, icon: <Shield className="h-6 w-6" />, color: "from-purple-600 to-violet-700" },
+    { label: "Funções Críticas", value: stats.funcoesCriticas, icon: <Activity className="h-6 w-6" />, color: "from-cyan-600 to-teal-700" },
+  ];
+
+  return (
+    <div className="h-full flex flex-col justify-between p-8">
+      <TVHeader title="Secretaria Municipal de Saúde" subtitle="Painel Geral de Monitoramento" icon={<Shield className="h-6 w-6 text-white" />} />
+
+      <div className="grid grid-cols-6 gap-4 my-4">
+        {kpis.map(k => <MiniStat key={k.label} {...k} />)}
+      </div>
+
+      <div className="grid grid-cols-3 gap-6 my-4">
+        <div className="col-span-2">
+          <PresenceBar pct={presencaPct} label="Taxa de Presença Geral" />
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            <div className="rounded-xl bg-[#111d33] border border-[#1e3a5f] p-4">
+              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Diretorias</p>
+              <p className="text-3xl font-extrabold text-white font-mono">{diretorias.length}</p>
+            </div>
+            <div className="rounded-xl bg-[#111d33] border border-[#1e3a5f] p-4">
+              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Unidades de Saúde</p>
+              <p className="text-3xl font-extrabold text-white font-mono">{unidades.length}</p>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-xl bg-[#111d33] border border-[#1e3a5f] p-4">
+          <p className="text-xs text-slate-500 uppercase tracking-wider mb-3">Composição</p>
+          <div className="space-y-3">
+            {[
+              { label: "Concursados", value: stats.concursados, color: "bg-teal-500" },
+              { label: "Contratados", value: stats.contratados, color: "bg-blue-500" },
+              { label: "Outros", value: stats.total - stats.concursados - stats.contratados, color: "bg-slate-500" },
+            ].map(v => (
+              <div key={v.label} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className={`h-2.5 w-2.5 rounded-full ${v.color}`} />
+                  <span className="text-sm text-slate-300">{v.label}</span>
+                </div>
+                <span className="text-sm font-bold text-white font-mono">{v.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between pt-3 border-t border-[#1e3a5f]">
+        <div className="flex items-center gap-2">
+          <div className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-xs text-slate-500 uppercase tracking-wider">Dados em tempo real</span>
+        </div>
+        <span className="text-xs text-slate-600">SMSTL · Modo TV</span>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// SLIDE 2: RANKING DIRETORIAS (bar chart)
+// ═══════════════════════════════════════════════════
+function SlideRankingDiretorias({ servidores, diretorias }: { servidores: ServidorDB[]; diretorias: DiretoriaDB[] }) {
+  const data = useMemo(() => {
+    return diretorias.map(dir => {
+      const ds = servidores.filter(s => s.diretoria_id === dir.id);
+      const presentes = ds.filter(s => s.status_presenca === "presente").length;
+      const ferias = ds.filter(s => s.status_presenca === "ferias").length;
+      const afastados = ds.filter(s => s.status_presenca === "afastado").length;
+      const ausentes = ds.length - presentes - ferias - afastados;
+      return {
+        nome: dir.nome.length > 20 ? dir.nome.substring(0, 18) + "…" : dir.nome,
+        Presentes: presentes,
+        Férias: ferias,
+        Afastados: afastados,
+        Ausentes: ausentes > 0 ? ausentes : 0,
+        total: ds.length,
+      };
+    }).filter(d => d.total > 0).sort((a, b) => b.total - a.total);
+  }, [servidores, diretorias]);
+
+  return (
+    <div className="h-full flex flex-col p-8">
+      <TVHeader title="Ranking por Diretoria" subtitle="Distribuição de servidores por status" icon={<Building2 className="h-6 w-6 text-white" />} />
+      <div className="flex-1 mt-2">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} layout="vertical" margin={{ left: 10, right: 30, top: 10, bottom: 10 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1e3a5f" horizontal={false} />
+            <XAxis type="number" tick={{ fill: "#64748b", fontSize: 12 }} axisLine={false} />
+            <YAxis type="category" dataKey="nome" width={160} tick={{ fill: "#cbd5e1", fontSize: 12 }} axisLine={false} />
+            <Tooltip contentStyle={{ background: "#111d33", border: "1px solid #1e3a5f", borderRadius: "12px", color: "#fff", fontSize: "12px" }} />
+            <Legend wrapperStyle={{ color: "#94a3b8", fontSize: "12px" }} />
+            <Bar dataKey="Presentes" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} />
+            <Bar dataKey="Férias" stackId="a" fill="#f59e0b" />
+            <Bar dataKey="Afastados" stackId="a" fill="#ef4444" />
+            <Bar dataKey="Ausentes" stackId="a" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// SLIDE 3: COMPOSIÇÃO GERAL (pie charts)
+// ═══════════════════════════════════════════════════
+function SlideComposicao({ servidores }: { servidores: ServidorDB[] }) {
   const stats = computeStats(servidores);
 
   const vinculoData = [
@@ -153,197 +263,247 @@ function SlideVinculo({ servidores }: { servidores: ServidorDB[] }) {
     { name: "Ausentes", value: stats.ausentes },
   ].filter(d => d.value > 0);
 
+  const coberturaData = [
+    { name: "Integral", value: servidores.filter(s => s.cobertura_prevista === "INTEGRAL").length },
+    { name: "Parcial", value: servidores.filter(s => s.cobertura_prevista === "PARCIAL").length },
+  ].filter(d => d.value > 0);
+
   const vinculoColors = ["#0d9488", "#3b82f6", "#8b5cf6", "#64748b"];
   const statusColors = ["#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
+  const coberturaColors = ["#06b6d4", "#f97316"];
 
-  return (
-    <div className="h-full flex flex-col p-10">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-          <Activity className="h-5 w-5 text-white" />
-        </div>
-        <h2 className="text-2xl font-extrabold text-white">Composição da Força de Trabalho</h2>
-      </div>
-
-      <div className="flex-1 grid grid-cols-2 gap-10">
-        {/* Vínculo */}
-        <div className="flex flex-col items-center">
-          <h3 className="text-lg font-bold text-slate-300 mb-4">Por Vínculo</h3>
-          <div className="flex-1 w-full">
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie data={vinculoData} cx="50%" cy="50%" innerRadius={80} outerRadius={120} paddingAngle={4} dataKey="value" stroke="none">
-                  {vinculoData.map((_, i) => <Cell key={i} fill={vinculoColors[i]} />)}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ background: "#111d33", border: "1px solid #1e3a5f", borderRadius: "12px", fontSize: "13px", color: "#fff" }}
-                  formatter={(value: number) => [`${value} servidores`, ""]}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="flex flex-wrap gap-4 mt-4 justify-center">
-            {vinculoData.map((d, i) => (
-              <div key={d.name} className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full" style={{ background: vinculoColors[i] }} />
-                <span className="text-sm text-slate-300">{d.name}</span>
-                <span className="text-sm font-bold text-white font-mono">{d.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Status */}
-        <div className="flex flex-col items-center">
-          <h3 className="text-lg font-bold text-slate-300 mb-4">Por Status de Presença</h3>
-          <div className="flex-1 w-full">
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie data={statusData} cx="50%" cy="50%" innerRadius={80} outerRadius={120} paddingAngle={4} dataKey="value" stroke="none">
-                  {statusData.map((_, i) => <Cell key={i} fill={statusColors[i]} />)}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ background: "#111d33", border: "1px solid #1e3a5f", borderRadius: "12px", fontSize: "13px", color: "#fff" }}
-                  formatter={(value: number) => [`${value} servidores`, ""]}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="flex flex-wrap gap-4 mt-4 justify-center">
-            {statusData.map((d, i) => (
-              <div key={d.name} className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full" style={{ background: statusColors[i] }} />
-                <span className="text-sm text-slate-300">{d.name}</span>
-                <span className="text-sm font-bold text-white font-mono">{d.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Slide 3: Indicadores por Diretoria ───
-function SlideDiretorias({ servidores, diretorias }: { servidores: ServidorDB[]; diretorias: DiretoriaDB[] }) {
-  const dirData = useMemo(() => {
-    return diretorias.map(dir => {
-      const dirServs = servidores.filter(s => s.diretoria_id === dir.id);
-      const presentes = dirServs.filter(s => s.status_presenca === "presente").length;
-      const ferias = dirServs.filter(s => s.status_presenca === "ferias").length;
-      const afastados = dirServs.filter(s => s.status_presenca === "afastado").length;
-      const pct = dirServs.length > 0 ? Math.round((presentes / dirServs.length) * 100) : 0;
-      return {
-        id: dir.id,
-        nome: dir.nome.length > 25 ? dir.nome.substring(0, 23) + "…" : dir.nome,
-        total: dirServs.length,
-        presentes,
-        ferias,
-        afastados,
-        pct,
-      };
-    }).filter(d => d.total > 0).sort((a, b) => b.total - a.total);
-  }, [servidores, diretorias]);
-
-  return (
-    <div className="h-full flex flex-col p-10">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-          <Building2 className="h-5 w-5 text-white" />
-        </div>
-        <h2 className="text-2xl font-extrabold text-white">Indicadores por Diretoria</h2>
-      </div>
-
-      <div className="flex-1 grid grid-cols-2 gap-4 overflow-hidden">
-        {dirData.slice(0, 8).map(dir => (
-          <div key={dir.id} className="rounded-xl bg-[#111d33] border border-[#1e3a5f] p-5 flex flex-col justify-between">
-            <div>
-              <h3 className="text-sm font-bold text-white truncate">{dir.nome}</h3>
-              <div className="flex items-baseline gap-2 mt-2">
-                <span className="text-3xl font-extrabold text-teal-400 font-mono">{dir.presentes}</span>
-                <span className="text-sm text-slate-500">/ {dir.total}</span>
-              </div>
-            </div>
-            <div className="mt-3 space-y-2">
-              <div className="h-2.5 rounded-full bg-[#1a2744] overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-teal-500 to-emerald-400 transition-all duration-700"
-                  style={{ width: `${dir.pct}%` }}
-                />
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-400">{dir.pct}% presença</span>
-                <div className="flex gap-3">
-                  {dir.ferias > 0 && <span className="text-amber-400">🌴 {dir.ferias}</span>}
-                  {dir.afastados > 0 && <span className="text-red-400">⚠️ {dir.afastados}</span>}
-                </div>
-              </div>
-            </div>
+  const renderChart = (data: { name: string; value: number }[], colors: string[], title: string) => (
+    <div className="flex flex-col items-center">
+      <h3 className="text-base font-bold text-slate-300 mb-2">{title}</h3>
+      <ResponsiveContainer width="100%" height={220}>
+        <PieChart>
+          <Pie data={data} cx="50%" cy="50%" innerRadius={60} outerRadius={95} paddingAngle={3} dataKey="value" stroke="none">
+            {data.map((_, i) => <Cell key={i} fill={colors[i % colors.length]} />)}
+          </Pie>
+          <Tooltip contentStyle={{ background: "#111d33", border: "1px solid #1e3a5f", borderRadius: "12px", fontSize: "12px", color: "#fff" }} />
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="flex flex-wrap gap-3 justify-center mt-2">
+        {data.map((d, i) => (
+          <div key={d.name} className="flex items-center gap-1.5">
+            <div className="h-2.5 w-2.5 rounded-full" style={{ background: colors[i % colors.length] }} />
+            <span className="text-xs text-slate-400">{d.name}</span>
+            <span className="text-xs font-bold text-white font-mono">{d.value}</span>
           </div>
         ))}
       </div>
-
-      {dirData.length > 8 && (
-        <p className="text-xs text-slate-600 text-center mt-3">+ {dirData.length - 8} diretorias adicionais</p>
-      )}
     </div>
   );
-}
-
-// ─── Slide 4: Bar Chart Diretorias ───
-function SlideDiretoriasChart({ servidores, diretorias }: { servidores: ServidorDB[]; diretorias: DiretoriaDB[] }) {
-  const data = useMemo(() => {
-    return diretorias.map(dir => {
-      const dirServs = servidores.filter(s => s.diretoria_id === dir.id);
-      const presentes = dirServs.filter(s => s.status_presenca === "presente").length;
-      return {
-        nome: dir.nome.length > 15 ? dir.nome.substring(0, 13) + "…" : dir.nome,
-        presentes,
-        ausências: dirServs.length - presentes,
-        total: dirServs.length,
-      };
-    }).filter(d => d.total > 0).sort((a, b) => b.total - a.total).slice(0, 10);
-  }, [servidores, diretorias]);
 
   return (
-    <div className="h-full flex flex-col p-10">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-          <Activity className="h-5 w-5 text-white" />
-        </div>
-        <h2 className="text-2xl font-extrabold text-white">Presença por Diretoria</h2>
-      </div>
-
-      <div className="flex-1">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} layout="vertical" margin={{ left: 10, right: 30 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e3a5f" horizontal={false} />
-            <XAxis type="number" tick={{ fill: "#64748b", fontSize: 13 }} axisLine={false} />
-            <YAxis type="category" dataKey="nome" width={140} tick={{ fill: "#cbd5e1", fontSize: 13 }} axisLine={false} />
-            <Tooltip
-              contentStyle={{ background: "#111d33", border: "1px solid #1e3a5f", borderRadius: "12px", color: "#fff", fontSize: "13px" }}
-            />
-            <Bar dataKey="presentes" name="Presentes" fill="#0d9488" radius={[0, 6, 6, 0]} />
-            <Bar dataKey="ausências" name="Ausências" fill="#ef4444" radius={[0, 6, 6, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+    <div className="h-full flex flex-col p-8">
+      <TVHeader title="Composição da Força de Trabalho" subtitle="Vínculo, status e cobertura" icon={<Briefcase className="h-6 w-6 text-white" />} />
+      <div className="flex-1 grid grid-cols-3 gap-6 mt-4">
+        {renderChart(vinculoData, vinculoColors, "Por Vínculo")}
+        {renderChart(statusData, statusColors, "Por Status")}
+        {renderChart(coberturaData, coberturaColors, "Por Cobertura")}
       </div>
     </div>
   );
 }
 
-// ─── Main TV Mode ───
+// ═══════════════════════════════════════════════════
+// SLIDE DINÂMICO: DETALHE POR DIRETORIA
+// ═══════════════════════════════════════════════════
+function SlideDiretoriaDetalhe({
+  diretoria,
+  servidores,
+  unidades,
+}: {
+  diretoria: DiretoriaDB;
+  servidores: ServidorDB[];
+  unidades: UnidadeDB[];
+}) {
+  const dirServs = servidores.filter(s => s.diretoria_id === diretoria.id);
+  const dirUnidades = unidades.filter(u => u.diretoria_id === diretoria.id);
+  const stats = computeStats(dirServs);
+  const presencaPct = stats.total > 0 ? Math.round((stats.presentes / stats.total) * 100) : 0;
+
+  // Dados por unidade
+  const unidadeData = dirUnidades.map(uni => {
+    const us = dirServs.filter(s => s.unidade_id === uni.id);
+    const presentes = us.filter(s => s.status_presenca === "presente").length;
+    const pct = us.length > 0 ? Math.round((presentes / us.length) * 100) : 0;
+    return { id: uni.id, nome: uni.nome, sigla: uni.sigla, total: us.length, presentes, ferias: us.filter(s => s.status_presenca === "ferias").length, afastados: us.filter(s => s.status_presenca === "afastado").length, pct };
+  }).filter(u => u.total > 0).sort((a, b) => b.total - a.total);
+
+  // Servidores sem unidade
+  const semUnidade = dirServs.filter(s => !s.unidade_id || !dirUnidades.find(u => u.id === s.unidade_id));
+  const semUnidadePresentes = semUnidade.filter(s => s.status_presenca === "presente").length;
+
+  // Composição vínculo da diretoria
+  const vinculoData = [
+    { name: "Concursados", value: dirServs.filter(s => (s.vinculo || "").includes("CONCURSADO")).length },
+    { name: "Contratados", value: dirServs.filter(s => (s.vinculo || "").includes("CONTRATO")).length },
+    { name: "Outros", value: dirServs.length - dirServs.filter(s => (s.vinculo || "").includes("CONCURSADO")).length - dirServs.filter(s => (s.vinculo || "").includes("CONTRATO")).length },
+  ].filter(d => d.value > 0);
+  const vinculoColors = ["#0d9488", "#3b82f6", "#64748b"];
+
+  // Funções críticas nesta diretoria
+  const funcCriticas = dirServs.filter(s => s.funcao_critica).length;
+
+  return (
+    <div className="h-full flex flex-col p-8">
+      <TVHeader
+        title={diretoria.nome}
+        subtitle={`${stats.total} servidores · ${dirUnidades.length} unidades`}
+        icon={<Building2 className="h-6 w-6 text-white" />}
+      />
+
+      {/* KPIs da diretoria */}
+      <div className="grid grid-cols-6 gap-3 mb-4">
+        <MiniStat label="Total" value={stats.total} color="from-slate-600 to-slate-700" icon={<Users className="h-5 w-5" />} />
+        <MiniStat label="Presentes" value={stats.presentes} color="from-emerald-600 to-green-700" icon={<CheckCircle className="h-5 w-5" />} />
+        <MiniStat label="Férias" value={stats.ferias} color="from-amber-600 to-orange-700" icon={<Palmtree className="h-5 w-5" />} />
+        <MiniStat label="Afastados" value={stats.afastados} color="from-red-600 to-rose-700" icon={<AlertTriangle className="h-5 w-5" />} />
+        <MiniStat label="Ausentes" value={stats.ausentes} color="from-purple-600 to-violet-700" icon={<Shield className="h-5 w-5" />} />
+        <MiniStat label="F. Críticas" value={funcCriticas} color="from-cyan-600 to-teal-700" icon={<Activity className="h-5 w-5" />} />
+      </div>
+
+      <PresenceBar pct={presencaPct} label="Presença da Diretoria" />
+
+      <div className="flex-1 grid grid-cols-3 gap-4 mt-4 overflow-hidden">
+        {/* Lista de unidades */}
+        <div className="col-span-2 overflow-y-auto tv-auto-scroll space-y-2 pr-2" style={{ scrollbarWidth: "none" }}>
+          {unidadeData.map(uni => (
+            <div key={uni.id} className="rounded-lg bg-[#111d33] border border-[#1e3a5f] p-3 flex items-center justify-between">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1a2744] flex-shrink-0">
+                  <MapPin className="h-4 w-4 text-teal-400" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-white truncate">{uni.sigla} – {uni.nome}</p>
+                  <div className="flex items-center gap-3 mt-0.5">
+                    <span className="text-xs text-slate-400">{uni.total} servidores</span>
+                    {uni.ferias > 0 && <span className="text-xs text-amber-400">🌴 {uni.ferias}</span>}
+                    {uni.afastados > 0 && <span className="text-xs text-red-400">⚠️ {uni.afastados}</span>}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 flex-shrink-0 ml-3">
+                <div className="w-24">
+                  <div className="h-2 rounded-full bg-[#1a2744] overflow-hidden">
+                    <div
+                      className={`h-full rounded-full bg-gradient-to-r ${uni.pct >= 80 ? "from-emerald-500 to-green-400" : uni.pct >= 60 ? "from-amber-500 to-yellow-400" : "from-red-500 to-rose-400"}`}
+                      style={{ width: `${uni.pct}%` }}
+                    />
+                  </div>
+                </div>
+                <span className={`text-lg font-extrabold font-mono min-w-[50px] text-right ${uni.pct >= 80 ? "text-emerald-400" : uni.pct >= 60 ? "text-amber-400" : "text-red-400"}`}>
+                  {uni.pct}%
+                </span>
+              </div>
+            </div>
+          ))}
+
+          {semUnidade.length > 0 && (
+            <div className="rounded-lg bg-[#111d33] border border-dashed border-[#1e3a5f] p-3 flex items-center justify-between opacity-70">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1a2744]">
+                  <Users className="h-4 w-4 text-slate-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-400">Sem unidade definida</p>
+                  <span className="text-xs text-slate-500">{semUnidade.length} servidores · {semUnidadePresentes} presentes</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Composição da diretoria */}
+        <div className="rounded-xl bg-[#111d33] border border-[#1e3a5f] p-4 flex flex-col">
+          <p className="text-xs text-slate-500 uppercase tracking-wider mb-3">Composição</p>
+          <div className="flex-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={vinculoData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3} dataKey="value" stroke="none">
+                  {vinculoData.map((_, i) => <Cell key={i} fill={vinculoColors[i % vinculoColors.length]} />)}
+                </Pie>
+                <Tooltip contentStyle={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: "10px", fontSize: "11px", color: "#fff" }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="space-y-2 mt-2">
+            {vinculoData.map((d, i) => (
+              <div key={d.name} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-2.5 w-2.5 rounded-full" style={{ background: vinculoColors[i % vinculoColors.length] }} />
+                  <span className="text-xs text-slate-400">{d.name}</span>
+                </div>
+                <span className="text-xs font-bold text-white font-mono">{d.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// SLIDE: MAPA DE PRESENÇA POR UNIDADE (todas)
+// ═══════════════════════════════════════════════════
+function SlideMapaUnidades({ servidores, unidades, diretorias }: { servidores: ServidorDB[]; unidades: UnidadeDB[]; diretorias: DiretoriaDB[] }) {
+  const uniData = useMemo(() => {
+    return unidades.map(uni => {
+      const us = servidores.filter(s => s.unidade_id === uni.id);
+      const presentes = us.filter(s => s.status_presenca === "presente").length;
+      const pct = us.length > 0 ? Math.round((presentes / us.length) * 100) : 0;
+      const dir = diretorias.find(d => d.id === uni.diretoria_id);
+      return { id: uni.id, sigla: uni.sigla, nome: uni.nome, total: us.length, presentes, pct, diretoria: dir?.nome || "—" };
+    }).filter(u => u.total > 0).sort((a, b) => a.pct - b.pct);
+  }, [servidores, unidades, diretorias]);
+
+  return (
+    <div className="h-full flex flex-col p-8">
+      <TVHeader title="Mapa de Presença por Unidade" subtitle={`${uniData.length} unidades ativas`} icon={<MapPin className="h-6 w-6 text-white" />} />
+      <div className="flex-1 overflow-y-auto tv-auto-scroll pr-2" style={{ scrollbarWidth: "none" }}>
+        <div className="grid grid-cols-4 gap-3">
+          {uniData.map(uni => (
+            <div key={uni.id} className="rounded-xl bg-[#111d33] border border-[#1e3a5f] p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-teal-400 uppercase">{uni.sigla}</span>
+                <span className={`text-lg font-extrabold font-mono ${uni.pct >= 80 ? "text-emerald-400" : uni.pct >= 60 ? "text-amber-400" : "text-red-400"}`}>{uni.pct}%</span>
+              </div>
+              <p className="text-[10px] text-slate-400 truncate mb-2">{uni.nome}</p>
+              <div className="h-1.5 rounded-full bg-[#1a2744] overflow-hidden">
+                <div
+                  className={`h-full rounded-full bg-gradient-to-r ${uni.pct >= 80 ? "from-emerald-500 to-green-400" : uni.pct >= 60 ? "from-amber-500 to-yellow-400" : "from-red-500 to-rose-400"}`}
+                  style={{ width: `${uni.pct}%` }}
+                />
+              </div>
+              <div className="flex justify-between mt-1.5">
+                <span className="text-[10px] text-slate-500">{uni.presentes}/{uni.total}</span>
+                <span className="text-[10px] text-slate-600 truncate ml-2">{uni.diretoria}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// MAIN TV MODE
+// ═══════════════════════════════════════════════════
 export default function ModoTV() {
   const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem("tv_unlocked") === "1");
   const [servidores, setServidores] = useState<ServidorDB[]>([]);
   const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
+  const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
 
-  const SLIDE_DURATION = 20000; // 20 seconds per slide
+  const SLIDE_DURATION = 20000;
   const TRANSITION_DURATION = 800;
-  const TOTAL_SLIDES = 4;
 
   const loadData = useCallback(async () => {
     const PAGE = 1000;
@@ -356,22 +516,54 @@ export default function ModoTV() {
       if (data.length < PAGE) break;
       offset += PAGE;
     }
-    const { data: dirs } = await supabase.from("diretorias").select("*").order("nome");
+    const [{ data: dirs }, { data: unis }] = await Promise.all([
+      supabase.from("diretorias").select("*").order("nome"),
+      supabase.from("unidades").select("*").order("nome"),
+    ]);
     setServidores(allServ as ServidorDB[]);
     setDiretorias((dirs ?? []) as DiretoriaDB[]);
+    setUnidades((unis ?? []) as UnidadeDB[]);
     setLoading(false);
   }, []);
 
   useEffect(() => {
     if (!unlocked) return;
     loadData();
-    const interval = setInterval(loadData, 60000); // refresh every minute
+    const interval = setInterval(loadData, 60000);
     return () => clearInterval(interval);
   }, [unlocked, loadData]);
 
-  // Auto-rotate slides
+  // Build slides dynamically
+  const slides = useMemo(() => {
+    if (loading) return [];
+    const s: React.ReactNode[] = [];
+
+    // 1. Overview
+    s.push(<SlideOverview key="overview" servidores={servidores} diretorias={diretorias} unidades={unidades} />);
+
+    // 2. Ranking
+    s.push(<SlideRankingDiretorias key="ranking" servidores={servidores} diretorias={diretorias} />);
+
+    // 3. Composição
+    s.push(<SlideComposicao key="composicao" servidores={servidores} />);
+
+    // 4. Slides individuais por diretoria (apenas com servidores)
+    const dirsComServs = diretorias.filter(d => servidores.some(s => s.diretoria_id === d.id));
+    dirsComServs.forEach(dir => {
+      s.push(<SlideDiretoriaDetalhe key={`dir-${dir.id}`} diretoria={dir} servidores={servidores} unidades={unidades} />);
+    });
+
+    // Último: Mapa de unidades
+    s.push(<SlideMapaUnidades key="mapa" servidores={servidores} unidades={unidades} diretorias={diretorias} />);
+
+    return s;
+  }, [servidores, diretorias, unidades, loading]);
+
+  const TOTAL_SLIDES = slides.length;
+
+  // Auto-rotate
   useEffect(() => {
-    if (!unlocked || loading) return;
+    if (!unlocked || loading || TOTAL_SLIDES === 0) return;
     const interval = setInterval(() => {
       setTransitioning(true);
       setTimeout(() => {
@@ -380,7 +572,7 @@ export default function ModoTV() {
       }, TRANSITION_DURATION);
     }, SLIDE_DURATION);
     return () => clearInterval(interval);
-  }, [unlocked, loading]);
+  }, [unlocked, loading, TOTAL_SLIDES]);
 
   if (!unlocked) {
     return <PasswordGate onUnlock={() => setUnlocked(true)} />;
@@ -399,39 +591,34 @@ export default function ModoTV() {
     );
   }
 
-  const slides = [
-    <SlideOverview key="overview" servidores={servidores} diretorias={diretorias} />,
-    <SlideVinculo key="vinculo" servidores={servidores} />,
-    <SlideDiretorias key="diretorias" servidores={servidores} diretorias={diretorias} />,
-    <SlideDiretoriasChart key="chart" servidores={servidores} diretorias={diretorias} />,
-  ];
-
   return (
     <div className="h-screen w-screen bg-[#0a1628] overflow-hidden relative select-none cursor-none">
-      {/* Slide content with auto-scroll */}
       <div
         className={`h-full w-full transition-all duration-700 ease-in-out ${
           transitioning ? "opacity-0 scale-[0.98]" : "opacity-100 scale-100"
         }`}
       >
-        <div className="h-full overflow-y-auto tv-auto-scroll">
-          {slides[currentSlide]}
-        </div>
+        {slides[currentSlide]}
       </div>
 
       {/* Slide indicators */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2">
         {Array.from({ length: TOTAL_SLIDES }).map((_, i) => (
           <button
             key={i}
             onClick={() => { setTransitioning(true); setTimeout(() => { setCurrentSlide(i); setTransitioning(false); }, 300); }}
             className={`transition-all duration-300 rounded-full cursor-pointer ${
               i === currentSlide
-                ? "w-8 h-2.5 bg-teal-400"
-                : "w-2.5 h-2.5 bg-slate-700 hover:bg-slate-600"
+                ? "w-6 h-2 bg-teal-400"
+                : "w-2 h-2 bg-slate-700 hover:bg-slate-600"
             }`}
           />
         ))}
+      </div>
+
+      {/* Slide counter */}
+      <div className="absolute bottom-4 right-6 text-xs text-slate-600 font-mono">
+        {currentSlide + 1} / {TOTAL_SLIDES}
       </div>
 
       {/* Progress bar */}
