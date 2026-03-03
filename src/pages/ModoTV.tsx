@@ -512,24 +512,26 @@ function SlideMapaUnidades({ servidores, unidades, diretorias }: { servidores: S
       <TVHeader title="Mapa de Presença por Unidade" subtitle={`${uniData.length} unidades ativas`} icon={<MapPin className="h-6 w-6 text-white" />} />
       <div className="flex-1 overflow-y-auto tv-auto-scroll pr-2" style={{ scrollbarWidth: "none" }}>
         <div className="grid grid-cols-4 gap-3">
-          {uniData.map(uni => (
-            <div key={uni.id} className="rounded-xl bg-[#111d33] border border-[#1e3a5f] p-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-teal-400 uppercase">{uni.sigla}</span>
-                <span className={`text-lg font-extrabold font-mono ${uni.pct >= 80 ? "text-emerald-400" : uni.pct >= 60 ? "text-amber-400" : "text-red-400"}`}>{uni.pct}%</span>
+          {uniData.map((uni, i) => (
+            <AnimatedCard key={uni.id} delay={100 + i * 50}>
+              <div className="rounded-xl bg-[#111d33] border border-[#1e3a5f] p-3 hover:border-teal-500/30 transition-colors duration-300">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-teal-400 uppercase">{uni.sigla}</span>
+                  <span className={`text-lg font-extrabold font-mono ${uni.pct >= 80 ? "text-emerald-400" : uni.pct >= 60 ? "text-amber-400" : "text-red-400"}`}>{uni.pct}%</span>
+                </div>
+                <p className="text-[10px] text-slate-400 truncate mb-2">{uni.nome}</p>
+                <div className="h-1.5 rounded-full bg-[#1a2744] overflow-hidden">
+                  <div
+                    className={`h-full rounded-full bg-gradient-to-r ${uni.pct >= 80 ? "from-emerald-500 to-green-400" : uni.pct >= 60 ? "from-amber-500 to-yellow-400" : "from-red-500 to-rose-400"}`}
+                    style={{ width: `${uni.pct}%`, transition: "width 1s ease-out" }}
+                  />
+                </div>
+                <div className="flex justify-between mt-1.5">
+                  <span className="text-[10px] text-slate-500">{uni.presentes}/{uni.total}</span>
+                  <span className="text-[10px] text-slate-600 truncate ml-2">{uni.diretoria}</span>
+                </div>
               </div>
-              <p className="text-[10px] text-slate-400 truncate mb-2">{uni.nome}</p>
-              <div className="h-1.5 rounded-full bg-[#1a2744] overflow-hidden">
-                <div
-                  className={`h-full rounded-full bg-gradient-to-r ${uni.pct >= 80 ? "from-emerald-500 to-green-400" : uni.pct >= 60 ? "from-amber-500 to-yellow-400" : "from-red-500 to-rose-400"}`}
-                  style={{ width: `${uni.pct}%` }}
-                />
-              </div>
-              <div className="flex justify-between mt-1.5">
-                <span className="text-[10px] text-slate-500">{uni.presentes}/{uni.total}</span>
-                <span className="text-[10px] text-slate-600 truncate ml-2">{uni.diretoria}</span>
-              </div>
-            </div>
+            </AnimatedCard>
           ))}
         </div>
       </div>
