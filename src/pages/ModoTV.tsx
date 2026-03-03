@@ -404,12 +404,12 @@ function SlideDiretoriaDetalhe({
 
       {/* KPIs da diretoria */}
       <div className="grid grid-cols-6 gap-3 mb-4">
-        <MiniStat label="Total" value={stats.total} color="from-slate-600 to-slate-700" icon={<Users className="h-5 w-5" />} />
-        <MiniStat label="Presentes" value={stats.presentes} color="from-emerald-600 to-green-700" icon={<CheckCircle className="h-5 w-5" />} />
-        <MiniStat label="Férias" value={stats.ferias} color="from-amber-600 to-orange-700" icon={<Palmtree className="h-5 w-5" />} />
-        <MiniStat label="Afastados" value={stats.afastados} color="from-red-600 to-rose-700" icon={<AlertTriangle className="h-5 w-5" />} />
-        <MiniStat label="Ausentes" value={stats.ausentes} color="from-purple-600 to-violet-700" icon={<Shield className="h-5 w-5" />} />
-        <MiniStat label="F. Críticas" value={funcCriticas} color="from-cyan-600 to-teal-700" icon={<Activity className="h-5 w-5" />} />
+        <MiniStat label="Total" value={stats.total} color="from-slate-600 to-slate-700" icon={<Users className="h-5 w-5" />} delay={150} />
+        <MiniStat label="Presentes" value={stats.presentes} color="from-emerald-600 to-green-700" icon={<CheckCircle className="h-5 w-5" />} delay={250} />
+        <MiniStat label="Férias" value={stats.ferias} color="from-amber-600 to-orange-700" icon={<Palmtree className="h-5 w-5" />} delay={350} />
+        <MiniStat label="Afastados" value={stats.afastados} color="from-red-600 to-rose-700" icon={<AlertTriangle className="h-5 w-5" />} delay={450} />
+        <MiniStat label="Ausentes" value={stats.ausentes} color="from-purple-600 to-violet-700" icon={<Shield className="h-5 w-5" />} delay={550} />
+        <MiniStat label="F. Críticas" value={funcCriticas} color="from-cyan-600 to-teal-700" icon={<Activity className="h-5 w-5" />} delay={650} />
       </div>
 
       <PresenceBar pct={presencaPct} label="Presença da Diretoria" />
