@@ -3,13 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB } from "@/hooks/useServidores";
 import {
   PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend,
+  RadialBarChart, RadialBar,
 } from "recharts";
 import {
-  Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Monitor, Lock, Activity, MapPin, Briefcase, Heart,
+  Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Monitor, Lock, Activity, MapPin, Briefcase,
+  TrendingUp, Zap, Eye, Clock,
 } from "lucide-react";
 
 // ─── Animated counter hook ───
-function useAnimatedCount(target: number, duration = 1200) {
+function useAnimatedCount(target: number, duration = 1400) {
   const [count, setCount] = useState(0);
   const prevTarget = useRef(0);
   useEffect(() => {
@@ -21,7 +23,7 @@ function useAnimatedCount(target: number, duration = 1200) {
     const step = (now: number) => {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
+      const eased = 1 - Math.pow(1 - progress, 4); // quartic ease-out
       setCount(Math.round(start + (target - start) * eased));
       if (progress < 1) raf = requestAnimationFrame(step);
     };
@@ -43,11 +45,70 @@ function AnimatedCard({ children, delay = 0, className = "" }: { children: React
       className={className}
       style={{
         opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0) scale(1)" : "translateY(20px) scale(0.95)",
-        transition: `opacity 0.5s ease-out, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)`,
+        transform: visible ? "translateY(0) scale(1)" : "translateY(24px) scale(0.92)",
+        transition: `opacity 0.6s ease-out ${delay}ms, transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) ${delay}ms`,
       }}
     >
       {children}
+    </div>
+  );
+}
+
+// ─── Animated radial gauge ───
+function RadialGauge({ pct, size = 120, strokeWidth = 10, label }: { pct: number; size?: number; strokeWidth?: number; label?: string }) {
+  const [animPct, setAnimPct] = useState(0);
+  useEffect(() => {
+    const t = setTimeout(() => setAnimPct(pct), 100);
+    return () => clearTimeout(t);
+  }, [pct]);
+
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (animPct / 100) * circumference;
+  const color = pct >= 80 ? "#10b981" : pct >= 60 ? "#f59e0b" : "#ef4444";
+  const glowColor = pct >= 80 ? "rgba(16,185,129,0.3)" : pct >= 60 ? "rgba(245,158,11,0.3)" : "rgba(239,68,68,0.3)";
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="relative" style={{ width: size, height: size }}>
+        <svg width={size} height={size} className="-rotate-90">
+          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#1a2744" strokeWidth={strokeWidth} />
+          <circle
+            cx={size / 2} cy={size / 2} r={radius} fill="none"
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            style={{ transition: "stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1)", filter: `drop-shadow(0 0 6px ${glowColor})` }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-2xl font-black text-white font-mono" style={{ textShadow: `0 0 20px ${glowColor}` }}>
+            {animPct}%
+          </span>
+        </div>
+      </div>
+      {label && <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{label}</span>}
+    </div>
+  );
+}
+
+// ─── Glowing card border ───
+function GlowCard({ children, className = "", color = "teal" }: { children: React.ReactNode; className?: string; color?: string }) {
+  const colorMap: Record<string, string> = {
+    teal: "from-teal-500/20 via-transparent to-cyan-500/20",
+    emerald: "from-emerald-500/20 via-transparent to-green-500/20",
+    amber: "from-amber-500/20 via-transparent to-orange-500/20",
+    red: "from-red-500/20 via-transparent to-rose-500/20",
+    purple: "from-purple-500/20 via-transparent to-violet-500/20",
+  };
+  return (
+    <div className={`relative group ${className}`}>
+      <div className={`absolute -inset-[1px] rounded-2xl bg-gradient-to-r ${colorMap[color] || colorMap.teal} opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm`} />
+      <div className="relative rounded-2xl bg-[#0f1a2e]/90 border border-[#1e3a5f]/60 backdrop-blur-sm overflow-hidden">
+        {children}
+      </div>
     </div>
   );
 }
@@ -71,28 +132,35 @@ function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a1628] flex items-center justify-center">
-      <form onSubmit={handleSubmit} className="flex flex-col items-center gap-6 p-10 rounded-3xl bg-[#111d33] border border-[#1e3a5f] shadow-2xl max-w-md w-full mx-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-lg shadow-teal-500/20">
-          <Monitor className="h-8 w-8 text-white" />
+    <div className="min-h-screen bg-[#060e1a] flex items-center justify-center relative overflow-hidden">
+      {/* Background effects */}
+      <div className="absolute inset-0">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+      </div>
+      <form onSubmit={handleSubmit} className="relative flex flex-col items-center gap-6 p-10 rounded-3xl bg-[#0a1628]/80 border border-[#1e3a5f]/50 shadow-2xl backdrop-blur-xl max-w-md w-full mx-4">
+        <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-lg shadow-teal-500/30">
+          <Monitor className="h-10 w-10 text-white" />
         </div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">Modo TV</h1>
-        <p className="text-sm text-slate-400 text-center">Digite a senha para acessar o painel de monitoramento.</p>
+        <div className="text-center">
+          <h1 className="text-3xl font-black text-white tracking-tight">Modo TV</h1>
+          <p className="text-sm text-slate-500 mt-2">Painel de monitoramento em tempo real</p>
+        </div>
         <div className="w-full space-y-3">
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
             <input
               type="password"
               autoFocus
               value={senha}
               onChange={e => setSenha(e.target.value)}
               placeholder="Senha de acesso..."
-              className={`w-full h-12 rounded-xl bg-[#0a1628] border ${error ? "border-red-500 animate-shake" : "border-[#1e3a5f]"} pl-10 pr-4 text-white text-sm placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all`}
+              className={`w-full h-14 rounded-2xl bg-[#0a1628] border ${error ? "border-red-500 animate-shake" : "border-[#1e3a5f]"} pl-12 pr-4 text-white text-sm placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500/40 transition-all`}
             />
           </div>
           <button
             type="submit"
-            className="w-full h-12 rounded-xl bg-gradient-to-r from-teal-600 to-cyan-600 text-white font-semibold text-sm hover:from-teal-500 hover:to-cyan-500 transition-all shadow-lg shadow-teal-600/20"
+            className="w-full h-14 rounded-2xl bg-gradient-to-r from-teal-600 to-cyan-600 text-white font-bold text-sm hover:from-teal-500 hover:to-cyan-500 transition-all shadow-xl shadow-teal-600/20 active:scale-[0.98]"
           >
             Acessar Painel
           </button>
@@ -110,14 +178,24 @@ function LiveClock() {
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
+
+  const seconds = now.getSeconds();
+
   return (
-    <div className="text-right">
-      <p className="text-4xl font-extrabold text-teal-400 font-mono">
-        {now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-      </p>
-      <p className="text-sm text-slate-400 capitalize mt-1">
-        {now.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
-      </p>
+    <div className="text-right flex items-center gap-5">
+      <div>
+        <p className="text-4xl font-black text-white font-mono tracking-tighter" style={{ textShadow: "0 0 30px rgba(20,184,166,0.3)" }}>
+          {now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+          <span className="text-xl text-teal-400/60 ml-0.5">:{seconds.toString().padStart(2, "0")}</span>
+        </p>
+        <p className="text-xs text-slate-500 capitalize mt-1 tracking-wide">
+          {now.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+        </p>
+      </div>
+      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+        <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-lg shadow-emerald-400/50" />
+        <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Live</span>
+      </div>
     </div>
   );
 }
@@ -127,12 +205,12 @@ function TVHeader({ title, subtitle, icon }: { title: string; subtitle?: string;
   return (
     <div className="flex items-center justify-between mb-6">
       <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-lg shadow-teal-500/30">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 shadow-xl shadow-teal-500/25">
           {icon}
         </div>
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight">{title}</h1>
-          {subtitle && <p className="text-sm text-slate-400 mt-0.5">{subtitle}</p>}
+          <h1 className="text-2xl font-black text-white tracking-tight">{title}</h1>
+          {subtitle && <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>}
         </div>
       </div>
       <LiveClock />
@@ -140,40 +218,87 @@ function TVHeader({ title, subtitle, icon }: { title: string; subtitle?: string;
   );
 }
 
-// ─── Mini stat card ───
-function MiniStat({ label, value, color, icon, delay = 0 }: { label: string; value: number; color: string; icon: React.ReactNode; delay?: number }) {
+// ─── KPI Card (premium) ───
+function KPICard({ label, value, icon, gradient, delay = 0, suffix }: { label: string; value: number; icon: React.ReactNode; gradient: string; delay?: number; suffix?: string }) {
   const animatedValue = useAnimatedCount(value);
   return (
     <AnimatedCard delay={delay}>
-      <div className={`rounded-xl bg-gradient-to-br ${color} p-4 shadow-lg flex flex-col justify-between min-h-[100px] hover:scale-105 transition-transform duration-300`}>
-        <div className="text-white/70">{icon}</div>
-        <div>
-          <p className="text-3xl font-extrabold text-white font-mono">{animatedValue}</p>
-          <p className="text-[10px] font-bold text-white/50 uppercase tracking-wider mt-1">{label}</p>
+      <div className={`relative rounded-2xl bg-gradient-to-br ${gradient} p-5 shadow-xl overflow-hidden group hover:scale-[1.03] transition-transform duration-300`}>
+        {/* Shimmer effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+        <div className="relative">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-white/50">{icon}</div>
+            <TrendingUp className="h-3.5 w-3.5 text-white/20" />
+          </div>
+          <p className="text-4xl font-black text-white font-mono tracking-tighter">
+            {animatedValue.toLocaleString("pt-BR")}
+            {suffix && <span className="text-lg text-white/50 ml-1">{suffix}</span>}
+          </p>
+          <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] mt-2">{label}</p>
         </div>
       </div>
     </AnimatedCard>
   );
 }
 
-// ─── Progress bar ───
+// ─── Progress bar (enhanced) ───
 function PresenceBar({ pct, label }: { pct: number; label?: string }) {
   const barColor = pct >= 80 ? "from-emerald-500 to-green-400" : pct >= 60 ? "from-amber-500 to-yellow-400" : "from-red-500 to-rose-400";
+  const glowColor = pct >= 80 ? "shadow-emerald-500/20" : pct >= 60 ? "shadow-amber-500/20" : "shadow-red-500/20";
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       {label && (
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{label}</span>
-          <span className="text-lg font-extrabold text-teal-400 font-mono">{pct}%</span>
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{label}</span>
+          <span className="text-2xl font-black text-white font-mono">{pct}<span className="text-sm text-slate-500">%</span></span>
         </div>
       )}
       <div className="h-3 rounded-full bg-[#1a2744] overflow-hidden">
         <div
-          className={`h-full rounded-full bg-gradient-to-r ${barColor} transition-all duration-1000 ease-out`}
+          className={`h-full rounded-full bg-gradient-to-r ${barColor} shadow-lg ${glowColor} transition-all duration-[1.5s] ease-out`}
           style={{ width: `${pct}%` }}
         />
       </div>
     </div>
+  );
+}
+
+// ─── Unit row (enhanced) ───
+function UnitRow({ sigla, nome, total, presentes, ferias, afastados, pct, delay = 0 }: {
+  sigla: string; nome: string; total: number; presentes: number; ferias: number; afastados: number; pct: number; delay?: number;
+}) {
+  const barColor = pct >= 80 ? "from-emerald-500 to-green-400" : pct >= 60 ? "from-amber-500 to-yellow-400" : "from-red-500 to-rose-400";
+  const textColor = pct >= 80 ? "text-emerald-400" : pct >= 60 ? "text-amber-400" : "text-red-400";
+
+  return (
+    <AnimatedCard delay={delay}>
+      <div className="rounded-xl bg-[#0f1a2e]/80 border border-[#1e3a5f]/40 p-3.5 flex items-center justify-between hover:border-teal-500/30 hover:bg-[#111d33] transition-all duration-300 group">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border border-teal-500/20 flex-shrink-0 group-hover:from-teal-500/20 group-hover:to-cyan-500/20 transition-colors">
+            <MapPin className="h-4 w-4 text-teal-400" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-white truncate">{sigla} – {nome}</p>
+            <div className="flex items-center gap-3 mt-0.5">
+              <span className="text-[11px] text-slate-500">{total} servidores</span>
+              {ferias > 0 && <span className="text-[11px] text-amber-400/80 flex items-center gap-1"><Palmtree className="h-3 w-3" />{ferias}</span>}
+              {afastados > 0 && <span className="text-[11px] text-red-400/80 flex items-center gap-1"><AlertTriangle className="h-3 w-3" />{afastados}</span>}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 flex-shrink-0 ml-3">
+          <div className="w-28">
+            <div className="h-2 rounded-full bg-[#1a2744] overflow-hidden">
+              <div className={`h-full rounded-full bg-gradient-to-r ${barColor}`} style={{ width: `${pct}%`, transition: "width 1.2s ease-out" }} />
+            </div>
+          </div>
+          <span className={`text-xl font-black font-mono min-w-[55px] text-right ${textColor}`}>
+            {pct}<span className="text-xs text-slate-600">%</span>
+          </span>
+        </div>
+      </div>
+    </AnimatedCard>
   );
 }
 
@@ -185,62 +310,97 @@ function SlideOverview({ servidores, diretorias, unidades }: { servidores: Servi
   const presencaPct = stats.total > 0 ? Math.round((stats.presentes / stats.total) * 100) : 0;
 
   const kpis = [
-    { label: "Total", value: stats.total, icon: <Users className="h-6 w-6" />, color: "from-slate-600 to-slate-700" },
-    { label: "Presentes", value: stats.presentes, icon: <CheckCircle className="h-6 w-6" />, color: "from-emerald-600 to-green-700" },
-    { label: "Férias", value: stats.ferias, icon: <Palmtree className="h-6 w-6" />, color: "from-amber-600 to-orange-700" },
-    { label: "Afastados", value: stats.afastados, icon: <AlertTriangle className="h-6 w-6" />, color: "from-red-600 to-rose-700" },
-    { label: "Ausentes", value: stats.ausentes, icon: <Shield className="h-6 w-6" />, color: "from-purple-600 to-violet-700" },
-    { label: "Funções Críticas", value: stats.funcoesCriticas, icon: <Activity className="h-6 w-6" />, color: "from-cyan-600 to-teal-700" },
+    { label: "Total", value: stats.total, icon: <Users className="h-6 w-6" />, gradient: "from-slate-700/90 to-slate-800/90" },
+    { label: "Presentes", value: stats.presentes, icon: <CheckCircle className="h-6 w-6" />, gradient: "from-emerald-600/90 to-green-800/90" },
+    { label: "Férias", value: stats.ferias, icon: <Palmtree className="h-6 w-6" />, gradient: "from-amber-600/90 to-orange-800/90" },
+    { label: "Afastados", value: stats.afastados, icon: <AlertTriangle className="h-6 w-6" />, gradient: "from-red-600/90 to-rose-800/90" },
+    { label: "Ausentes", value: stats.ausentes, icon: <Shield className="h-6 w-6" />, gradient: "from-purple-600/90 to-violet-800/90" },
+    { label: "Funções Críticas", value: stats.funcoesCriticas, icon: <Activity className="h-6 w-6" />, gradient: "from-cyan-600/90 to-teal-800/90" },
   ];
 
   return (
     <div className="h-full flex flex-col justify-between p-8">
-      <TVHeader title="Secretaria Municipal de Saúde" subtitle="Painel Geral de Monitoramento" icon={<Shield className="h-6 w-6 text-white" />} />
+      <TVHeader title="Secretaria Municipal de Saúde" subtitle="Painel Geral de Monitoramento" icon={<Shield className="h-7 w-7 text-white" />} />
 
-      <div className="grid grid-cols-6 gap-4 my-4">
-        {kpis.map((k, i) => <MiniStat key={k.label} {...k} delay={200 + i * 100} />)}
+      <div className="grid grid-cols-6 gap-4 my-3">
+        {kpis.map((k, i) => <KPICard key={k.label} {...k} delay={200 + i * 120} />)}
       </div>
 
-      <div className="grid grid-cols-3 gap-6 my-4">
-        <div className="col-span-2">
-          <PresenceBar pct={presencaPct} label="Taxa de Presença Geral" />
-          <div className="grid grid-cols-2 gap-3 mt-4">
-            <div className="rounded-xl bg-[#111d33] border border-[#1e3a5f] p-4">
-              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Diretorias</p>
-              <p className="text-3xl font-extrabold text-white font-mono">{diretorias.length}</p>
+      <div className="grid grid-cols-12 gap-5 my-3 flex-1">
+        {/* Left: Presence + details */}
+        <div className="col-span-5 flex flex-col gap-4">
+          <GlowCard color="teal" className="flex-1">
+            <div className="p-5 flex flex-col items-center justify-center h-full">
+              <RadialGauge pct={presencaPct} size={150} strokeWidth={12} label="Taxa de Presença" />
             </div>
-            <div className="rounded-xl bg-[#111d33] border border-[#1e3a5f] p-4">
-              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Unidades de Saúde</p>
-              <p className="text-3xl font-extrabold text-white font-mono">{unidades.length}</p>
-            </div>
-          </div>
+          </GlowCard>
         </div>
-        <div className="rounded-xl bg-[#111d33] border border-[#1e3a5f] p-4">
-          <p className="text-xs text-slate-500 uppercase tracking-wider mb-3">Composição</p>
-          <div className="space-y-3">
-            {[
-              { label: "Concursados", value: stats.concursados, color: "bg-teal-500" },
-              { label: "Contratados", value: stats.contratados, color: "bg-blue-500" },
-              { label: "Outros", value: stats.total - stats.concursados - stats.contratados, color: "bg-slate-500" },
-            ].map(v => (
-              <div key={v.label} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className={`h-2.5 w-2.5 rounded-full ${v.color}`} />
-                  <span className="text-sm text-slate-300">{v.label}</span>
-                </div>
-                <span className="text-sm font-bold text-white font-mono">{v.value}</span>
+
+        {/* Center: Bars by diretoria */}
+        <div className="col-span-4 flex flex-col gap-3">
+          <GlowCard>
+            <div className="p-4">
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Top Diretorias</p>
+              <div className="space-y-3">
+                {diretorias.slice(0, 5).map(dir => {
+                  const ds = servidores.filter(s => s.diretoria_id === dir.id);
+                  const p = ds.filter(s => s.status_presenca === "presente").length;
+                  const dpct = ds.length > 0 ? Math.round((p / ds.length) * 100) : 0;
+                  return (
+                    <div key={dir.id}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] text-slate-400 truncate max-w-[200px]">{dir.nome}</span>
+                        <span className="text-xs font-bold text-white font-mono">{dpct}%</span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-[#1a2744] overflow-hidden">
+                        <div
+                          className={`h-full rounded-full bg-gradient-to-r ${dpct >= 80 ? "from-emerald-500 to-green-400" : dpct >= 60 ? "from-amber-500 to-yellow-400" : "from-red-500 to-rose-400"}`}
+                          style={{ width: `${dpct}%`, transition: "width 1.5s ease-out" }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
+            </div>
+          </GlowCard>
+        </div>
+
+        {/* Right: Composition */}
+        <div className="col-span-3 flex flex-col gap-3">
+          <GlowCard className="flex-1">
+            <div className="p-4 h-full flex flex-col">
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Estrutura</p>
+              <div className="space-y-4 flex-1 flex flex-col justify-center">
+                {[
+                  { label: "Diretorias", value: diretorias.length, icon: <Building2 className="h-4 w-4" />, color: "text-teal-400" },
+                  { label: "Unidades", value: unidades.length, icon: <MapPin className="h-4 w-4" />, color: "text-cyan-400" },
+                  { label: "Concursados", value: stats.concursados, icon: <Shield className="h-4 w-4" />, color: "text-emerald-400" },
+                  { label: "Contratados", value: stats.contratados, icon: <Briefcase className="h-4 w-4" />, color: "text-blue-400" },
+                ].map(item => (
+                  <div key={item.label} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <span className={item.color}>{item.icon}</span>
+                      <span className="text-xs text-slate-400">{item.label}</span>
+                    </div>
+                    <span className="text-lg font-black text-white font-mono">{item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </GlowCard>
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-3 border-t border-[#1e3a5f]">
-        <div className="flex items-center gap-2">
-          <div className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-xs text-slate-500 uppercase tracking-wider">Dados em tempo real</span>
+      {/* Footer */}
+      <div className="flex items-center justify-between pt-3 border-t border-[#1e3a5f]/40">
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] text-slate-600 uppercase tracking-widest">SMSTL · Modo TV</span>
         </div>
-        <span className="text-xs text-slate-600">SMSTL · Modo TV</span>
+        <div className="flex items-center gap-2">
+          <Eye className="h-3 w-3 text-slate-600" />
+          <span className="text-[10px] text-slate-600 font-mono">Atualização a cada 60s</span>
+        </div>
       </div>
     </div>
   );
@@ -258,7 +418,7 @@ function SlideRankingDiretorias({ servidores, diretorias }: { servidores: Servid
       const afastados = ds.filter(s => s.status_presenca === "afastado").length;
       const ausentes = ds.length - presentes - ferias - afastados;
       return {
-        nome: dir.nome.length > 20 ? dir.nome.substring(0, 18) + "…" : dir.nome,
+        nome: dir.nome.length > 25 ? dir.nome.substring(0, 23) + "…" : dir.nome,
         Presentes: presentes,
         Férias: ferias,
         Afastados: afastados,
@@ -270,19 +430,22 @@ function SlideRankingDiretorias({ servidores, diretorias }: { servidores: Servid
 
   return (
     <div className="h-full flex flex-col p-8">
-      <TVHeader title="Ranking por Diretoria" subtitle="Distribuição de servidores por status" icon={<Building2 className="h-6 w-6 text-white" />} />
+      <TVHeader title="Ranking por Diretoria" subtitle="Distribuição de servidores por status" icon={<Building2 className="h-7 w-7 text-white" />} />
       <div className="flex-1 mt-2">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} layout="vertical" margin={{ left: 10, right: 30, top: 10, bottom: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e3a5f" horizontal={false} />
-            <XAxis type="number" tick={{ fill: "#64748b", fontSize: 12 }} axisLine={false} />
-            <YAxis type="category" dataKey="nome" width={160} tick={{ fill: "#cbd5e1", fontSize: 12 }} axisLine={false} />
-            <Tooltip contentStyle={{ background: "#111d33", border: "1px solid #1e3a5f", borderRadius: "12px", color: "#fff", fontSize: "12px" }} />
-            <Legend wrapperStyle={{ color: "#94a3b8", fontSize: "12px" }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#1e3a5f40" horizontal={false} />
+            <XAxis type="number" tick={{ fill: "#475569", fontSize: 11, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
+            <YAxis type="category" dataKey="nome" width={180} tick={{ fill: "#94a3b8", fontSize: 12, fontWeight: 600 }} axisLine={false} tickLine={false} />
+            <Tooltip
+              contentStyle={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: "16px", color: "#fff", fontSize: "12px", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)" }}
+              cursor={{ fill: "rgba(20,184,166,0.05)" }}
+            />
+            <Legend wrapperStyle={{ color: "#94a3b8", fontSize: "11px", fontWeight: 600, letterSpacing: "0.05em" }} />
             <Bar dataKey="Presentes" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} />
             <Bar dataKey="Férias" stackId="a" fill="#f59e0b" />
             <Bar dataKey="Afastados" stackId="a" fill="#ef4444" />
-            <Bar dataKey="Ausentes" stackId="a" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="Ausentes" stackId="a" fill="#8b5cf6" radius={[0, 6, 6, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -315,40 +478,44 @@ function SlideComposicao({ servidores }: { servidores: ServidorDB[] }) {
     { name: "Parcial", value: servidores.filter(s => s.cobertura_prevista === "PARCIAL").length },
   ].filter(d => d.value > 0);
 
-  const vinculoColors = ["#0d9488", "#3b82f6", "#8b5cf6", "#64748b"];
+  const vinculoColors = ["#0d9488", "#3b82f6", "#8b5cf6", "#475569"];
   const statusColors = ["#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
   const coberturaColors = ["#06b6d4", "#f97316"];
 
-  const renderChart = (data: { name: string; value: number }[], colors: string[], title: string) => (
-    <div className="flex flex-col items-center">
-      <h3 className="text-base font-bold text-slate-300 mb-2">{title}</h3>
-      <ResponsiveContainer width="100%" height={220}>
-        <PieChart>
-          <Pie data={data} cx="50%" cy="50%" innerRadius={60} outerRadius={95} paddingAngle={3} dataKey="value" stroke="none">
-            {data.map((_, i) => <Cell key={i} fill={colors[i % colors.length]} />)}
-          </Pie>
-          <Tooltip contentStyle={{ background: "#111d33", border: "1px solid #1e3a5f", borderRadius: "12px", fontSize: "12px", color: "#fff" }} />
-        </PieChart>
-      </ResponsiveContainer>
-      <div className="flex flex-wrap gap-3 justify-center mt-2">
-        {data.map((d, i) => (
-          <div key={d.name} className="flex items-center gap-1.5">
-            <div className="h-2.5 w-2.5 rounded-full" style={{ background: colors[i % colors.length] }} />
-            <span className="text-xs text-slate-400">{d.name}</span>
-            <span className="text-xs font-bold text-white font-mono">{d.value}</span>
+  const renderChart = (data: { name: string; value: number }[], colors: string[], title: string, delay: number) => (
+    <AnimatedCard delay={delay}>
+      <GlowCard>
+        <div className="p-5 flex flex-col items-center">
+          <h3 className="text-sm font-bold text-slate-300 mb-4 uppercase tracking-wider">{title}</h3>
+          <ResponsiveContainer width="100%" height={200}>
+            <PieChart>
+              <Pie data={data} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={4} dataKey="value" stroke="none" animationBegin={delay} animationDuration={1200}>
+                {data.map((_, i) => <Cell key={i} fill={colors[i % colors.length]} />)}
+              </Pie>
+              <Tooltip contentStyle={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: "14px", fontSize: "12px", color: "#fff", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)" }} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="flex flex-wrap gap-4 justify-center mt-3">
+            {data.map((d, i) => (
+              <div key={d.name} className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full shadow-lg" style={{ background: colors[i % colors.length], boxShadow: `0 0 8px ${colors[i % colors.length]}40` }} />
+                <span className="text-xs text-slate-400">{d.name}</span>
+                <span className="text-xs font-black text-white font-mono">{d.value}</span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-    </div>
+        </div>
+      </GlowCard>
+    </AnimatedCard>
   );
 
   return (
     <div className="h-full flex flex-col p-8">
-      <TVHeader title="Composição da Força de Trabalho" subtitle="Vínculo, status e cobertura" icon={<Briefcase className="h-6 w-6 text-white" />} />
+      <TVHeader title="Composição da Força de Trabalho" subtitle="Vínculo, status e cobertura" icon={<Briefcase className="h-7 w-7 text-white" />} />
       <div className="flex-1 grid grid-cols-3 gap-6 mt-4">
-        {renderChart(vinculoData, vinculoColors, "Por Vínculo")}
-        {renderChart(statusData, statusColors, "Por Status")}
-        {renderChart(coberturaData, coberturaColors, "Por Cobertura")}
+        {renderChart(vinculoData, vinculoColors, "Por Vínculo", 200)}
+        {renderChart(statusData, statusColors, "Por Status", 400)}
+        {renderChart(coberturaData, coberturaColors, "Por Cobertura", 600)}
       </div>
     </div>
   );
@@ -371,7 +538,6 @@ function SlideDiretoriaDetalhe({
   const stats = computeStats(dirServs);
   const presencaPct = stats.total > 0 ? Math.round((stats.presentes / stats.total) * 100) : 0;
 
-  // Dados por unidade
   const unidadeData = dirUnidades.map(uni => {
     const us = dirServs.filter(s => s.unidade_id === uni.id);
     const presentes = us.filter(s => s.status_presenca === "presente").length;
@@ -379,114 +545,84 @@ function SlideDiretoriaDetalhe({
     return { id: uni.id, nome: uni.nome, sigla: uni.sigla, total: us.length, presentes, ferias: us.filter(s => s.status_presenca === "ferias").length, afastados: us.filter(s => s.status_presenca === "afastado").length, pct };
   }).filter(u => u.total > 0).sort((a, b) => b.total - a.total);
 
-  // Servidores sem unidade
   const semUnidade = dirServs.filter(s => !s.unidade_id || !dirUnidades.find(u => u.id === s.unidade_id));
-  const semUnidadePresentes = semUnidade.filter(s => s.status_presenca === "presente").length;
+  const funcCriticas = dirServs.filter(s => s.funcao_critica).length;
 
-  // Composição vínculo da diretoria
   const vinculoData = [
     { name: "Concursados", value: dirServs.filter(s => (s.vinculo || "").includes("CONCURSADO")).length },
     { name: "Contratados", value: dirServs.filter(s => (s.vinculo || "").includes("CONTRATO")).length },
     { name: "Outros", value: dirServs.length - dirServs.filter(s => (s.vinculo || "").includes("CONCURSADO")).length - dirServs.filter(s => (s.vinculo || "").includes("CONTRATO")).length },
   ].filter(d => d.value > 0);
-  const vinculoColors = ["#0d9488", "#3b82f6", "#64748b"];
-
-  // Funções críticas nesta diretoria
-  const funcCriticas = dirServs.filter(s => s.funcao_critica).length;
+  const vinculoColors = ["#0d9488", "#3b82f6", "#475569"];
 
   return (
     <div className="h-full flex flex-col p-8">
       <TVHeader
         title={diretoria.nome}
         subtitle={`${stats.total} servidores · ${dirUnidades.length} unidades`}
-        icon={<Building2 className="h-6 w-6 text-white" />}
+        icon={<Building2 className="h-7 w-7 text-white" />}
       />
 
-      {/* KPIs da diretoria */}
+      {/* KPIs */}
       <div className="grid grid-cols-6 gap-3 mb-4">
-        <MiniStat label="Total" value={stats.total} color="from-slate-600 to-slate-700" icon={<Users className="h-5 w-5" />} delay={150} />
-        <MiniStat label="Presentes" value={stats.presentes} color="from-emerald-600 to-green-700" icon={<CheckCircle className="h-5 w-5" />} delay={250} />
-        <MiniStat label="Férias" value={stats.ferias} color="from-amber-600 to-orange-700" icon={<Palmtree className="h-5 w-5" />} delay={350} />
-        <MiniStat label="Afastados" value={stats.afastados} color="from-red-600 to-rose-700" icon={<AlertTriangle className="h-5 w-5" />} delay={450} />
-        <MiniStat label="Ausentes" value={stats.ausentes} color="from-purple-600 to-violet-700" icon={<Shield className="h-5 w-5" />} delay={550} />
-        <MiniStat label="F. Críticas" value={funcCriticas} color="from-cyan-600 to-teal-700" icon={<Activity className="h-5 w-5" />} delay={650} />
+        <KPICard label="Total" value={stats.total} gradient="from-slate-700/90 to-slate-800/90" icon={<Users className="h-5 w-5" />} delay={150} />
+        <KPICard label="Presentes" value={stats.presentes} gradient="from-emerald-600/90 to-green-800/90" icon={<CheckCircle className="h-5 w-5" />} delay={250} />
+        <KPICard label="Férias" value={stats.ferias} gradient="from-amber-600/90 to-orange-800/90" icon={<Palmtree className="h-5 w-5" />} delay={350} />
+        <KPICard label="Afastados" value={stats.afastados} gradient="from-red-600/90 to-rose-800/90" icon={<AlertTriangle className="h-5 w-5" />} delay={450} />
+        <KPICard label="Ausentes" value={stats.ausentes} gradient="from-purple-600/90 to-violet-800/90" icon={<Shield className="h-5 w-5" />} delay={550} />
+        <KPICard label="F. Críticas" value={funcCriticas} gradient="from-cyan-600/90 to-teal-800/90" icon={<Activity className="h-5 w-5" />} delay={650} />
       </div>
 
-      <PresenceBar pct={presencaPct} label="Presença da Diretoria" />
+      <div className="flex-1 grid grid-cols-12 gap-4 overflow-hidden">
+        {/* Left: Gauge */}
+        <div className="col-span-2 flex flex-col items-center justify-center">
+          <RadialGauge pct={presencaPct} size={140} strokeWidth={12} label="Presença" />
+        </div>
 
-      <div className="flex-1 grid grid-cols-3 gap-4 mt-4 overflow-hidden">
-        {/* Lista de unidades */}
-        <div className="col-span-2 overflow-y-auto tv-auto-scroll space-y-2 pr-2" style={{ scrollbarWidth: "none" }}>
-          {unidadeData.map(uni => (
-            <div key={uni.id} className="rounded-lg bg-[#111d33] border border-[#1e3a5f] p-3 flex items-center justify-between">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1a2744] flex-shrink-0">
-                  <MapPin className="h-4 w-4 text-teal-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-white truncate">{uni.sigla} – {uni.nome}</p>
-                  <div className="flex items-center gap-3 mt-0.5">
-                    <span className="text-xs text-slate-400">{uni.total} servidores</span>
-                    {uni.ferias > 0 && <span className="text-xs text-amber-400">🌴 {uni.ferias}</span>}
-                    {uni.afastados > 0 && <span className="text-xs text-red-400">⚠️ {uni.afastados}</span>}
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 flex-shrink-0 ml-3">
-                <div className="w-24">
-                  <div className="h-2 rounded-full bg-[#1a2744] overflow-hidden">
-                    <div
-                      className={`h-full rounded-full bg-gradient-to-r ${uni.pct >= 80 ? "from-emerald-500 to-green-400" : uni.pct >= 60 ? "from-amber-500 to-yellow-400" : "from-red-500 to-rose-400"}`}
-                      style={{ width: `${uni.pct}%` }}
-                    />
-                  </div>
-                </div>
-                <span className={`text-lg font-extrabold font-mono min-w-[50px] text-right ${uni.pct >= 80 ? "text-emerald-400" : uni.pct >= 60 ? "text-amber-400" : "text-red-400"}`}>
-                  {uni.pct}%
-                </span>
-              </div>
-            </div>
+        {/* Center: Unit list */}
+        <div className="col-span-7 overflow-y-auto tv-auto-scroll space-y-2 pr-2" style={{ scrollbarWidth: "none" }}>
+          {unidadeData.map((uni, i) => (
+            <UnitRow key={uni.id} {...uni} delay={200 + i * 80} />
           ))}
 
           {semUnidade.length > 0 && (
-            <div className="rounded-lg bg-[#111d33] border border-dashed border-[#1e3a5f] p-3 flex items-center justify-between opacity-70">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1a2744]">
-                  <Users className="h-4 w-4 text-slate-500" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-400">Sem unidade definida</p>
-                  <span className="text-xs text-slate-500">{semUnidade.length} servidores · {semUnidadePresentes} presentes</span>
-                </div>
+            <AnimatedCard delay={200 + unidadeData.length * 80}>
+              <div className="rounded-xl bg-[#0f1a2e]/50 border border-dashed border-[#1e3a5f]/30 p-3 flex items-center gap-3 opacity-60">
+                <Users className="h-4 w-4 text-slate-600" />
+                <span className="text-xs text-slate-500">{semUnidade.length} sem unidade · {semUnidade.filter(s => s.status_presenca === "presente").length} presentes</span>
               </div>
-            </div>
+            </AnimatedCard>
           )}
         </div>
 
-        {/* Composição da diretoria */}
-        <div className="rounded-xl bg-[#111d33] border border-[#1e3a5f] p-4 flex flex-col">
-          <p className="text-xs text-slate-500 uppercase tracking-wider mb-3">Composição</p>
-          <div className="flex-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={vinculoData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3} dataKey="value" stroke="none">
-                  {vinculoData.map((_, i) => <Cell key={i} fill={vinculoColors[i % vinculoColors.length]} />)}
-                </Pie>
-                <Tooltip contentStyle={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: "10px", fontSize: "11px", color: "#fff" }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="space-y-2 mt-2">
-            {vinculoData.map((d, i) => (
-              <div key={d.name} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="h-2.5 w-2.5 rounded-full" style={{ background: vinculoColors[i % vinculoColors.length] }} />
-                  <span className="text-xs text-slate-400">{d.name}</span>
-                </div>
-                <span className="text-xs font-bold text-white font-mono">{d.value}</span>
+        {/* Right: Composition */}
+        <div className="col-span-3">
+          <GlowCard className="h-full">
+            <div className="p-4 h-full flex flex-col">
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Composição</p>
+              <div className="flex-1">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={vinculoData} cx="50%" cy="50%" innerRadius={35} outerRadius={60} paddingAngle={4} dataKey="value" stroke="none">
+                      {vinculoData.map((_, i) => <Cell key={i} fill={vinculoColors[i % vinculoColors.length]} />)}
+                    </Pie>
+                    <Tooltip contentStyle={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: "12px", fontSize: "11px", color: "#fff" }} />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-            ))}
-          </div>
+              <div className="space-y-2.5 mt-2">
+                {vinculoData.map((d, i) => (
+                  <div key={d.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="h-3 w-3 rounded-full" style={{ background: vinculoColors[i], boxShadow: `0 0 8px ${vinculoColors[i]}40` }} />
+                      <span className="text-[11px] text-slate-400">{d.name}</span>
+                    </div>
+                    <span className="text-xs font-black text-white font-mono">{d.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </GlowCard>
         </div>
       </div>
     </div>
@@ -494,7 +630,7 @@ function SlideDiretoriaDetalhe({
 }
 
 // ═══════════════════════════════════════════════════
-// SLIDE: MAPA DE PRESENÇA POR UNIDADE (todas)
+// SLIDE: MAPA DE PRESENÇA POR UNIDADE
 // ═══════════════════════════════════════════════════
 function SlideMapaUnidades({ servidores, unidades, diretorias }: { servidores: ServidorDB[]; unidades: UnidadeDB[]; diretorias: DiretoriaDB[] }) {
   const uniData = useMemo(() => {
@@ -509,30 +645,41 @@ function SlideMapaUnidades({ servidores, unidades, diretorias }: { servidores: S
 
   return (
     <div className="h-full flex flex-col p-8">
-      <TVHeader title="Mapa de Presença por Unidade" subtitle={`${uniData.length} unidades ativas`} icon={<MapPin className="h-6 w-6 text-white" />} />
+      <TVHeader title="Mapa de Presença por Unidade" subtitle={`${uniData.length} unidades ativas`} icon={<MapPin className="h-7 w-7 text-white" />} />
       <div className="flex-1 overflow-y-auto tv-auto-scroll pr-2" style={{ scrollbarWidth: "none" }}>
         <div className="grid grid-cols-4 gap-3">
-          {uniData.map((uni, i) => (
-            <AnimatedCard key={uni.id} delay={100 + i * 50}>
-              <div className="rounded-xl bg-[#111d33] border border-[#1e3a5f] p-3 hover:border-teal-500/30 transition-colors duration-300">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-teal-400 uppercase">{uni.sigla}</span>
-                  <span className={`text-lg font-extrabold font-mono ${uni.pct >= 80 ? "text-emerald-400" : uni.pct >= 60 ? "text-amber-400" : "text-red-400"}`}>{uni.pct}%</span>
+          {uniData.map((uni, i) => {
+            const barColor = uni.pct >= 80 ? "from-emerald-500 to-green-400" : uni.pct >= 60 ? "from-amber-500 to-yellow-400" : "from-red-500 to-rose-400";
+            const textColor = uni.pct >= 80 ? "text-emerald-400" : uni.pct >= 60 ? "text-amber-400" : "text-red-400";
+            const glowColor = uni.pct >= 80 ? "rgba(16,185,129,0.15)" : uni.pct >= 60 ? "rgba(245,158,11,0.15)" : "rgba(239,68,68,0.15)";
+
+            return (
+              <AnimatedCard key={uni.id} delay={80 + i * 40}>
+                <div
+                  className="rounded-2xl bg-[#0f1a2e]/80 border border-[#1e3a5f]/40 p-4 hover:border-teal-500/30 transition-all duration-300 group"
+                  style={{ boxShadow: `inset 0 -2px 20px ${glowColor}` }}
+                >
+                  <div className="flex items-center justify-between mb-2.5">
+                    <span className="text-xs font-black text-teal-400 uppercase tracking-wider">{uni.sigla}</span>
+                    <span className={`text-xl font-black font-mono ${textColor}`}>
+                      {uni.pct}<span className="text-[10px] text-slate-600">%</span>
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 truncate mb-3">{uni.nome}</p>
+                  <div className="h-2 rounded-full bg-[#1a2744] overflow-hidden">
+                    <div
+                      className={`h-full rounded-full bg-gradient-to-r ${barColor}`}
+                      style={{ width: `${uni.pct}%`, transition: "width 1.2s ease-out" }}
+                    />
+                  </div>
+                  <div className="flex justify-between mt-2">
+                    <span className="text-[10px] text-slate-500 font-mono">{uni.presentes}/{uni.total}</span>
+                    <span className="text-[10px] text-slate-600 truncate ml-2 max-w-[80px]">{uni.diretoria}</span>
+                  </div>
                 </div>
-                <p className="text-[10px] text-slate-400 truncate mb-2">{uni.nome}</p>
-                <div className="h-1.5 rounded-full bg-[#1a2744] overflow-hidden">
-                  <div
-                    className={`h-full rounded-full bg-gradient-to-r ${uni.pct >= 80 ? "from-emerald-500 to-green-400" : uni.pct >= 60 ? "from-amber-500 to-yellow-400" : "from-red-500 to-rose-400"}`}
-                    style={{ width: `${uni.pct}%`, transition: "width 1s ease-out" }}
-                  />
-                </div>
-                <div className="flex justify-between mt-1.5">
-                  <span className="text-[10px] text-slate-500">{uni.presentes}/{uni.total}</span>
-                  <span className="text-[10px] text-slate-600 truncate ml-2">{uni.diretoria}</span>
-                </div>
-              </div>
-            </AnimatedCard>
-          ))}
+              </AnimatedCard>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -549,10 +696,11 @@ export default function ModoTV() {
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [slideDirection, setSlideDirection] = useState<"left" | "right">("left");
   const [transitioning, setTransitioning] = useState(false);
 
   const SLIDE_DURATION = 20000;
-  const TRANSITION_DURATION = 800;
+  const TRANSITION_DURATION = 900;
 
   const loadData = useCallback(async () => {
     const PAGE = 1000;
@@ -582,101 +730,146 @@ export default function ModoTV() {
     return () => clearInterval(interval);
   }, [unlocked, loadData]);
 
-  // Build slides dynamically
   const slides = useMemo(() => {
     if (loading) return [];
     const s: React.ReactNode[] = [];
-
-    // 1. Overview
     s.push(<SlideOverview key="overview" servidores={servidores} diretorias={diretorias} unidades={unidades} />);
-
-    // 2. Ranking
     s.push(<SlideRankingDiretorias key="ranking" servidores={servidores} diretorias={diretorias} />);
-
-    // 3. Composição
     s.push(<SlideComposicao key="composicao" servidores={servidores} />);
-
-    // 4. Slides individuais por diretoria (apenas com servidores)
     const dirsComServs = diretorias.filter(d => servidores.some(s => s.diretoria_id === d.id));
     dirsComServs.forEach(dir => {
       s.push(<SlideDiretoriaDetalhe key={`dir-${dir.id}`} diretoria={dir} servidores={servidores} unidades={unidades} />);
     });
-
-    // Último: Mapa de unidades
     s.push(<SlideMapaUnidades key="mapa" servidores={servidores} unidades={unidades} diretorias={diretorias} />);
-
     return s;
   }, [servidores, diretorias, unidades, loading]);
 
   const TOTAL_SLIDES = slides.length;
 
+  const goToSlide = useCallback((index: number, direction: "left" | "right" = "left") => {
+    setSlideDirection(direction);
+    setTransitioning(true);
+    setTimeout(() => {
+      setCurrentSlide(index);
+      setTransitioning(false);
+    }, TRANSITION_DURATION / 2);
+  }, []);
+
   // Auto-rotate
   useEffect(() => {
     if (!unlocked || loading || TOTAL_SLIDES === 0) return;
     const interval = setInterval(() => {
-      setTransitioning(true);
-      setTimeout(() => {
-        setCurrentSlide(prev => (prev + 1) % TOTAL_SLIDES);
-        setTransitioning(false);
-      }, TRANSITION_DURATION);
+      goToSlide((currentSlide + 1) % TOTAL_SLIDES, "left");
     }, SLIDE_DURATION);
     return () => clearInterval(interval);
-  }, [unlocked, loading, TOTAL_SLIDES]);
+  }, [unlocked, loading, TOTAL_SLIDES, currentSlide, goToSlide]);
 
-  if (!unlocked) {
-    return <PasswordGate onUnlock={() => setUnlocked(true)} />;
-  }
+  // Keyboard navigation
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight" || e.key === " ") {
+        goToSlide((currentSlide + 1) % TOTAL_SLIDES, "left");
+      } else if (e.key === "ArrowLeft") {
+        goToSlide((currentSlide - 1 + TOTAL_SLIDES) % TOTAL_SLIDES, "right");
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [currentSlide, TOTAL_SLIDES, goToSlide]);
+
+  if (!unlocked) return <PasswordGate onUnlock={() => setUnlocked(true)} />;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a1628] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center animate-pulse">
-            <Monitor className="h-8 w-8 text-white" />
+      <div className="min-h-screen bg-[#060e1a] flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-1/3 left-1/3 w-[500px] h-[500px] bg-teal-500/5 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/3 right-1/3 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+        </div>
+        <div className="relative flex flex-col items-center gap-6">
+          <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center shadow-2xl shadow-teal-500/30">
+            <Monitor className="h-10 w-10 text-white animate-pulse" />
           </div>
-          <p className="text-slate-400 text-sm">Carregando painel...</p>
+          <div className="text-center">
+            <p className="text-white font-bold text-lg">Carregando Painel</p>
+            <p className="text-slate-500 text-sm mt-1">Preparando dados em tempo real...</p>
+          </div>
+          <div className="w-48 h-1 rounded-full bg-[#1a2744] overflow-hidden">
+            <div className="h-full w-full bg-gradient-to-r from-teal-500 to-cyan-400 rounded-full animate-pulse" />
+          </div>
         </div>
       </div>
     );
   }
 
+  const getTransitionStyle = () => {
+    if (!transitioning) return { opacity: 1, transform: "translateX(0) scale(1)", filter: "blur(0px)" };
+    const dir = slideDirection === "left" ? 30 : -30;
+    return { opacity: 0, transform: `translateX(${dir}px) scale(0.97)`, filter: "blur(4px)" };
+  };
+
   return (
-    <div className="h-screen w-screen bg-[#0a1628] overflow-hidden relative select-none cursor-none">
+    <div className="h-screen w-screen bg-[#060e1a] overflow-hidden relative select-none cursor-none">
+      {/* Background ambient effects */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-teal-500/[0.02] rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-cyan-500/[0.02] rounded-full blur-3xl" />
+        {/* Subtle grid pattern */}
+        <div className="absolute inset-0" style={{
+          backgroundImage: "radial-gradient(circle at 1px 1px, rgba(30,58,95,0.15) 1px, transparent 0)",
+          backgroundSize: "40px 40px",
+        }} />
+      </div>
+
+      {/* Slide content */}
       <div
-        className={`h-full w-full transition-all duration-700 ease-in-out ${
-          transitioning ? "opacity-0 scale-[0.98]" : "opacity-100 scale-100"
-        }`}
+        className="h-full w-full relative z-10"
+        style={{
+          ...getTransitionStyle(),
+          transition: `opacity ${TRANSITION_DURATION / 2}ms ease-in-out, transform ${TRANSITION_DURATION / 2}ms ease-in-out, filter ${TRANSITION_DURATION / 2}ms ease-in-out`,
+        }}
       >
         {slides[currentSlide]}
       </div>
 
+      {/* Progress bar (top) */}
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-[#0f1a2e] z-20">
+        <div
+          key={`progress-${currentSlide}`}
+          className="h-full bg-gradient-to-r from-teal-500 via-cyan-400 to-teal-500 animate-tv-progress shadow-lg shadow-teal-500/30"
+          style={{ animationDuration: `${SLIDE_DURATION}ms` }}
+        />
+      </div>
+
       {/* Slide indicators */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2">
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
         {Array.from({ length: TOTAL_SLIDES }).map((_, i) => (
           <button
             key={i}
-            onClick={() => { setTransitioning(true); setTimeout(() => { setCurrentSlide(i); setTransitioning(false); }, 300); }}
-            className={`transition-all duration-300 rounded-full cursor-pointer ${
+            onClick={() => goToSlide(i, i > currentSlide ? "left" : "right")}
+            className={`transition-all duration-500 rounded-full cursor-pointer ${
               i === currentSlide
-                ? "w-6 h-2 bg-teal-400"
-                : "w-2 h-2 bg-slate-700 hover:bg-slate-600"
+                ? "w-8 h-2.5 bg-gradient-to-r from-teal-400 to-cyan-400 shadow-lg shadow-teal-400/30"
+                : "w-2.5 h-2.5 bg-slate-700/50 hover:bg-slate-600"
             }`}
           />
         ))}
       </div>
 
       {/* Slide counter */}
-      <div className="absolute bottom-4 right-6 text-xs text-slate-600 font-mono">
-        {currentSlide + 1} / {TOTAL_SLIDES}
+      <div className="absolute bottom-5 right-8 flex items-center gap-3 z-20">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0f1a2e]/80 border border-[#1e3a5f]/30 backdrop-blur-sm">
+          <Clock className="h-3 w-3 text-slate-600" />
+          <span className="text-[11px] text-slate-500 font-mono font-bold">
+            {currentSlide + 1}<span className="text-slate-700">/</span>{TOTAL_SLIDES}
+          </span>
+        </div>
       </div>
 
-      {/* Progress bar */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-[#111d33]">
-        <div
-          key={currentSlide}
-          className="h-full bg-gradient-to-r from-teal-500 to-cyan-400 animate-tv-progress"
-          style={{ animationDuration: `${SLIDE_DURATION}ms` }}
-        />
+      {/* Logo watermark */}
+      <div className="absolute bottom-5 left-8 flex items-center gap-2 z-20 opacity-40">
+        <Zap className="h-3.5 w-3.5 text-teal-500" />
+        <span className="text-[10px] text-slate-600 font-bold uppercase tracking-widest">SMSTL Monitor</span>
       </div>
     </div>
   );
