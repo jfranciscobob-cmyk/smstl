@@ -8,6 +8,50 @@ import {
   Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Monitor, Lock, Activity, MapPin, Briefcase, Heart,
 } from "lucide-react";
 
+// ─── Animated counter hook ───
+function useAnimatedCount(target: number, duration = 1200) {
+  const [count, setCount] = useState(0);
+  const prevTarget = useRef(0);
+  useEffect(() => {
+    const start = prevTarget.current;
+    prevTarget.current = target;
+    if (target === 0) { setCount(0); return; }
+    const startTime = performance.now();
+    let raf: number;
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.round(start + (target - start) * eased));
+      if (progress < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return count;
+}
+
+// ─── Staggered animation wrapper ───
+function AnimatedCard({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), delay);
+    return () => clearTimeout(t);
+  }, [delay]);
+  return (
+    <div
+      className={className}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0) scale(1)" : "translateY(20px) scale(0.95)",
+        transition: `opacity 0.5s ease-out, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 const TV_PASSWORD = "S2026";
 
 // ─── Password Gate ───
