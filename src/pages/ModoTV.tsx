@@ -198,7 +198,7 @@ function SlideOverview({ servidores, diretorias, unidades }: { servidores: Servi
       <TVHeader title="Secretaria Municipal de Saúde" subtitle="Painel Geral de Monitoramento" icon={<Shield className="h-6 w-6 text-white" />} />
 
       <div className="grid grid-cols-6 gap-4 my-4">
-        {kpis.map(k => <MiniStat key={k.label} {...k} />)}
+        {kpis.map((k, i) => <MiniStat key={k.label} {...k} delay={200 + i * 100} />)}
       </div>
 
       <div className="grid grid-cols-3 gap-6 my-4">
