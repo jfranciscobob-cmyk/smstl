@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB } from "@/hooks/useServidores";
 import {
@@ -7,6 +7,50 @@ import {
 import {
   Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Monitor, Lock, Activity, MapPin, Briefcase, Heart,
 } from "lucide-react";
+
+// ─── Animated counter hook ───
+function useAnimatedCount(target: number, duration = 1200) {
+  const [count, setCount] = useState(0);
+  const prevTarget = useRef(0);
+  useEffect(() => {
+    const start = prevTarget.current;
+    prevTarget.current = target;
+    if (target === 0) { setCount(0); return; }
+    const startTime = performance.now();
+    let raf: number;
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.round(start + (target - start) * eased));
+      if (progress < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return count;
+}
+
+// ─── Staggered animation wrapper ───
+function AnimatedCard({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), delay);
+    return () => clearTimeout(t);
+  }, [delay]);
+  return (
+    <div
+      className={className}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0) scale(1)" : "translateY(20px) scale(0.95)",
+        transition: `opacity 0.5s ease-out, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
 
 const TV_PASSWORD = "S2026";
 
@@ -97,15 +141,18 @@ function TVHeader({ title, subtitle, icon }: { title: string; subtitle?: string;
 }
 
 // ─── Mini stat card ───
-function MiniStat({ label, value, color, icon }: { label: string; value: number; color: string; icon: React.ReactNode }) {
+function MiniStat({ label, value, color, icon, delay = 0 }: { label: string; value: number; color: string; icon: React.ReactNode; delay?: number }) {
+  const animatedValue = useAnimatedCount(value);
   return (
-    <div className={`rounded-xl bg-gradient-to-br ${color} p-4 shadow-lg flex flex-col justify-between min-h-[100px]`}>
-      <div className="text-white/70">{icon}</div>
-      <div>
-        <p className="text-3xl font-extrabold text-white font-mono">{value}</p>
-        <p className="text-[10px] font-bold text-white/50 uppercase tracking-wider mt-1">{label}</p>
+    <AnimatedCard delay={delay}>
+      <div className={`rounded-xl bg-gradient-to-br ${color} p-4 shadow-lg flex flex-col justify-between min-h-[100px] hover:scale-105 transition-transform duration-300`}>
+        <div className="text-white/70">{icon}</div>
+        <div>
+          <p className="text-3xl font-extrabold text-white font-mono">{animatedValue}</p>
+          <p className="text-[10px] font-bold text-white/50 uppercase tracking-wider mt-1">{label}</p>
+        </div>
       </div>
-    </div>
+    </AnimatedCard>
   );
 }
 
@@ -151,7 +198,7 @@ function SlideOverview({ servidores, diretorias, unidades }: { servidores: Servi
       <TVHeader title="Secretaria Municipal de Saúde" subtitle="Painel Geral de Monitoramento" icon={<Shield className="h-6 w-6 text-white" />} />
 
       <div className="grid grid-cols-6 gap-4 my-4">
-        {kpis.map(k => <MiniStat key={k.label} {...k} />)}
+        {kpis.map((k, i) => <MiniStat key={k.label} {...k} delay={200 + i * 100} />)}
       </div>
 
       <div className="grid grid-cols-3 gap-6 my-4">
@@ -357,12 +404,12 @@ function SlideDiretoriaDetalhe({
 
       {/* KPIs da diretoria */}
       <div className="grid grid-cols-6 gap-3 mb-4">
-        <MiniStat label="Total" value={stats.total} color="from-slate-600 to-slate-700" icon={<Users className="h-5 w-5" />} />
-        <MiniStat label="Presentes" value={stats.presentes} color="from-emerald-600 to-green-700" icon={<CheckCircle className="h-5 w-5" />} />
-        <MiniStat label="Férias" value={stats.ferias} color="from-amber-600 to-orange-700" icon={<Palmtree className="h-5 w-5" />} />
-        <MiniStat label="Afastados" value={stats.afastados} color="from-red-600 to-rose-700" icon={<AlertTriangle className="h-5 w-5" />} />
-        <MiniStat label="Ausentes" value={stats.ausentes} color="from-purple-600 to-violet-700" icon={<Shield className="h-5 w-5" />} />
-        <MiniStat label="F. Críticas" value={funcCriticas} color="from-cyan-600 to-teal-700" icon={<Activity className="h-5 w-5" />} />
+        <MiniStat label="Total" value={stats.total} color="from-slate-600 to-slate-700" icon={<Users className="h-5 w-5" />} delay={150} />
+        <MiniStat label="Presentes" value={stats.presentes} color="from-emerald-600 to-green-700" icon={<CheckCircle className="h-5 w-5" />} delay={250} />
+        <MiniStat label="Férias" value={stats.ferias} color="from-amber-600 to-orange-700" icon={<Palmtree className="h-5 w-5" />} delay={350} />
+        <MiniStat label="Afastados" value={stats.afastados} color="from-red-600 to-rose-700" icon={<AlertTriangle className="h-5 w-5" />} delay={450} />
+        <MiniStat label="Ausentes" value={stats.ausentes} color="from-purple-600 to-violet-700" icon={<Shield className="h-5 w-5" />} delay={550} />
+        <MiniStat label="F. Críticas" value={funcCriticas} color="from-cyan-600 to-teal-700" icon={<Activity className="h-5 w-5" />} delay={650} />
       </div>
 
       <PresenceBar pct={presencaPct} label="Presença da Diretoria" />
@@ -465,24 +512,26 @@ function SlideMapaUnidades({ servidores, unidades, diretorias }: { servidores: S
       <TVHeader title="Mapa de Presença por Unidade" subtitle={`${uniData.length} unidades ativas`} icon={<MapPin className="h-6 w-6 text-white" />} />
       <div className="flex-1 overflow-y-auto tv-auto-scroll pr-2" style={{ scrollbarWidth: "none" }}>
         <div className="grid grid-cols-4 gap-3">
-          {uniData.map(uni => (
-            <div key={uni.id} className="rounded-xl bg-[#111d33] border border-[#1e3a5f] p-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-teal-400 uppercase">{uni.sigla}</span>
-                <span className={`text-lg font-extrabold font-mono ${uni.pct >= 80 ? "text-emerald-400" : uni.pct >= 60 ? "text-amber-400" : "text-red-400"}`}>{uni.pct}%</span>
+          {uniData.map((uni, i) => (
+            <AnimatedCard key={uni.id} delay={100 + i * 50}>
+              <div className="rounded-xl bg-[#111d33] border border-[#1e3a5f] p-3 hover:border-teal-500/30 transition-colors duration-300">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-teal-400 uppercase">{uni.sigla}</span>
+                  <span className={`text-lg font-extrabold font-mono ${uni.pct >= 80 ? "text-emerald-400" : uni.pct >= 60 ? "text-amber-400" : "text-red-400"}`}>{uni.pct}%</span>
+                </div>
+                <p className="text-[10px] text-slate-400 truncate mb-2">{uni.nome}</p>
+                <div className="h-1.5 rounded-full bg-[#1a2744] overflow-hidden">
+                  <div
+                    className={`h-full rounded-full bg-gradient-to-r ${uni.pct >= 80 ? "from-emerald-500 to-green-400" : uni.pct >= 60 ? "from-amber-500 to-yellow-400" : "from-red-500 to-rose-400"}`}
+                    style={{ width: `${uni.pct}%`, transition: "width 1s ease-out" }}
+                  />
+                </div>
+                <div className="flex justify-between mt-1.5">
+                  <span className="text-[10px] text-slate-500">{uni.presentes}/{uni.total}</span>
+                  <span className="text-[10px] text-slate-600 truncate ml-2">{uni.diretoria}</span>
+                </div>
               </div>
-              <p className="text-[10px] text-slate-400 truncate mb-2">{uni.nome}</p>
-              <div className="h-1.5 rounded-full bg-[#1a2744] overflow-hidden">
-                <div
-                  className={`h-full rounded-full bg-gradient-to-r ${uni.pct >= 80 ? "from-emerald-500 to-green-400" : uni.pct >= 60 ? "from-amber-500 to-yellow-400" : "from-red-500 to-rose-400"}`}
-                  style={{ width: `${uni.pct}%` }}
-                />
-              </div>
-              <div className="flex justify-between mt-1.5">
-                <span className="text-[10px] text-slate-500">{uni.presentes}/{uni.total}</span>
-                <span className="text-[10px] text-slate-600 truncate ml-2">{uni.diretoria}</span>
-              </div>
-            </div>
+            </AnimatedCard>
           ))}
         </div>
       </div>
