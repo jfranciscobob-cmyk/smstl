@@ -15,6 +15,7 @@ import AdminUsuarios from "./pages/AdminUsuarios";
 import SetupAdmin from "./pages/SetupAdmin";
 import NotFound from "./pages/NotFound";
 import Manual from "./pages/Manual";
+import ModoTV from "./pages/ModoTV";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
