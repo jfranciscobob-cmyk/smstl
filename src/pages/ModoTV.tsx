@@ -341,7 +341,7 @@ export default function ModoTV() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
 
-  const SLIDE_DURATION = 15000; // 15 seconds per slide
+  const SLIDE_DURATION = 20000; // 20 seconds per slide
   const TRANSITION_DURATION = 800;
   const TOTAL_SLIDES = 4;
 
