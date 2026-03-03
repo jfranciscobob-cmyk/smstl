@@ -105,6 +105,8 @@ function EstruturaContent() {
     setAgrupamentos((ag.data ?? []) as AgrupamentoDB[]);
     setServidoresUnidades((su.data ?? []) as { servidor_id: string; unidade_id: string }[]);
     setServidoresSetores((ss.data ?? []) as { servidor_id: string; setor_id: string }[]);
+    setEquipesSaude((eq.data ?? []) as { id: string; nome: string; tipo: string; unidade_id: string; responsavel_id: string | null }[]);
+    setServidoresEquipes((se.data ?? []) as { servidor_id: string; equipe_id: string }[]);
     setAllServidores(allServidores as ServidorDB[]);
     setLoading(false);
   }, []);
