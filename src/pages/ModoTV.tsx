@@ -8,7 +8,7 @@ import {
   Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Monitor, Lock, ChevronRight, Activity,
 } from "lucide-react";
 
-const TV_PASSWORD = "smstl2024";
+const TV_PASSWORD = "S2026";
 
 // ─── Password Gate ───
 function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
@@ -341,7 +341,7 @@ export default function ModoTV() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [transitioning, setTransitioning] = useState(false);
 
-  const SLIDE_DURATION = 15000; // 15 seconds per slide
+  const SLIDE_DURATION = 20000; // 20 seconds per slide
   const TRANSITION_DURATION = 800;
   const TOTAL_SLIDES = 4;
 
@@ -408,13 +408,15 @@ export default function ModoTV() {
 
   return (
     <div className="h-screen w-screen bg-[#0a1628] overflow-hidden relative select-none cursor-none">
-      {/* Slide content */}
+      {/* Slide content with auto-scroll */}
       <div
         className={`h-full w-full transition-all duration-700 ease-in-out ${
           transitioning ? "opacity-0 scale-[0.98]" : "opacity-100 scale-100"
         }`}
       >
-        {slides[currentSlide]}
+        <div className="h-full overflow-y-auto tv-auto-scroll">
+          {slides[currentSlide]}
+        </div>
       </div>
 
       {/* Slide indicators */}

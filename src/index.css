@@ -148,6 +148,24 @@
   animation: tv-progress linear forwards;
 }
 
+@keyframes tv-auto-scroll {
+  0%, 10% { transform: translateY(0); }
+  90%, 100% { transform: translateY(calc(-100% + 100vh)); }
+}
+
+.tv-auto-scroll > * {
+  animation: tv-auto-scroll 18s ease-in-out infinite;
+}
+
+.tv-auto-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tv-auto-scroll::-webkit-scrollbar {
+  display: none;
+}
+
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-6px); }
