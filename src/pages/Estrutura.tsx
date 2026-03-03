@@ -14,6 +14,7 @@ import { UnidadeServidores } from "@/components/UnidadeServidores";
 import { EditServidorModal } from "@/components/EditServidorModal";
 import { SetorList } from "@/components/SetorList";
 import { FuncaoList } from "@/components/FuncaoList";
+import { EquipeSaudeList } from "@/components/EquipeSaudeList";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ServidorConflictBadge, ServidorAlreadyAllocatedWarning } from "@/components/ServidorConflictBadge";
 
@@ -30,6 +31,8 @@ function EstruturaContent() {
   const [agrupamentos, setAgrupamentos] = useState<AgrupamentoDB[]>([]);
   const [servidoresUnidades, setServidoresUnidades] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
   const [servidoresSetores, setServidoresSetores] = useState<{ servidor_id: string; setor_id: string }[]>([]);
+  const [equipesSaude, setEquipesSaude] = useState<{ id: string; nome: string; tipo: string; unidade_id: string; responsavel_id: string | null }[]>([]);
+  const [servidoresEquipes, setServidoresEquipes] = useState<{ servidor_id: string; equipe_id: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
@@ -63,7 +66,7 @@ function EstruturaContent() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [d, u, c, st, fc, cu, ag, su, ss] = await Promise.all([
+    const [d, u, c, st, fc, cu, ag, su, ss, eq, se] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenacoes").select("*").order("nome"),
@@ -73,6 +76,8 @@ function EstruturaContent() {
       supabase.from("agrupamentos").select("*").order("nome"),
       supabase.from("servidores_unidades").select("servidor_id, unidade_id"),
       supabase.from("servidores_setores").select("servidor_id, setor_id"),
+      supabase.from("equipes_saude").select("id, nome, tipo, unidade_id, responsavel_id").order("nome"),
+      supabase.from("servidores_equipes").select("servidor_id, equipe_id"),
     ]);
     // Fetch all servidores with pagination (bypass 1000 limit)
     const selectCols = "id, nome, matricula, cargo, diretoria_id, unidade_id, coordenacao_id, setor_id, funcao_id, is_diretor, is_coordenador, is_coordenador_medico, is_secretario, is_diretor_geral, escala_inicio1, escala_fim1, escala_inicio2, escala_fim2, escala_total_horas, vinculo";
@@ -100,6 +105,8 @@ function EstruturaContent() {
     setAgrupamentos((ag.data ?? []) as AgrupamentoDB[]);
     setServidoresUnidades((su.data ?? []) as { servidor_id: string; unidade_id: string }[]);
     setServidoresSetores((ss.data ?? []) as { servidor_id: string; setor_id: string }[]);
+    setEquipesSaude((eq.data ?? []) as { id: string; nome: string; tipo: string; unidade_id: string; responsavel_id: string | null }[]);
+    setServidoresEquipes((se.data ?? []) as { servidor_id: string; equipe_id: string }[]);
     setAllServidores(allServidores as ServidorDB[]);
     setLoading(false);
   }, []);
@@ -1548,6 +1555,20 @@ function EstruturaContent() {
                                       </div>
                                     );
                                   })()}
+                                </div>
+                              )}
+
+                              {/* Equipes de Saúde */}
+                              {uniExpanded && (
+                                <div className="px-4 pb-3 ml-6">
+                                  <EquipeSaudeList
+                                    equipes={equipesSaude}
+                                    servidoresEquipes={servidoresEquipes}
+                                    servidores={servidores}
+                                    unidadeId={uni.id}
+                                    contextServidores={getServidoresByUnidade(uni.id)}
+                                    onReload={loadData}
+                                  />
                                 </div>
                               )}
 
