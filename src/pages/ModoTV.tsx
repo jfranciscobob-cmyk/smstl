@@ -8,7 +8,7 @@ import {
   Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Monitor, Lock, ChevronRight, Activity,
 } from "lucide-react";
 
-const TV_PASSWORD = "smstl2024";
+const TV_PASSWORD = "S2026";
 
 // ─── Password Gate ───
 function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
