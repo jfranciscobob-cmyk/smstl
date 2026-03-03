@@ -15,6 +15,7 @@ import AdminUsuarios from "./pages/AdminUsuarios";
 import SetupAdmin from "./pages/SetupAdmin";
 import NotFound from "./pages/NotFound";
 import Manual from "./pages/Manual";
+import ModoTV from "./pages/ModoTV";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -101,6 +102,7 @@ function AppRoutes() {
       <Route path="/acesso" element={<ProtectedRoute auth={auth}><AcessoRapido /></ProtectedRoute>} />
       <Route path="/admin/usuarios" element={<ProtectedRoute auth={auth} requireFullAccess><AdminUsuarios /></ProtectedRoute>} />
       <Route path="/manual" element={<ProtectedRoute auth={auth}><Manual /></ProtectedRoute>} />
+      <Route path="/tv" element={<ModoTV />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
