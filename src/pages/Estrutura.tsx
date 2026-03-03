@@ -14,6 +14,7 @@ import { UnidadeServidores } from "@/components/UnidadeServidores";
 import { EditServidorModal } from "@/components/EditServidorModal";
 import { SetorList } from "@/components/SetorList";
 import { FuncaoList } from "@/components/FuncaoList";
+import { EquipeSaudeList } from "@/components/EquipeSaudeList";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ServidorConflictBadge, ServidorAlreadyAllocatedWarning } from "@/components/ServidorConflictBadge";
 
