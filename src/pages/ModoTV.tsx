@@ -408,13 +408,15 @@ export default function ModoTV() {
 
   return (
     <div className="h-screen w-screen bg-[#0a1628] overflow-hidden relative select-none cursor-none">
-      {/* Slide content */}
+      {/* Slide content with auto-scroll */}
       <div
         className={`h-full w-full transition-all duration-700 ease-in-out ${
           transitioning ? "opacity-0 scale-[0.98]" : "opacity-100 scale-100"
         }`}
       >
-        {slides[currentSlide]}
+        <div className="h-full overflow-y-auto tv-auto-scroll">
+          {slides[currentSlide]}
+        </div>
       </div>
 
       {/* Slide indicators */}
