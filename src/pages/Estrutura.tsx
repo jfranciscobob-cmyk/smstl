@@ -31,6 +31,8 @@ function EstruturaContent() {
   const [agrupamentos, setAgrupamentos] = useState<AgrupamentoDB[]>([]);
   const [servidoresUnidades, setServidoresUnidades] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
   const [servidoresSetores, setServidoresSetores] = useState<{ servidor_id: string; setor_id: string }[]>([]);
+  const [equipesSaude, setEquipesSaude] = useState<{ id: string; nome: string; tipo: string; unidade_id: string; responsavel_id: string | null }[]>([]);
+  const [servidoresEquipes, setServidoresEquipes] = useState<{ servidor_id: string; equipe_id: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
