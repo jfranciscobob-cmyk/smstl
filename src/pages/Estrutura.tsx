@@ -1558,6 +1558,20 @@ function EstruturaContent() {
                                 </div>
                               )}
 
+                              {/* Equipes de Saúde */}
+                              {uniExpanded && (
+                                <div className="px-4 pb-3 ml-6">
+                                  <EquipeSaudeList
+                                    equipes={equipesSaude}
+                                    servidoresEquipes={servidoresEquipes}
+                                    servidores={servidores}
+                                    unidadeId={uni.id}
+                                    contextServidores={getServidoresByUnidade(uni.id)}
+                                    onReload={loadData}
+                                  />
+                                </div>
+                              )}
+
                               {/* Funções da unidade */}
                               {uniExpanded && (
                                 <div className="px-4 pb-3 ml-6">
