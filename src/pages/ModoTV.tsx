@@ -973,10 +973,11 @@ export default function ModoTV() {
   const diretoriaParam = searchParams.get("diretoria") || "";
 
   const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem("tv_unlocked") === "1");
-  const [servidores, setServidores] = useState<ServidorDB[]>([]);
+  const [servidoresRaw, setServidoresRaw] = useState<ServidorDB[]>([]);
   const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
   const [coordenadoresUnidades, setCoordenadoresUnidades] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
+  const [escalasSemanais, setEscalasSemanais] = useState<EscalaSemanalRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideDirection, setSlideDirection] = useState<"left" | "right">("left");
