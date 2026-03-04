@@ -1021,9 +1021,14 @@ export default function ModoTV() {
   // Find specific diretoria if param provided
   const targetDiretoria = diretoriaParam ? diretorias.find(d => d.id === diretoriaParam) : null;
 
+  // Apply auto-presence based on escalas_semanais
+  const servidores = useMemo(
+    () => applyAutoPresenca(servidoresRaw, escalasSemanais),
+    [servidoresRaw, escalasSemanais],
+  );
+
   const slides = useMemo(() => {
     if (loading) return [];
-    const s: React.ReactNode[] = [];
 
     if (targetDiretoria) {
       // ── MODO DIRETORIA ESPECÍFICA ──
