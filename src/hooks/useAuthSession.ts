@@ -16,6 +16,7 @@ export interface AuthSession {
   isAdmin: boolean;
   isDiretor: boolean;
   isCoordenador: boolean;
+  isCoordenadorGeral: boolean;
   hasFullAccess: boolean;
   hasFinancialAccess: boolean;
   signOut: () => Promise<void>;
