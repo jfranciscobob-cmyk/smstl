@@ -47,6 +47,7 @@ function isOnline(lastSeen: string | null): boolean {
 
 export default function AdminUsuarios() {
   const { toast } = useToast();
+  const { isAdmin, isDiretor, diretoriaIds: authDiretoriaIds } = useAuthSession();
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [roles, setRoles] = useState<RoleRow[]>([]);
   const [requests, setRequests] = useState<RegistrationRequest[]>([]);
