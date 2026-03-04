@@ -593,7 +593,7 @@ export default function AdminUsuarios() {
                     <span key={r} className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${roleColor[r] || "bg-muted text-muted-foreground"}`}>
                       {r === "admin" && <Shield className="h-3 w-3" />}
                       {r === "diretor" && <Building2 className="h-3 w-3" />}
-                      {r === "coordenador" && <Users className="h-3 w-3" />}
+                      {(r === "coordenador" || r === "coordenador_geral") && <Users className="h-3 w-3" />}
                       {roleLabel[r] || r}
                     </span>
                   ))}
