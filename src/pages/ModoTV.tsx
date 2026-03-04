@@ -56,6 +56,64 @@ function AnimatedCard({ children, delay = 0, className = "" }: { children: React
   );
 }
 
+// ─── JS-based smooth auto-scroll for TV panels ───
+function useAutoScroll(duration = 28000): RefObject<HTMLDivElement | null> {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    // Reset scroll on mount
+    el.scrollTop = 0;
+    // Wait a moment then check if scrollable
+    const startDelay = setTimeout(() => {
+      if (!el) return;
+      const maxScroll = el.scrollHeight - el.clientHeight;
+      if (maxScroll <= 5) return; // No need to scroll
+      // Scroll down slowly over most of the duration, pause at ends
+      const pauseTime = duration * 0.12; // 12% pause at top and bottom
+      const scrollTime = duration - pauseTime * 2;
+      let raf: number;
+      let startTime: number | null = null;
+      const animate = (now: number) => {
+        if (!startTime) startTime = now;
+        const elapsed = now - startTime;
+        const currentMax = el.scrollHeight - el.clientHeight;
+        if (currentMax <= 0) return;
+        if (elapsed < pauseTime) {
+          // Pause at top
+          el.scrollTop = 0;
+        } else if (elapsed < pauseTime + scrollTime) {
+          // Smooth scroll down
+          const scrollProgress = (elapsed - pauseTime) / scrollTime;
+          const eased = scrollProgress < 0.5
+            ? 2 * scrollProgress * scrollProgress
+            : 1 - Math.pow(-2 * scrollProgress + 2, 2) / 2;
+          el.scrollTop = eased * currentMax;
+        } else {
+          // Pause at bottom
+          el.scrollTop = currentMax;
+        }
+        if (elapsed < duration) {
+          raf = requestAnimationFrame(animate);
+        }
+      };
+      raf = requestAnimationFrame(animate);
+      return () => cancelAnimationFrame(raf);
+    }, 600);
+    return () => clearTimeout(startDelay);
+  }, [duration]);
+  return ref;
+}
+
+// ─── ScrollContainer component for TV slides ───
+function TVScrollArea({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const scrollRef = useAutoScroll(28000);
+  return (
+    <div ref={scrollRef} className={`tv-auto-scroll ${className}`} style={{ scrollbarWidth: "none" }}>
+      {children}
+    </div>
+  );
+
 // ─── Animated radial gauge ───
 function RadialGauge({ pct, size = 120, strokeWidth = 10, label }: { pct: number; size?: number; strokeWidth?: number; label?: string }) {
   const [animPct, setAnimPct] = useState(0);
