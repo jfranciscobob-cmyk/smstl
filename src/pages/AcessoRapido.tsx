@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuthSession } from "@/hooks/useAuthSession";
 import type { ServidorDB, DiretoriaDB, UnidadeDB, CoordenadorUnidadeDB } from "@/hooks/useServidores";
 import {
   ArrowLeft, Loader2, Building2, Users, ChevronRight, UserCheck, Shield, Briefcase, Monitor, Eye,
@@ -8,6 +9,9 @@ import {
 import { cn } from "@/lib/utils";
 
 export default function AcessoRapido() {
+  const auth = useAuthSession();
+  const { isAdmin, isDiretor, isCoordenador, diretoriaIds, unidadeIds } = auth;
+
   const [servidores, setServidores] = useState<ServidorDB[]>([]);
   const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
@@ -40,18 +44,55 @@ export default function AcessoRapido() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  const diretores = servidores.filter(s => s.is_diretor && s.diretoria_id);
-  const secretario = servidores.find(s => s.is_secretario);
-  const diretorGeral = servidores.find(s => s.is_diretor_geral);
+  // --- Permission-based filtering ---
+  // Admin sees everything. Diretor sees only their diretorias. Coordenador sees only their unidades.
+  const allowedDiretoriaIds = useMemo(() => {
+    if (isAdmin) return null; // null = no filter
+    return new Set(diretoriaIds);
+  }, [isAdmin, diretoriaIds]);
 
-  // Build coordenadores list from junction table (one entry per servidor+unidade)
+  const allowedUnidadeIds = useMemo(() => {
+    if (isAdmin) return null;
+    if (isDiretor) {
+      // Diretor can see all unidades of their diretorias
+      const uniIds = unidades.filter(u => diretoriaIds.includes(u.diretoria_id)).map(u => u.id);
+      return new Set([...unidadeIds, ...uniIds]);
+    }
+    return new Set(unidadeIds);
+  }, [isAdmin, isDiretor, diretoriaIds, unidadeIds, unidades]);
+
+  const filteredDiretorias = useMemo(() => {
+    if (!allowedDiretoriaIds) return diretorias;
+    return diretorias.filter(d => allowedDiretoriaIds.has(d.id));
+  }, [diretorias, allowedDiretoriaIds]);
+
+  const filteredUnidades = useMemo(() => {
+    if (!allowedUnidadeIds) return unidades;
+    return unidades.filter(u => allowedUnidadeIds.has(u.id));
+  }, [unidades, allowedUnidadeIds]);
+
+  const filteredServidores = useMemo(() => {
+    if (isAdmin) return servidores;
+    const uniSet = allowedUnidadeIds;
+    const dirSet = allowedDiretoriaIds;
+    return servidores.filter(s => {
+      if (dirSet && s.diretoria_id && dirSet.has(s.diretoria_id)) return true;
+      if (uniSet && s.unidade_id && uniSet.has(s.unidade_id)) return true;
+      return false;
+    });
+  }, [isAdmin, servidores, allowedDiretoriaIds, allowedUnidadeIds]);
+
+  const diretores = filteredServidores.filter(s => s.is_diretor && s.diretoria_id);
+  const secretario = isAdmin ? servidores.find(s => s.is_secretario) : null;
+  const diretorGeral = isAdmin ? servidores.find(s => s.is_diretor_geral) : null;
+
   const coordenadorEntries = useMemo(() => {
     return coordenadoresUnidades.map(cu => {
       const servidor = servidores.find(s => s.id === cu.servidor_id);
-      const uni = unidades.find(u => u.id === cu.unidade_id);
+      const uni = filteredUnidades.find(u => u.id === cu.unidade_id);
       return servidor && uni ? { servidor, unidade: uni, cuId: cu.id } : null;
     }).filter(Boolean) as { servidor: ServidorDB; unidade: UnidadeDB; cuId: string }[];
-  }, [coordenadoresUnidades, servidores, unidades]);
+  }, [coordenadoresUnidades, servidores, filteredUnidades]);
 
   const getDiretoriaNome = (id: string | null) => diretorias.find(d => d.id === id)?.nome || "—";
 
@@ -140,9 +181,9 @@ export default function AcessoRapido() {
             <p className="text-sm text-muted-foreground italic">Nenhum diretor atribuído.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {diretores.map(dir => {
+              {diretores.filter(dir => !allowedDiretoriaIds || allowedDiretoriaIds.has(dir.diretoria_id!)).map(dir => {
                 const diretoriaNome = getDiretoriaNome(dir.diretoria_id);
-                const dirServs = servidores.filter(s => s.diretoria_id === dir.diretoria_id).length;
+                const dirServs = filteredServidores.filter(s => s.diretoria_id === dir.diretoria_id).length;
                 return (
                   <div key={dir.id} className="rounded-xl border border-border bg-card p-5 hover:shadow-md transition-all hover:border-primary/30 group">
                     <div className="flex items-center gap-3 mb-3">
@@ -190,23 +231,25 @@ export default function AcessoRapido() {
             <Monitor className="h-4 w-4 text-primary" /> Modo TV por Diretoria
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <Link
-              to="/tv"
-              className="rounded-xl border border-teal-500/30 bg-teal-500/5 p-5 hover:shadow-md transition-all hover:border-teal-500/50 group"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="h-9 w-9 rounded-full bg-teal-500/20 flex items-center justify-center">
-                  <Monitor className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+            {isAdmin && (
+              <Link
+                to="/tv"
+                className="rounded-xl border border-teal-500/30 bg-teal-500/5 p-5 hover:shadow-md transition-all hover:border-teal-500/50 group"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="h-9 w-9 rounded-full bg-teal-500/20 flex items-center justify-center">
+                    <Monitor className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-foreground group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">Visão Geral</p>
+                    <p className="text-[10px] text-muted-foreground">Todas as diretorias</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-foreground group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">Visão Geral</p>
-                  <p className="text-[10px] text-muted-foreground">Todas as diretorias</p>
-                </div>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-teal-500 transition-colors ml-auto" />
-            </Link>
-            {diretorias.map(dir => {
-              const dirServs = servidores.filter(s => s.diretoria_id === dir.id).length;
+                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-teal-500 transition-colors ml-auto" />
+              </Link>
+            )}
+            {filteredDiretorias.map(dir => {
+              const dirServs = filteredServidores.filter(s => s.diretoria_id === dir.id).length;
               if (dirServs === 0) return null;
               return (
                 <Link
@@ -240,7 +283,7 @@ export default function AcessoRapido() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {coordenadorEntries.map(({ servidor, unidade, cuId }) => {
-                const uniServs = servidores.filter(s => s.unidade_id === unidade.id).length;
+                const uniServs = filteredServidores.filter(s => s.unidade_id === unidade.id).length;
                 return (
                   <Link
                     key={cuId}
