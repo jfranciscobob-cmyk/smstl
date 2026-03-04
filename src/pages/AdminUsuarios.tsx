@@ -275,29 +275,92 @@ export default function AdminUsuarios() {
         <p className="text-[10px] text-muted-foreground">O diretor verá os dados de todas as diretorias selecionadas.</p>
       </div>
     );
-    if (role === "coordenador") return (
-      <div className="space-y-2">
-        <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-          <MapPin className="h-3 w-3" /> Unidades do Coordenador (múltiplas)
-        </label>
-        <div className="max-h-48 overflow-y-auto rounded-lg border border-input bg-card p-2 space-y-1">
-          {unidades.map(u => (
-            <label key={u.id} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 cursor-pointer text-sm">
-              <Checkbox
-                checked={unidadeIds.has(u.id)}
-                onCheckedChange={(checked) => {
-                  const next = new Set(unidadeIds);
-                  if (checked) next.add(u.id); else next.delete(u.id);
-                  onUnidadesChange(next);
-                }}
-              />
-              {u.nome} ({u.sigla})
-            </label>
-          ))}
+    if (role === "coordenador") {
+      // Group unidades by diretoria > agrupamento
+      const dirGroups = diretorias.map(dir => {
+        const dirUnidades = unidades.filter(u => u.diretoria_id === dir.id);
+        const dirAgrupamentos = agrupamentos.filter(a => a.diretoria_id === dir.id);
+        // Units with agrupamento
+        const agrupGroups = dirAgrupamentos.map(agr => ({
+          agrupamento: agr,
+          units: dirUnidades.filter(u => u.agrupamento_id === agr.id),
+        })).filter(g => g.units.length > 0);
+        // Units without agrupamento
+        const semAgrupamento = dirUnidades.filter(u => !u.agrupamento_id);
+        return { diretoria: dir, agrupGroups, semAgrupamento };
+      }).filter(g => g.agrupGroups.length > 0 || g.semAgrupamento.length > 0);
+
+      const toggleAll = (unitIds: string[], checked: boolean) => {
+        const next = new Set(unidadeIds);
+        unitIds.forEach(id => { if (checked) next.add(id); else next.delete(id); });
+        onUnidadesChange(next);
+      };
+
+      return (
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+            <MapPin className="h-3 w-3" /> Unidades do Coordenador (múltiplas)
+          </label>
+          <div className="max-h-64 overflow-y-auto rounded-lg border border-input bg-card p-2 space-y-3">
+            {dirGroups.map(dg => (
+              <div key={dg.diretoria.id}>
+                <p className="text-[10px] font-bold text-primary uppercase tracking-wider px-2 py-1 bg-primary/5 rounded">
+                  {dg.diretoria.nome}
+                </p>
+                {dg.agrupGroups.map(ag => {
+                  const allIds = ag.units.map(u => u.id);
+                  const allChecked = allIds.every(id => unidadeIds.has(id));
+                  return (
+                    <div key={ag.agrupamento.id} className="ml-2 mt-1">
+                      <label className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50 cursor-pointer text-xs font-semibold text-foreground">
+                        <Checkbox
+                          checked={allChecked}
+                          onCheckedChange={(checked) => toggleAll(allIds, !!checked)}
+                        />
+                        📁 {ag.agrupamento.nome} ({ag.units.length} unid.)
+                      </label>
+                      <div className="ml-4 space-y-0.5">
+                        {ag.units.map(u => (
+                          <label key={u.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50 cursor-pointer text-sm">
+                            <Checkbox
+                              checked={unidadeIds.has(u.id)}
+                              onCheckedChange={(checked) => {
+                                const next = new Set(unidadeIds);
+                                if (checked) next.add(u.id); else next.delete(u.id);
+                                onUnidadesChange(next);
+                              }}
+                            />
+                            {u.nome} ({u.sigla})
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+                {dg.semAgrupamento.length > 0 && (
+                  <div className="ml-2 mt-1 space-y-0.5">
+                    {dg.semAgrupamento.map(u => (
+                      <label key={u.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50 cursor-pointer text-sm">
+                        <Checkbox
+                          checked={unidadeIds.has(u.id)}
+                          onCheckedChange={(checked) => {
+                            const next = new Set(unidadeIds);
+                            if (checked) next.add(u.id); else next.delete(u.id);
+                            onUnidadesChange(next);
+                          }}
+                        />
+                        {u.nome} ({u.sigla})
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-muted-foreground">O coordenador verá apenas os dados das unidades selecionadas. Marque um agrupamento para selecionar todas as unidades dele.</p>
         </div>
-        <p className="text-[10px] text-muted-foreground">O coordenador verá apenas os dados das unidades selecionadas.</p>
-      </div>
-    );
+      );
+    }
     return null;
   };
 
