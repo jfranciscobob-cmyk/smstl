@@ -657,7 +657,7 @@ function SlideDiretoriaDetalhe({
               </div>
             </AnimatedCard>
           )}
-        </div>
+        </TVScrollArea>
 
         {/* Right: Composition */}
         <div className="col-span-3">
