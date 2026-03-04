@@ -1011,11 +1011,31 @@ export default function ModoTV() {
     setLoading(false);
   }, []);
 
+  // Tick every 60s to recalculate auto-presence with fresh "now"
+  const [presencaTick, setPresencaTick] = useState(0);
+
   useEffect(() => {
     if (!unlocked) return;
     loadData();
-    const interval = setInterval(loadData, 60000);
-    return () => clearInterval(interval);
+    const dataInterval = setInterval(loadData, 60000);
+    const presencaInterval = setInterval(() => setPresencaTick(t => t + 1), 60000);
+
+    // Realtime subscription for instant updates
+    const channel = supabase
+      .channel("tv-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "servidores" }, () => {
+        loadData();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "escalas_semanais" }, () => {
+        loadData();
+      })
+      .subscribe();
+
+    return () => {
+      clearInterval(dataInterval);
+      clearInterval(presencaInterval);
+      supabase.removeChannel(channel);
+    };
   }, [unlocked, loadData]);
 
   // Find specific diretoria if param provided
