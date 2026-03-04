@@ -137,7 +137,7 @@ export default function AdminUsuarios() {
     }
     const newUserId = data.user_id;
     if (newUserId) {
-      if (form.role === "diretor") await syncUserDiretorias(newUserId, formDiretoriaIds);
+      if (form.role === "diretor" || form.role === "coordenador_geral") await syncUserDiretorias(newUserId, formDiretoriaIds);
       if (form.role === "coordenador") await syncUserUnidades(newUserId, formUnidadeIds);
     }
     toast({ title: "Usuário criado com sucesso!" });
