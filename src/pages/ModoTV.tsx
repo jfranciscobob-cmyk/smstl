@@ -644,7 +644,7 @@ function SlideDiretoriaDetalhe({
         </div>
 
         {/* Center: Unit list */}
-        <TVScrollArea className="col-span-7 overflow-y-auto space-y-2 pr-2">
+        <TVScrollArea className="col-span-1 md:col-span-7 overflow-y-auto space-y-2 pr-2">
           {unidadeData.map((uni, i) => (
             <UnitRow key={uni.id} {...uni} delay={200 + i * 80} />
           ))}
