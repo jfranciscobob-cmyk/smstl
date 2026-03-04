@@ -743,7 +743,7 @@ function SlideDiretoriaServidores({
             <p className="text-slate-600 text-lg">Nenhum servidor com status "{statusLabel}"</p>
           </div>
         )}
-      </div>
+      </TVScrollArea>
     </div>
   );
 }
