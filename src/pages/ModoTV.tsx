@@ -1246,7 +1246,7 @@ export default function ModoTV() {
     } else {
       // ── MODO GERAL (original) ──
       s.push(<SlideOverview key="overview" servidores={servidores} diretorias={diretorias} unidades={unidades} />);
-      s.push(<SlideRankingDiretorias key="ranking" servidores={servidores} diretorias={diretorias} />);
+      // SlideRankingDiretorias removido — info redundante com overview e slides por diretoria
       s.push(<SlideComposicao key="composicao" servidores={servidores} diretorias={diretorias} />);
       const dirsComServs = diretorias.filter(d => servidores.some(sv => sv.diretoria_id === d.id));
       dirsComServs.forEach(dir => {
