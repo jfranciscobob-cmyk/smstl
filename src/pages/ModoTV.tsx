@@ -380,7 +380,7 @@ function SlideOverview({ servidores, diretorias, unidades }: { servidores: Servi
   ];
 
   return (
-    <div className="h-full flex flex-col justify-between p-8">
+    <div className="h-full flex flex-col justify-between p-4 sm:p-6 lg:p-8">
       <TVHeader title="Secretaria Municipal de Saúde" subtitle="Painel Geral de Monitoramento" icon={<Shield className="h-7 w-7 text-white" />} />
 
       <div className="grid grid-cols-6 gap-4 my-3">
