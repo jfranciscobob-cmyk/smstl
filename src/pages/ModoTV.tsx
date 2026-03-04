@@ -1355,14 +1355,7 @@ export default function ModoTV() {
         {slides[currentSlide]}
       </div>
 
-      {/* Progress bar (top) */}
-      <div className="absolute top-0 left-0 right-0 h-[3px] bg-[#0f1a2e] z-20">
-        <div
-          key={`progress-${currentSlide}`}
-          className="h-full bg-gradient-to-r from-teal-500 via-cyan-400 to-teal-500 animate-tv-progress shadow-lg shadow-teal-500/30"
-          style={{ animationDuration: `${SLIDE_DURATION}ms` }}
-        />
-      </div>
+      {/* Progress bar removed */}
 
       {/* Slide indicators */}
       <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
