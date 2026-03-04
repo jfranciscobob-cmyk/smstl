@@ -146,10 +146,11 @@ export default function Login() {
               <label className="text-sm font-medium text-foreground">Papel *</label>
               <select
                 value={regRole}
-                onChange={e => setRegRole(e.target.value as "diretor" | "coordenador")}
+                onChange={e => setRegRole(e.target.value as "diretor" | "coordenador" | "coordenador_geral")}
                 className="w-full h-11 rounded-lg border border-input bg-card px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="coordenador">Coordenador</option>
+                <option value="coordenador_geral">Coordenador Geral</option>
                 <option value="diretor">Diretor</option>
               </select>
             </div>
