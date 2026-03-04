@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuthSession } from "@/hooks/useAuthSession";
 import type { ServidorDB, DiretoriaDB, UnidadeDB, CoordenadorUnidadeDB } from "@/hooks/useServidores";
 import {
   ArrowLeft, Loader2, Building2, Users, ChevronRight, UserCheck, Shield, Briefcase, Monitor, Eye,
