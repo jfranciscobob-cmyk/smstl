@@ -1401,6 +1401,40 @@ export default function ModoTV() {
         {slides[currentSlide]}
       </div>
 
+      {/* Aviso Banner */}
+      {showAvisoBanner && avisos[currentAvisoIndex] && (
+        <div className="absolute top-0 left-0 right-0 z-30 animate-in slide-in-from-top duration-700">
+          <div className="mx-8 mt-6 rounded-2xl bg-gradient-to-r from-amber-500/90 via-orange-500/90 to-red-500/90 border border-amber-400/30 shadow-2xl shadow-amber-500/20 backdrop-blur-xl overflow-hidden">
+            <div className="px-8 py-5 flex items-start gap-5">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 flex-shrink-0 mt-0.5">
+                <Megaphone className="h-7 w-7 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.3em]">AVISO IMPORTANTE</span>
+                  {avisos.length > 1 && (
+                    <span className="text-[10px] font-bold text-white/40 bg-white/10 px-2 py-0.5 rounded-full">
+                      {currentAvisoIndex + 1}/{avisos.length}
+                    </span>
+                  )}
+                </div>
+                <h2 className="text-2xl font-black text-white tracking-tight mb-1">{avisos[currentAvisoIndex].titulo}</h2>
+                <p className="text-sm text-white/80 leading-relaxed line-clamp-3">{avisos[currentAvisoIndex].mensagem}</p>
+              </div>
+            </div>
+            {/* Progress bar for 2 min duration */}
+            <div className="h-1 bg-white/10">
+              <div
+                className="h-full bg-white/40 rounded-full"
+                style={{
+                  animation: `aviso-progress ${AVISO_DURATION}ms linear forwards`,
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Progress bar, slide indicators and counter removed */}
 
       {/* Logo watermark */}
