@@ -1103,7 +1103,7 @@ export default function ModoTV() {
       dirsComServs.forEach(dir => {
         s.push(<SlideDiretoriaDetalhe key={`dir-${dir.id}`} diretoria={dir} servidores={servidores} unidades={unidades} />);
       });
-      s.push(<SlideMapaUnidades key="mapa" servidores={servidores} unidades={unidades} diretorias={diretorias} />);
+      s.push(<SlideMapaUnidades key="mapa" servidores={servidores} unidades={unidades} diretorias={diretorias} coordenadoresUnidades={coordenadoresUnidades} />);
     }
     return s;
   }, [servidores, diretorias, unidades, loading, targetDiretoria, coordenadoresUnidades]);
