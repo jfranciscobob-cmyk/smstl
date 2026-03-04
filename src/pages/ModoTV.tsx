@@ -174,6 +174,8 @@ function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
 }
 
 // ─── Clock component ───
+const TZ_OPTIONS = { timeZone: "America/Sao_Paulo" } as const;
+
 function LiveClock() {
   const [now, setNow] = useState(new Date());
   useEffect(() => {
@@ -181,17 +183,15 @@ function LiveClock() {
     return () => clearInterval(t);
   }, []);
 
-  const seconds = now.getSeconds();
-
   return (
     <div className="text-right flex items-center gap-5">
       <div>
         <p className="text-4xl font-black text-white font-mono tracking-tighter" style={{ textShadow: "0 0 30px rgba(20,184,166,0.3)" }}>
-          {now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-          <span className="text-xl text-teal-400/60 ml-0.5">:{seconds.toString().padStart(2, "0")}</span>
+          {now.toLocaleTimeString("pt-BR", { ...TZ_OPTIONS, hour: "2-digit", minute: "2-digit" })}
+          <span className="text-xl text-teal-400/60 ml-0.5">:{now.toLocaleTimeString("pt-BR", { ...TZ_OPTIONS, second: "2-digit" }).slice(-2)}</span>
         </p>
         <p className="text-xs text-slate-500 capitalize mt-1 tracking-wide">
-          {now.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+          {now.toLocaleDateString("pt-BR", { ...TZ_OPTIONS, weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
         </p>
       </div>
       <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
