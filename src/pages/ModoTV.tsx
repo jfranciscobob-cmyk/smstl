@@ -1104,7 +1104,7 @@ export default function ModoTV() {
       s.push(<SlideComposicao key="composicao" servidores={servidores} />);
       const dirsComServs = diretorias.filter(d => servidores.some(sv => sv.diretoria_id === d.id));
       dirsComServs.forEach(dir => {
-        s.push(<SlideDiretoriaDetalhe key={`dir-${dir.id}`} diretoria={dir} servidores={servidores} unidades={unidades} />);
+        s.push(<SlideDiretoriaDetalhe key={`dir-${dir.id}`} diretoria={dir} servidores={servidores} unidades={unidades} coordenadoresUnidades={coordenadoresUnidades} />);
         s.push(<SlideDiretoriaCoordenadores key={`dir-coords-${dir.id}`} diretoria={dir} servidores={servidores} unidades={unidades} coordenadoresUnidades={coordenadoresUnidades} />);
         s.push(<SlideDiretoriaAlertas key={`dir-alertas-${dir.id}`} diretoria={dir} servidores={servidores} />);
       });
