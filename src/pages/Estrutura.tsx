@@ -20,7 +20,7 @@ import { ServidorConflictBadge, ServidorAlreadyAllocatedWarning } from "@/compon
 
 function EstruturaContent() {
   const { toast } = useToast();
-  const { isAdmin, isDiretor, isCoordenador, diretoriaIds: userDirIds, unidadeIds: userUniIds, loading: authLoading } = useAuthSession();
+  const { isAdmin, isDiretor, isCoordenador, isCoordenadorGeral, diretoriaIds: userDirIds, unidadeIds: userUniIds, loading: authLoading } = useAuthSession();
   const [allDiretorias, setAllDiretorias] = useState<DiretoriaDB[]>([]);
   const [allUnidades, setAllUnidades] = useState<UnidadeDB[]>([]);
   const [coordenacoes, setCoordenacoes] = useState<CoordenacaoDB[]>([]);
@@ -133,6 +133,12 @@ function EstruturaContent() {
 
   // Todos os servidores ficam disponíveis para alocação, independente do papel do usuário
   const servidores = allServidores;
+
+  // Helper: can the current user manage (create/edit/delete) structure items?
+  const canManageStructure = isAdmin;
+  // Directors/coord geral can manage within their diretorias
+  const canManageDiretoria = (dirId: string) => isAdmin || (isDiretor && userDirIds.includes(dirId));
+  const canManageUnidade = (uniId: string) => isAdmin || (isDiretor && allUnidades.some(u => u.id === uniId && userDirIds.includes(u.diretoria_id))) || (isCoordenador && userUniIds.includes(uniId));
 
   const toggleExpand = (id: string) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
@@ -655,7 +661,8 @@ function EstruturaContent() {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6 max-w-4xl">
-        {/* Add Diretoria */}
+        {/* Add Diretoria - admin only */}
+        {canManageStructure && (
         <div className="glass-card rounded-xl p-5">
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Nova Diretoria</h2>
           <div className="flex gap-2">
@@ -671,6 +678,7 @@ function EstruturaContent() {
             </button>
           </div>
         </div>
+        )}
 
         {/* Secretaria root card */}
         <div className="glass-card rounded-xl overflow-hidden border-2 border-primary/20">
@@ -680,23 +688,28 @@ function EstruturaContent() {
               {expanded["secretaria"] !== false ? <ChevronDown className="h-5 w-5 text-primary" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
               <Shield className="h-6 w-6 text-primary" />
               <div>
-                <h2 className="text-lg font-bold text-foreground">Secretaria Municipal de Saúde</h2>
+                <h2 className="text-lg font-bold text-foreground">
+                  {isAdmin ? "Secretaria Municipal de Saúde" : "Minhas Pastas"}
+                </h2>
                 <p className="text-xs text-muted-foreground">
-                  {diretorias.length} diretoria(s) · {servidores.length} total · {secretariaServidores.length} no gabinete
+                  {diretorias.length} diretoria(s) · {isAdmin && `${servidores.length} total · ${secretariaServidores.length} no gabinete`}
+                  {!isAdmin && `${unidades.length} unidade(s)`}
                 </p>
               </div>
             </button>
-            {/* Allocation progress */}
+            {/* Allocation progress - admin only */}
+            {isAdmin && (
             <div className="flex items-center gap-3 mr-3">
               <span className="text-xs text-muted-foreground font-mono">
                 <span className="font-bold text-foreground">{servidores.filter(s => s.diretoria_id).length}</span> alocados
               </span>
               <span className="text-xs text-warning font-mono font-bold">{secretariaServidores.length} pendentes</span>
             </div>
+            )}
           </div>
 
-          {/* Secretário picker */}
-          {(() => {
+          {/* Secretário picker - admin only */}
+          {isAdmin && (() => {
             const secretario = getSecretario();
             return (
               <div className="px-5 py-3 border-t border-border/30 bg-muted/10 flex items-center gap-3 flex-wrap">
@@ -736,8 +749,8 @@ function EstruturaContent() {
             );
           })()}
 
-          {/* Diretor Geral picker */}
-          {(() => {
+          {/* Diretor Geral picker - admin only */}
+          {isAdmin && (() => {
             const diretorGeral = getDiretorGeral();
             return (
               <div className="px-5 py-3 border-t border-border/30 bg-muted/10 flex items-center gap-3 flex-wrap">
@@ -777,8 +790,8 @@ function EstruturaContent() {
             );
           })()}
 
-          {/* Servidores da Secretaria (sem diretoria) */}
-          {expanded["secretaria"] !== false && (
+          {/* Servidores da Secretaria (sem diretoria) - admin only */}
+          {isAdmin && expanded["secretaria"] !== false && (
             <div className="px-5 py-3 border-t border-border/30">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
@@ -1007,6 +1020,7 @@ function EstruturaContent() {
                           </div>
                         )}
                       </button>
+                      {canManageDiretoria(dir.id) && (
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => setCreateServidorTarget({ diretoria_id: dir.id })}
@@ -1014,13 +1028,18 @@ function EstruturaContent() {
                         >
                           <UserPlus className="h-3.5 w-3.5" />
                         </button>
+                        {canManageStructure && (
+                        <>
                         <button onClick={() => { setEditingId(dir.id); setEditingValue(dir.nome); }} className="p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                           <Edit2 className="h-3.5 w-3.5" />
                         </button>
                         <button onClick={() => deleteDiretoria(dir.id)} className="p-1.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
+                        </>
+                        )}
                       </div>
+                      )}
                     </div>
 
                     {/* Diretor picker */}
