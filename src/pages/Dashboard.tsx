@@ -543,7 +543,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
                   const cob = ds.length > 0 ? Math.round((dp / ds.length) * 100) : 0;
                   const cobColor = cob >= 80 ? "text-success" : cob >= 50 ? "text-warning" : "text-destructive";
                   const cobBg = cob >= 80 ? "bg-success" : cob >= 50 ? "bg-warning" : "bg-destructive";
-                  const diretor = filteredServidores.find(s => s.diretoria_id === dir.id && s.is_diretor);
+                  const diretor = servidoresComPresenca.find(s => s.diretoria_id === dir.id && s.is_diretor);
                   const criticas = ds.filter(s => s.funcao_critica && s.status_presenca !== "presente");
                   
                   // Faltas abonadas risk for this diretoria
