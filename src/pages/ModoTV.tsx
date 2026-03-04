@@ -428,7 +428,7 @@ function SlideOverview({ servidores, diretorias, unidades }: { servidores: Servi
         </div>
 
         {/* Right: Composition */}
-        <div className="col-span-3 flex flex-col gap-3">
+        <div className="hidden md:flex col-span-3 flex-col gap-3">
           <GlowCard className="flex-1">
             <div className="p-4 h-full flex flex-col">
               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Estrutura</p>
