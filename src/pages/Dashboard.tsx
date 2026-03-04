@@ -234,6 +234,12 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
     return servidores;
   }, [servidores, unidades, isAdmin, isDiretor, isCoordenador, userDirIds, userUniIds, servidoresUnidades]);
 
+  // Apply auto-presence based on escalas_semanais for fixed schedules
+  const servidoresComPresenca = useMemo(
+    () => applyAutoPresenca(filteredServidores, escalasSemanais),
+    [filteredServidores, escalasSemanais],
+  );
+
   const filteredDiretorias = useMemo(() => {
     if (isAdmin) return diretorias;
     if (isDiretor && userDirIds.length > 0) {
@@ -257,7 +263,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
     return unidades;
   }, [unidades, isAdmin, isDiretor, isCoordenador, userDirIds, userUniIds]);
 
-  const stats = useMemo(() => computeStats(filteredServidores), [filteredServidores]);
+  const stats = useMemo(() => computeStats(servidoresComPresenca), [servidoresComPresenca]);
 
   const folhaTotal = useMemo(() => filteredServidores.reduce((sum, s) => sum + (s.salario || 0), 0), [filteredServidores]);
 
