@@ -36,7 +36,7 @@ serve(async (req) => {
         .select("role")
         .eq("user_id", callingUser.id);
 
-      const hasPermission = roles?.some(r => r.role === "admin" || r.role === "diretor");
+      const hasPermission = roles?.some(r => r.role === "admin" || r.role === "diretor" || r.role === "coordenador_geral");
       if (!hasPermission) throw new Error("Sem permissão para criar usuários");
     }
 
