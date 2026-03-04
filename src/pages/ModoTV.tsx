@@ -842,55 +842,66 @@ function SlideDiretoriaCoordenadores({
 // ═══════════════════════════════════════════════════
 // SLIDE: MAPA DE PRESENÇA POR UNIDADE
 // ═══════════════════════════════════════════════════
-function SlideMapaUnidades({ servidores, unidades, diretorias }: { servidores: ServidorDB[]; unidades: UnidadeDB[]; diretorias: DiretoriaDB[] }) {
-  const uniData = useMemo(() => {
-    return unidades.map(uni => {
-      const us = servidores.filter(s => s.unidade_id === uni.id);
-      const presentes = us.filter(s => s.status_presenca === "presente").length;
-      const pct = us.length > 0 ? Math.round((presentes / us.length) * 100) : 0;
-      const dir = diretorias.find(d => d.id === uni.diretoria_id);
-      return { id: uni.id, sigla: uni.sigla, nome: uni.nome, total: us.length, presentes, pct, diretoria: dir?.nome || "—" };
-    }).filter(u => u.total > 0).sort((a, b) => a.pct - b.pct);
-  }, [servidores, unidades, diretorias]);
+function SlideMapaUnidades({ servidores, unidades, diretorias, coordenadoresUnidades }: { servidores: ServidorDB[]; unidades: UnidadeDB[]; diretorias: DiretoriaDB[]; coordenadoresUnidades: { servidor_id: string; unidade_id: string }[] }) {
+  const grouped = useMemo(() => {
+    return diretorias.map(dir => {
+      const dirUnis = unidades.filter(u => u.diretoria_id === dir.id);
+      const dirServs = servidores.filter(s => s.diretoria_id === dir.id);
+      const coordIds = new Set(coordenadoresUnidades.filter(cu => dirUnis.some(u => u.id === cu.unidade_id)).map(cu => cu.servidor_id));
+      const uniData = dirUnis.map(uni => {
+        const us = servidores.filter(s => s.unidade_id === uni.id);
+        const presentes = us.filter(s => s.status_presenca === "presente").length;
+        const pct = us.length > 0 ? Math.round((presentes / us.length) * 100) : 0;
+        return { id: uni.id, sigla: uni.sigla, nome: uni.nome, total: us.length, presentes, pct };
+      }).filter(u => u.total > 0).sort((a, b) => b.total - a.total);
+      return { dir, uniData, totalServs: dirServs.length, totalUnis: dirUnis.length, totalCoords: coordIds.size };
+    }).filter(g => g.totalServs > 0).sort((a, b) => b.totalServs - a.totalServs);
+  }, [servidores, unidades, diretorias, coordenadoresUnidades]);
 
   return (
     <div className="h-full flex flex-col p-8">
-      <TVHeader title="Mapa de Presença por Unidade" subtitle={`${uniData.length} unidades ativas`} icon={<MapPin className="h-7 w-7 text-white" />} />
-      <div className="flex-1 overflow-y-auto tv-auto-scroll pr-2" style={{ scrollbarWidth: "none" }}>
-        <div className="grid grid-cols-4 gap-3">
-          {uniData.map((uni, i) => {
-            const barColor = uni.pct >= 80 ? "from-emerald-500 to-green-400" : uni.pct >= 60 ? "from-amber-500 to-yellow-400" : "from-red-500 to-rose-400";
-            const textColor = uni.pct >= 80 ? "text-emerald-400" : uni.pct >= 60 ? "text-amber-400" : "text-red-400";
-            const glowColor = uni.pct >= 80 ? "rgba(16,185,129,0.15)" : uni.pct >= 60 ? "rgba(245,158,11,0.15)" : "rgba(239,68,68,0.15)";
-
-            return (
-              <AnimatedCard key={uni.id} delay={80 + i * 40}>
-                <div
-                  className="rounded-2xl bg-[#0f1a2e]/80 border border-[#1e3a5f]/40 p-4 hover:border-teal-500/30 transition-all duration-300 group"
-                  style={{ boxShadow: `inset 0 -2px 20px ${glowColor}` }}
-                >
-                  <div className="flex items-center justify-between mb-2.5">
-                    <span className="text-xs font-black text-teal-400 uppercase tracking-wider">{uni.sigla}</span>
-                    <span className={`text-xl font-black font-mono ${textColor}`}>
-                      {uni.pct}<span className="text-[10px] text-slate-600">%</span>
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-slate-500 truncate mb-3">{uni.nome}</p>
-                  <div className="h-2 rounded-full bg-[#1a2744] overflow-hidden">
-                    <div
-                      className={`h-full rounded-full bg-gradient-to-r ${barColor}`}
-                      style={{ width: `${uni.pct}%`, transition: "width 1.2s ease-out" }}
-                    />
-                  </div>
-                  <div className="flex justify-between mt-2">
-                    <span className="text-[10px] text-slate-500 font-mono">{uni.presentes}/{uni.total}</span>
-                    <span className="text-[10px] text-slate-600 truncate ml-2 max-w-[80px]">{uni.diretoria}</span>
+      <TVHeader title="Mapa de Presença por Diretoria" subtitle={`${grouped.length} diretorias · ${unidades.length} unidades`} icon={<MapPin className="h-7 w-7 text-white" />} />
+      <div className="flex-1 overflow-y-auto tv-auto-scroll pr-2 space-y-5" style={{ scrollbarWidth: "none" }}>
+        {grouped.map((g, gi) => (
+          <AnimatedCard key={g.dir.id} delay={100 + gi * 120}>
+            <GlowCard color={gi % 2 === 0 ? "teal" : "emerald"}>
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <Building2 className="h-5 w-5 text-teal-400" />
+                    <div>
+                      <p className="text-sm font-bold text-white">{g.dir.nome}</p>
+                      <p className="text-[10px] text-slate-500">{g.totalServs} servidores · {g.totalUnis} unidades · {g.totalCoords} coordenadores</p>
+                    </div>
                   </div>
                 </div>
-              </AnimatedCard>
-            );
-          })}
-        </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {g.uniData.slice(0, 8).map(uni => {
+                    const barColor = uni.pct >= 80 ? "from-emerald-500 to-green-400" : uni.pct >= 60 ? "from-amber-500 to-yellow-400" : "from-red-500 to-rose-400";
+                    const textColor = uni.pct >= 80 ? "text-emerald-400" : uni.pct >= 60 ? "text-amber-400" : "text-red-400";
+                    return (
+                      <div key={uni.id} className="rounded-xl bg-[#0a1628]/80 border border-[#1e3a5f]/30 p-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] font-black text-teal-400 uppercase tracking-wider truncate">{uni.sigla}</span>
+                          <span className={`text-sm font-black font-mono ${textColor}`}>{uni.pct}%</span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-[#1a2744] overflow-hidden">
+                          <div className={`h-full rounded-full bg-gradient-to-r ${barColor}`} style={{ width: `${uni.pct}%`, transition: "width 1.2s ease-out" }} />
+                        </div>
+                        <span className="text-[9px] text-slate-600 font-mono mt-1 block">{uni.presentes}/{uni.total}</span>
+                      </div>
+                    );
+                  })}
+                  {g.uniData.length > 8 && (
+                    <div className="rounded-xl bg-[#0a1628]/50 border border-dashed border-[#1e3a5f]/30 p-3 flex items-center justify-center">
+                      <span className="text-[10px] text-slate-600">+{g.uniData.length - 8} unidades</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </GlowCard>
+          </AnimatedCard>
+        ))}
       </div>
     </div>
   );
