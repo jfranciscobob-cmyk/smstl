@@ -72,12 +72,13 @@ export default function AdminUsuarios() {
   const [processing, setProcessing] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
-    const [p, r, req, dir, uni, ud, uu] = await Promise.all([
+    const [p, r, req, dir, uni, agr, ud, uu] = await Promise.all([
       supabase.from("profiles").select("id, email, nome, servidor_id, acesso_financeiro, created_at, last_seen_at").order("created_at", { ascending: false }),
       supabase.from("user_roles").select("*"),
       supabase.from("registration_requests").select("*").order("created_at", { ascending: false }),
       supabase.from("diretorias").select("id, nome").order("nome"),
-      supabase.from("unidades").select("id, nome, sigla, diretoria_id").order("nome"),
+      supabase.from("unidades").select("id, nome, sigla, diretoria_id, agrupamento_id").order("nome"),
+      supabase.from("agrupamentos").select("id, nome, diretoria_id").order("nome"),
       supabase.from("user_diretorias").select("*"),
       supabase.from("user_unidades").select("*"),
     ]);
