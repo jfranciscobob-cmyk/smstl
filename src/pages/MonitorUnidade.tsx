@@ -790,6 +790,21 @@ function MonitorContent() {
                 })()}
               </div>
             </div>
+
+            {/* Auto-redirect coordinator to their unit if only one allowed diretoria */}
+            {isCoordenador && allowedDiretorias.length === 1 && allowedUnidades.length > 0 && (() => {
+              // Auto-show units for the coordinator's single diretoria
+              return (
+                <div className="space-y-3">
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Suas Unidades</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {allowedUnidades.map(uni => (
+                      <UnitSummaryCard key={uni.id} uni={uni} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 
