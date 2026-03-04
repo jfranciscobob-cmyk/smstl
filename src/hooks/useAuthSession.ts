@@ -157,6 +157,6 @@ export function useAuthSession(): AuthSession {
     // backwards compat
     diretoriaId: diretoriaIds[0] ?? null,
     unidadeId: unidadeIds[0] ?? null,
-    loading, isAdmin, isDiretor, isCoordenador, hasFullAccess, hasFinancialAccess, signOut,
+    loading, isAdmin, isDiretor, isCoordenador, isCoordenadorGeral, hasFullAccess, hasFinancialAccess, signOut,
   };
 }

@@ -174,6 +174,8 @@ export default function Login() {
                 <p className="text-[10px] text-muted-foreground">
                   {regRole === "coordenador"
                     ? "O diretor desta pasta receberá sua solicitação para aprovação."
+                    : regRole === "coordenador_geral"
+                    ? "Selecione a diretoria principal. Coordenador Geral tem acesso de diretor."
                     : "Selecione a diretoria que você irá gerenciar."}
                 </p>
               </div>

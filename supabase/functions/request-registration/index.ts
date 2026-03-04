@@ -28,8 +28,8 @@ serve(async (req) => {
       throw new Error("Senha deve ter no mínimo 6 caracteres");
     }
 
-    if (!["diretor", "coordenador"].includes(role_requested)) {
-      throw new Error("Papel inválido. Apenas diretor ou coordenador podem solicitar acesso.");
+    if (!["diretor", "coordenador", "coordenador_geral"].includes(role_requested)) {
+      throw new Error("Papel inválido. Apenas diretor, coordenador geral ou coordenador podem solicitar acesso.");
     }
 
     // Check if email already exists in auth

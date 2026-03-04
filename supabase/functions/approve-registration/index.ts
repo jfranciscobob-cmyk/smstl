@@ -51,9 +51,9 @@ serve(async (req) => {
     if (reqError || !request) throw new Error("Solicitação não encontrada");
     if (request.status !== "pendente") throw new Error("Solicitação já foi respondida");
 
-    // Diretor can only approve coordenador requests
-    if (isDiretor && !isAdmin && request.role_requested === "diretor") {
-      throw new Error("Apenas administradores podem aprovar diretores");
+    // Diretor/Coordenador Geral can only approve coordenador requests
+    if ((isDiretor || isCoordenadorGeral) && !isAdmin && (request.role_requested === "diretor" || request.role_requested === "coordenador_geral")) {
+      throw new Error("Apenas administradores podem aprovar diretores e coordenadores gerais");
     }
 
     if (action === "rejeitar") {

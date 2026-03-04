@@ -432,7 +432,7 @@ export default function AdminUsuarios() {
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${roleColor[req.role_requested] || "bg-muted text-muted-foreground"}`}>
                         {req.role_requested === "diretor" && <Building2 className="h-3 w-3 mr-1" />}
-                        {req.role_requested === "coordenador" && <Users className="h-3 w-3 mr-1" />}
+                        {(req.role_requested === "coordenador" || req.role_requested === "coordenador_geral") && <Users className="h-3 w-3 mr-1" />}
                         {roleLabel[req.role_requested] || req.role_requested}
                       </span>
                       {req.diretoria_id && (
