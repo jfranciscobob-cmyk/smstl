@@ -921,7 +921,7 @@ function SlideMapaUnidades({ servidores, unidades, diretorias, coordenadoresUnid
   return (
     <div className="h-full flex flex-col p-8">
       <TVHeader title="Mapa de Presença por Diretoria" subtitle={`${grouped.length} diretorias · ${unidades.length} unidades`} icon={<MapPin className="h-7 w-7 text-white" />} />
-      <div className="flex-1 overflow-y-auto tv-auto-scroll pr-2 space-y-5" style={{ scrollbarWidth: "none" }}>
+      <TVScrollArea className="flex-1 overflow-y-auto pr-2 space-y-5">
         {grouped.map((g, gi) => (
           <AnimatedCard key={g.dir.id} delay={100 + gi * 120}>
             <GlowCard color={gi % 2 === 0 ? "teal" : "emerald"}>
