@@ -46,13 +46,17 @@ export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, direto
     loadOnline();
     const onlineInterval = setInterval(loadOnline, 30_000);
 
-    // Load pending registration requests
+    // Load pending registration requests (admin sees all, diretor sees own diretoria)
     const loadRegistrations = async () => {
-      if (!isAdmin) return;
-      const { count } = await supabase
+      if (!isAdmin && !isDiretor) return;
+      let query = supabase
         .from("registration_requests")
         .select("id", { count: "exact", head: true })
         .eq("status", "pendente");
+      if (isDiretor && !isAdmin && diretoriaIds.length > 0) {
+        query = query.in("diretoria_id", diretoriaIds);
+      }
+      const { count } = await query;
       setPendingRegistrations(count ?? 0);
     };
     loadRegistrations();
