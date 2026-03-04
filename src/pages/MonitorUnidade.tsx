@@ -660,29 +660,29 @@ function MonitorContent() {
             {/* Stats row */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <div className="rounded-xl border border-border bg-card p-4">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Users className="h-3.5 w-3.5" /> Total</div>
-                <p className="text-2xl font-bold text-foreground">{servidores.length.toLocaleString("pt-BR")}</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Users className="h-3.5 w-3.5" /> Total</div>
+                <p className="text-2xl font-bold text-foreground">{allowedServidores.length.toLocaleString("pt-BR")}</p>
               </div>
               <div className="rounded-xl border border-success/30 bg-success/5 p-4">
                 <div className="flex items-center gap-2 text-xs text-success mb-1"><CheckCircle className="h-3.5 w-3.5" /> Presentes</div>
-                <p className="text-2xl font-bold text-success">{servidores.filter(s => s.status_presenca === "presente").length}</p>
+                <p className="text-2xl font-bold text-success">{allowedServidores.filter(s => s.status_presenca === "presente").length}</p>
               </div>
               <div className="rounded-xl border border-warning/30 bg-warning/5 p-4">
                 <div className="flex items-center gap-2 text-xs text-warning mb-1"><Palmtree className="h-3.5 w-3.5" /> Férias</div>
-                <p className="text-2xl font-bold text-warning">{servidores.filter(s => s.status_presenca === "ferias").length}</p>
+                <p className="text-2xl font-bold text-warning">{allowedServidores.filter(s => s.status_presenca === "ferias").length}</p>
               </div>
               <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
                 <div className="flex items-center gap-2 text-xs text-destructive mb-1"><AlertTriangle className="h-3.5 w-3.5" /> Afastados</div>
-                <p className="text-2xl font-bold text-destructive">{servidores.filter(s => s.status_presenca === "afastado").length}</p>
+                <p className="text-2xl font-bold text-destructive">{allowedServidores.filter(s => s.status_presenca === "afastado").length}</p>
               </div>
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Clock className="h-3.5 w-3.5" /> Carga Total</div>
-                <p className="text-2xl font-bold text-foreground">{servidores.reduce((s, sv) => s + (sv.escala_total_horas || 0), 0)}h</p>
+                <p className="text-2xl font-bold text-foreground">{allowedServidores.reduce((s, sv) => s + (sv.escala_total_horas || 0), 0)}h</p>
               </div>
               {hasFinancialAccess && (
               <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
                 <div className="flex items-center gap-2 text-xs text-primary mb-1"><DollarSign className="h-3.5 w-3.5" /> Folha Total</div>
-                <p className="text-lg font-bold text-foreground font-mono">{formatCurrency(servidores.reduce((s, sv) => s + (sv.salario || 0), 0))}</p>
+                <p className="text-lg font-bold text-foreground font-mono">{formatCurrency(allowedServidores.reduce((s, sv) => s + (sv.salario || 0), 0))}</p>
               </div>
               )}
             </div>
