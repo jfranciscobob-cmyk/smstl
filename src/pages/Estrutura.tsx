@@ -1041,7 +1041,6 @@ function EstruturaContent() {
                       </div>
                       )}
                     </div>
-                    </div>
 
                     {/* Diretor picker */}
                     {isExpanded && (() => {
