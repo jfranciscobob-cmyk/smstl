@@ -17,6 +17,7 @@ import { FuncaoList } from "@/components/FuncaoList";
 import { EquipeSaudeList } from "@/components/EquipeSaudeList";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ServidorConflictBadge, ServidorAlreadyAllocatedWarning } from "@/components/ServidorConflictBadge";
+import { ReallocationDialog, type ReallocationRequest } from "@/components/ReallocationDialog";
 
 function EstruturaContent() {
   const { toast } = useToast();
