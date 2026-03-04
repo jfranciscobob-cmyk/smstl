@@ -894,7 +894,7 @@ function SlideDiretoriaCoordenadores({
             </AnimatedCard>
           );
         })}
-      </div>
+      </TVScrollArea>
     </div>
   );
 }
