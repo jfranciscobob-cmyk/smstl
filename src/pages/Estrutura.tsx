@@ -134,6 +134,12 @@ function EstruturaContent() {
   // Todos os servidores ficam disponíveis para alocação, independente do papel do usuário
   const servidores = allServidores;
 
+  // Helper: can the current user manage (create/edit/delete) structure items?
+  const canManageStructure = isAdmin;
+  // Directors/coord geral can manage within their diretorias
+  const canManageDiretoria = (dirId: string) => isAdmin || (isDiretor && userDirIds.includes(dirId));
+  const canManageUnidade = (uniId: string) => isAdmin || (isDiretor && allUnidades.some(u => u.id === uniId && userDirIds.includes(u.diretoria_id))) || (isCoordenador && userUniIds.includes(uniId));
+
   const toggleExpand = (id: string) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
   // CRUD Diretorias
