@@ -383,7 +383,7 @@ function SlideOverview({ servidores, diretorias, unidades }: { servidores: Servi
     <div className="h-full flex flex-col justify-between p-4 sm:p-6 lg:p-8">
       <TVHeader title="Secretaria Municipal de Saúde" subtitle="Painel Geral de Monitoramento" icon={<Shield className="h-7 w-7 text-white" />} />
 
-      <div className="grid grid-cols-6 gap-4 my-3">
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-4 my-3">
         {kpis.map((k, i) => <KPICard key={k.label} {...k} delay={200 + i * 120} />)}
       </div>
 
