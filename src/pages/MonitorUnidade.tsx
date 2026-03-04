@@ -144,9 +144,44 @@ function MonitorContent() {
 
   const today = new Date();
 
+  // ── Role-based access filtering ──
+  const allowedDiretorias = useMemo(() => {
+    if (isAdmin) return diretorias;
+    if (isDiretor && userDiretoriaIds.length > 0) {
+      return diretorias.filter(d => userDiretoriaIds.includes(d.id));
+    }
+    if (isCoordenador && userUnidadeIds.length > 0) {
+      const dirIds = unidades.filter(u => userUnidadeIds.includes(u.id)).map(u => u.diretoria_id);
+      return diretorias.filter(d => dirIds.includes(d.id));
+    }
+    return diretorias;
+  }, [diretorias, unidades, isAdmin, isDiretor, isCoordenador, userDiretoriaIds, userUnidadeIds]);
+
+  const allowedUnidades = useMemo(() => {
+    if (isAdmin) return unidades;
+    if (isDiretor && userDiretoriaIds.length > 0) {
+      return unidades.filter(u => userDiretoriaIds.includes(u.diretoria_id));
+    }
+    if (isCoordenador && userUnidadeIds.length > 0) {
+      return unidades.filter(u => userUnidadeIds.includes(u.id));
+    }
+    return unidades;
+  }, [unidades, isAdmin, isDiretor, isCoordenador, userDiretoriaIds, userUnidadeIds]);
+
+  const allowedServidores = useMemo(() => {
+    if (isAdmin) return servidores;
+    if (isDiretor && userDiretoriaIds.length > 0) {
+      return servidores.filter(s => s.diretoria_id && userDiretoriaIds.includes(s.diretoria_id));
+    }
+    if (isCoordenador && userUnidadeIds.length > 0) {
+      return servidores.filter(s => s.unidade_id && userUnidadeIds.includes(s.unidade_id));
+    }
+    return servidores;
+  }, [servidores, isAdmin, isDiretor, isCoordenador, userDiretoriaIds, userUnidadeIds]);
+
   // Filter servidores based on view
   const filteredServidores = useMemo(() => {
-    let result = servidores;
+    let result = allowedServidores;
     if (selectedUnidadeId) result = result.filter(s => s.unidade_id === selectedUnidadeId);
     else if (selectedDiretoriaId) result = result.filter(s => s.diretoria_id === selectedDiretoriaId);
 
@@ -159,7 +194,7 @@ function MonitorContent() {
     else if (activeFilter === "duplo_vinculo") result = result.filter(s => s.duplo_vinculo);
 
     return result;
-  }, [servidores, selectedUnidadeId, selectedDiretoriaId, activeFilter]);
+  }, [allowedServidores, selectedUnidadeId, selectedDiretoriaId, activeFilter]);
 
   // Time helpers
   const currentHour = today.getHours();
@@ -494,7 +529,7 @@ function MonitorContent() {
 
   // Unit summary card (used in hierarchy view)
   const UnitSummaryCard = ({ uni }: { uni: UnidadeDB }) => {
-    const uniServs = servidores.filter(s => s.unidade_id === uni.id);
+    const uniServs = allowedServidores.filter(s => s.unidade_id === uni.id);
     const uniPresentes = uniServs.filter(s => s.status_presenca === "presente").length;
     const uniFolha = uniServs.reduce((sum, s) => sum + (s.salario || 0), 0);
     const pct = uniServs.length > 0 ? Math.round((uniPresentes / uniServs.length) * 100) : 0;
@@ -625,29 +660,29 @@ function MonitorContent() {
             {/* Stats row */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <div className="rounded-xl border border-border bg-card p-4">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Users className="h-3.5 w-3.5" /> Total</div>
-                <p className="text-2xl font-bold text-foreground">{servidores.length.toLocaleString("pt-BR")}</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Users className="h-3.5 w-3.5" /> Total</div>
+                <p className="text-2xl font-bold text-foreground">{allowedServidores.length.toLocaleString("pt-BR")}</p>
               </div>
               <div className="rounded-xl border border-success/30 bg-success/5 p-4">
                 <div className="flex items-center gap-2 text-xs text-success mb-1"><CheckCircle className="h-3.5 w-3.5" /> Presentes</div>
-                <p className="text-2xl font-bold text-success">{servidores.filter(s => s.status_presenca === "presente").length}</p>
+                <p className="text-2xl font-bold text-success">{allowedServidores.filter(s => s.status_presenca === "presente").length}</p>
               </div>
               <div className="rounded-xl border border-warning/30 bg-warning/5 p-4">
                 <div className="flex items-center gap-2 text-xs text-warning mb-1"><Palmtree className="h-3.5 w-3.5" /> Férias</div>
-                <p className="text-2xl font-bold text-warning">{servidores.filter(s => s.status_presenca === "ferias").length}</p>
+                <p className="text-2xl font-bold text-warning">{allowedServidores.filter(s => s.status_presenca === "ferias").length}</p>
               </div>
               <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
                 <div className="flex items-center gap-2 text-xs text-destructive mb-1"><AlertTriangle className="h-3.5 w-3.5" /> Afastados</div>
-                <p className="text-2xl font-bold text-destructive">{servidores.filter(s => s.status_presenca === "afastado").length}</p>
+                <p className="text-2xl font-bold text-destructive">{allowedServidores.filter(s => s.status_presenca === "afastado").length}</p>
               </div>
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Clock className="h-3.5 w-3.5" /> Carga Total</div>
-                <p className="text-2xl font-bold text-foreground">{servidores.reduce((s, sv) => s + (sv.escala_total_horas || 0), 0)}h</p>
+                <p className="text-2xl font-bold text-foreground">{allowedServidores.reduce((s, sv) => s + (sv.escala_total_horas || 0), 0)}h</p>
               </div>
               {hasFinancialAccess && (
               <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
                 <div className="flex items-center gap-2 text-xs text-primary mb-1"><DollarSign className="h-3.5 w-3.5" /> Folha Total</div>
-                <p className="text-lg font-bold text-foreground font-mono">{formatCurrency(servidores.reduce((s, sv) => s + (sv.salario || 0), 0))}</p>
+                <p className="text-lg font-bold text-foreground font-mono">{formatCurrency(allowedServidores.reduce((s, sv) => s + (sv.salario || 0), 0))}</p>
               </div>
               )}
             </div>
@@ -700,8 +735,8 @@ function MonitorContent() {
             <div className="space-y-3">
               <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Diretorias</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {diretorias.map(dir => {
-                  const dirServs = servidores.filter(s => s.diretoria_id === dir.id);
+                {allowedDiretorias.map(dir => {
+                  const dirServs = allowedServidores.filter(s => s.diretoria_id === dir.id);
                   const dirPresentes = dirServs.filter(s => s.status_presenca === "presente").length;
                   const dirFolha = dirServs.reduce((sum, s) => sum + (s.salario || 0), 0);
                   const dirUnidades = unidades.filter(u => u.diretoria_id === dir.id);
@@ -735,8 +770,8 @@ function MonitorContent() {
                 })}
 
                 {/* Sem diretoria */}
-                {(() => {
-                  const semDir = servidores.filter(s => !s.diretoria_id);
+                {isAdmin && (() => {
+                  const semDir = allowedServidores.filter(s => !s.diretoria_id);
                   if (semDir.length === 0) return null;
                   const folha = semDir.reduce((s, sv) => s + (sv.salario || 0), 0);
                   return (
@@ -755,6 +790,21 @@ function MonitorContent() {
                 })()}
               </div>
             </div>
+
+            {/* Auto-redirect coordinator to their unit if only one allowed diretoria */}
+            {isCoordenador && allowedDiretorias.length === 1 && allowedUnidades.length > 0 && (() => {
+              // Auto-show units for the coordinator's single diretoria
+              return (
+                <div className="space-y-3">
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Suas Unidades</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {allowedUnidades.map(uni => (
+                      <UnitSummaryCard key={uni.id} uni={uni} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -835,7 +885,7 @@ function MonitorContent() {
                 Unidades de {currentDiretoria?.nome}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {unidades.filter(u => u.diretoria_id === selectedDiretoriaId).map(uni => (
+                {allowedUnidades.filter(u => u.diretoria_id === selectedDiretoriaId).map(uni => (
                   <UnitSummaryCard key={uni.id} uni={uni} />
                 ))}
               </div>
