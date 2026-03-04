@@ -564,7 +564,7 @@ function SlideDiretoriaDetalhe({
     <div className="h-full flex flex-col p-8">
       <TVHeader
         title={diretoria.nome}
-        subtitle={`${stats.total} servidores · ${dirUnidades.length} unidades`}
+        subtitle={`${stats.total} servidores · ${dirUnidades.length} unidades · ${coordIds.size} coordenadores`}
         icon={<Building2 className="h-7 w-7 text-white" />}
       />
 
