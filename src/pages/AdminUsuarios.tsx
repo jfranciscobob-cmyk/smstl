@@ -181,7 +181,7 @@ export default function AdminUsuarios() {
       return;
     }
     // Sync pastas
-    if (editForm.role === "diretor") {
+    if (editForm.role === "diretor" || editForm.role === "coordenador_geral") {
       await syncUserDiretorias(editUser.id, editDiretoriaIds);
       await syncUserUnidades(editUser.id, new Set()); // clear unidades
     } else if (editForm.role === "coordenador") {
