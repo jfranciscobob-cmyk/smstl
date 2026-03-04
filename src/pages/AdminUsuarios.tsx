@@ -524,6 +524,7 @@ export default function AdminUsuarios() {
                   <select value={editForm.role} onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))}
                     className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none">
                     <option value="coordenador">Coordenador</option>
+                    <option value="coordenador_geral">Coordenador Geral</option>
                     <option value="diretor">Diretor</option>
                     <option value="admin">Administrador</option>
                   </select>
