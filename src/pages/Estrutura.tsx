@@ -21,7 +21,7 @@ import { ReallocationDialog, type ReallocationRequest } from "@/components/Reall
 
 function EstruturaContent() {
   const { toast } = useToast();
-  const { isAdmin, isDiretor, isCoordenador, isCoordenadorGeral, diretoriaIds: userDirIds, unidadeIds: userUniIds, loading: authLoading } = useAuthSession();
+  const { user, isAdmin, isDiretor, isCoordenador, isCoordenadorGeral, diretoriaIds: userDirIds, unidadeIds: userUniIds, loading: authLoading } = useAuthSession();
   const [allDiretorias, setAllDiretorias] = useState<DiretoriaDB[]>([]);
   const [allUnidades, setAllUnidades] = useState<UnidadeDB[]>([]);
   const [coordenacoes, setCoordenacoes] = useState<CoordenacaoDB[]>([]);
