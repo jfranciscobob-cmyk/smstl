@@ -997,15 +997,17 @@ export default function ModoTV() {
       if (data.length < PAGE) break;
       offset += PAGE;
     }
-    const [{ data: dirs }, { data: unis }, { data: cuData }] = await Promise.all([
+    const [{ data: dirs }, { data: unis }, { data: cuData }, { data: escalasData }] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenadores_unidades").select("servidor_id, unidade_id"),
+      supabase.from("escalas_semanais").select("servidor_id, dia_semana, entrada1, saida1, entrada2, saida2"),
     ]);
-    setServidores(allServ as ServidorDB[]);
+    setServidoresRaw(allServ as ServidorDB[]);
     setDiretorias((dirs ?? []) as DiretoriaDB[]);
     setUnidades((unis ?? []) as UnidadeDB[]);
     setCoordenadoresUnidades((cuData ?? []) as { servidor_id: string; unidade_id: string }[]);
+    setEscalasSemanais((escalasData ?? []) as EscalaSemanalRow[]);
     setLoading(false);
   }, []);
 
