@@ -72,7 +72,7 @@ export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, direto
       .subscribe();
 
     return () => { supabase.removeChannel(channel); clearInterval(onlineInterval); };
-  }, [isAdmin]);
+  }, [isAdmin, isDiretor, diretoriaIds]);
 
   return (
     <>
