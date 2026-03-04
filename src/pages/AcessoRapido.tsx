@@ -231,21 +231,23 @@ export default function AcessoRapido() {
             <Monitor className="h-4 w-4 text-primary" /> Modo TV por Diretoria
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <Link
-              to="/tv"
-              className="rounded-xl border border-teal-500/30 bg-teal-500/5 p-5 hover:shadow-md transition-all hover:border-teal-500/50 group"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="h-9 w-9 rounded-full bg-teal-500/20 flex items-center justify-center">
-                  <Monitor className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+            {isAdmin && (
+              <Link
+                to="/tv"
+                className="rounded-xl border border-teal-500/30 bg-teal-500/5 p-5 hover:shadow-md transition-all hover:border-teal-500/50 group"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="h-9 w-9 rounded-full bg-teal-500/20 flex items-center justify-center">
+                    <Monitor className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-foreground group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">Visão Geral</p>
+                    <p className="text-[10px] text-muted-foreground">Todas as diretorias</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-foreground group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">Visão Geral</p>
-                  <p className="text-[10px] text-muted-foreground">Todas as diretorias</p>
-                </div>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-teal-500 transition-colors ml-auto" />
-            </Link>
+                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-teal-500 transition-colors ml-auto" />
+              </Link>
+            )}
             {filteredDiretorias.map(dir => {
               const dirServs = filteredServidores.filter(s => s.diretoria_id === dir.id).length;
               if (dirServs === 0) return null;
