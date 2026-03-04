@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Loader2, UserPlus, Shield, Building2, Users, Pencil, Key, X, Check, XCircle, Clock, Trash2, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAuthSession } from "@/hooks/useAuthSession";
 
 interface ProfileRow {
   id: string;
