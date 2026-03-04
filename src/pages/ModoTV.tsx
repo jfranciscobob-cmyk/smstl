@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import {
   Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Monitor, Lock, Activity, MapPin, Briefcase,
-  TrendingUp, Zap, Eye, Clock, UserCheck, FileText, Calendar,
+  TrendingUp, Zap, Eye, Clock, UserCheck, FileText, Calendar, Megaphone,
 } from "lucide-react";
 
 // ─── Animated counter hook ───
@@ -1151,6 +1151,13 @@ export default function ModoTV() {
   const [slideDirection, setSlideDirection] = useState<"left" | "right">("left");
   const [transitioning, setTransitioning] = useState(false);
 
+  // Avisos banner state
+  interface TVAviso { id: string; titulo: string; mensagem: string; destinatario_tipo: string; destinatario_diretoria_id: string | null; }
+  const [avisos, setAvisos] = useState<TVAviso[]>([]);
+  const [currentAvisoIndex, setCurrentAvisoIndex] = useState(0);
+  const [showAvisoBanner, setShowAvisoBanner] = useState(false);
+  const AVISO_DURATION = 120000; // 2 minutes
+
   const SLIDE_DURATION = 30000;
   const TRANSITION_DURATION = 900;
 
@@ -1165,19 +1172,29 @@ export default function ModoTV() {
       if (data.length < PAGE) break;
       offset += PAGE;
     }
-    const [{ data: dirs }, { data: unis }, { data: cuData }, { data: escalasData }] = await Promise.all([
+    const [{ data: dirs }, { data: unis }, { data: cuData }, { data: escalasData }, { data: avisosData }] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenadores_unidades").select("servidor_id, unidade_id"),
       supabase.from("escalas_semanais").select("servidor_id, dia_semana, entrada1, saida1, entrada2, saida2"),
+      supabase.from("avisos").select("id, titulo, mensagem, destinatario_tipo, destinatario_diretoria_id").eq("ativo", true).order("created_at", { ascending: false }),
     ]);
     setServidoresRaw(allServ as ServidorDB[]);
     setDiretorias((dirs ?? []) as DiretoriaDB[]);
     setUnidades((unis ?? []) as UnidadeDB[]);
     setCoordenadoresUnidades((cuData ?? []) as { servidor_id: string; unidade_id: string }[]);
     setEscalasSemanais((escalasData ?? []) as EscalaSemanalRow[]);
+    
+    // Filter avisos relevant to this TV (by diretoria param or "todos")
+    const relevantAvisos = ((avisosData ?? []) as TVAviso[]).filter(a => {
+      if (a.destinatario_tipo === "todos") return true;
+      if (a.destinatario_tipo === "diretoria" && diretoriaParam && a.destinatario_diretoria_id === diretoriaParam) return true;
+      return false;
+    });
+    setAvisos(relevantAvisos);
+    
     setLoading(false);
-  }, []);
+  }, [diretoriaParam]);
 
   // Tick every 60s to recalculate auto-presence with fresh "now"
   const [presencaTick, setPresencaTick] = useState(0);
@@ -1195,6 +1212,9 @@ export default function ModoTV() {
         loadData();
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "escalas_semanais" }, () => {
+        loadData();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "avisos" }, () => {
         loadData();
       })
       .subscribe();
@@ -1300,6 +1320,32 @@ export default function ModoTV() {
     return () => window.removeEventListener("keydown", handler);
   }, [currentSlide, TOTAL_SLIDES, goToSlide]);
 
+  // Aviso banner: show each aviso for 2 minutes, cycling through them
+  useEffect(() => {
+    if (avisos.length === 0) {
+      setShowAvisoBanner(false);
+      return;
+    }
+    setShowAvisoBanner(true);
+    setCurrentAvisoIndex(0);
+  }, [avisos.length]);
+
+  useEffect(() => {
+    if (!showAvisoBanner || avisos.length === 0) return;
+    const timer = setInterval(() => {
+      setCurrentAvisoIndex(prev => {
+        const next = prev + 1;
+        if (next >= avisos.length) {
+          // All avisos shown, hide banner
+          setShowAvisoBanner(false);
+          return 0;
+        }
+        return next;
+      });
+    }, AVISO_DURATION);
+    return () => clearInterval(timer);
+  }, [showAvisoBanner, avisos.length, AVISO_DURATION]);
+
   if (!unlocked) return <PasswordGate onUnlock={() => setUnlocked(true)} />;
 
   if (loading) {
@@ -1354,6 +1400,40 @@ export default function ModoTV() {
       >
         {slides[currentSlide]}
       </div>
+
+      {/* Aviso Banner */}
+      {showAvisoBanner && avisos[currentAvisoIndex] && (
+        <div className="absolute top-0 left-0 right-0 z-30 animate-in slide-in-from-top duration-700">
+          <div className="mx-8 mt-6 rounded-2xl bg-gradient-to-r from-amber-500/90 via-orange-500/90 to-red-500/90 border border-amber-400/30 shadow-2xl shadow-amber-500/20 backdrop-blur-xl overflow-hidden">
+            <div className="px-8 py-5 flex items-start gap-5">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 flex-shrink-0 mt-0.5">
+                <Megaphone className="h-7 w-7 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.3em]">AVISO IMPORTANTE</span>
+                  {avisos.length > 1 && (
+                    <span className="text-[10px] font-bold text-white/40 bg-white/10 px-2 py-0.5 rounded-full">
+                      {currentAvisoIndex + 1}/{avisos.length}
+                    </span>
+                  )}
+                </div>
+                <h2 className="text-2xl font-black text-white tracking-tight mb-1">{avisos[currentAvisoIndex].titulo}</h2>
+                <p className="text-sm text-white/80 leading-relaxed line-clamp-3">{avisos[currentAvisoIndex].mensagem}</p>
+              </div>
+            </div>
+            {/* Progress bar for 2 min duration */}
+            <div className="h-1 bg-white/10">
+              <div
+                className="h-full bg-white/40 rounded-full"
+                style={{
+                  animation: `aviso-progress ${AVISO_DURATION}ms linear forwards`,
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Progress bar, slide indicators and counter removed */}
 

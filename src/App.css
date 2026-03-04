@@ -1,1 +1,6 @@
 /* App styles - kept minimal, design system in index.css */
+
+@keyframes aviso-progress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
