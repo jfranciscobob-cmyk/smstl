@@ -81,10 +81,22 @@ export function getEffectiveStatus(
     return servidor.status_presenca;
   }
 
-  // Fixed schedule: find today's escala
-  const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  // Fixed schedule: find today's escala using local TZ
+  const dayOfWeek = parseInt(
+    new Intl.DateTimeFormat("en-US", { ...tzOptions, weekday: "narrow" }).format(now) === "S"
+      ? // Disambiguate Sun vs Sat
+        new Intl.DateTimeFormat("en-US", { ...tzOptions, weekday: "long" }).format(now).startsWith("Sun") ? "0" : "6"
+      : String(["S","M","T","W","T","F","S"].indexOf(
+          new Intl.DateTimeFormat("en-US", { ...tzOptions, weekday: "narrow" }).format(now)
+        ))
+  );
+  // Simpler approach: use Intl to get the weekday index
+  const weekdayLong = new Intl.DateTimeFormat("en-US", { ...tzOptions, weekday: "long" }).format(now);
+  const dayMap: Record<string, number> = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
+  const localDayOfWeek = dayMap[weekdayLong] ?? now.getDay();
+
   const todayEscalas = escalas.filter(
-    (e) => e.servidor_id === servidor.id && e.dia_semana === dayOfWeek,
+    (e) => e.servidor_id === servidor.id && e.dia_semana === localDayOfWeek,
   );
 
   // No escala entry for today → day off
@@ -99,7 +111,10 @@ export function getEffectiveStatus(
     return "folga";
   }
 
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  // Get current time in local TZ
+  const localHour = parseInt(new Intl.DateTimeFormat("en-US", { ...tzOptions, hour: "numeric", hour12: false }).format(now));
+  const localMinute = parseInt(new Intl.DateTimeFormat("en-US", { ...tzOptions, minute: "numeric" }).format(now));
+  const nowMinutes = localHour * 60 + localMinute;
 
   // Check if within any shift period
   const inShift1 = isWithinShift(nowMinutes, escala.entrada1, escala.saida1);
