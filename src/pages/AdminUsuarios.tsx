@@ -101,8 +101,8 @@ export default function AdminUsuarios() {
   const getUserDiretoriaIds = (userId: string) => userDiretorias.filter(ud => ud.user_id === userId).map(ud => ud.diretoria_id);
   const getUserUnidadeIds = (userId: string) => userUnidades.filter(uu => uu.user_id === userId).map(uu => uu.unidade_id);
 
-  const roleLabel: Record<string, string> = { admin: "Administrador", diretor: "Diretor", coordenador: "Coordenador" };
-  const roleColor: Record<string, string> = { admin: "bg-primary/10 text-primary", diretor: "bg-amber-500/10 text-amber-600", coordenador: "bg-accent text-accent-foreground" };
+  const roleLabel: Record<string, string> = { admin: "Administrador", diretor: "Diretor", coordenador_geral: "Coordenador Geral", coordenador: "Coordenador" };
+  const roleColor: Record<string, string> = { admin: "bg-primary/10 text-primary", diretor: "bg-amber-500/10 text-amber-600", coordenador_geral: "bg-teal-500/10 text-teal-600", coordenador: "bg-accent text-accent-foreground" };
 
   const syncUserDiretorias = async (userId: string, newIds: Set<string>) => {
     await supabase.from("user_diretorias").delete().eq("user_id", userId);
