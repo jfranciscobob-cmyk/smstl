@@ -246,8 +246,8 @@ export default function AcessoRapido() {
               </div>
               <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-teal-500 transition-colors ml-auto" />
             </Link>
-            {diretorias.map(dir => {
-              const dirServs = servidores.filter(s => s.diretoria_id === dir.id).length;
+            {filteredDiretorias.map(dir => {
+              const dirServs = filteredServidores.filter(s => s.diretoria_id === dir.id).length;
               if (dirServs === 0) return null;
               return (
                 <Link
