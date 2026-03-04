@@ -501,7 +501,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
                     <div className="flex items-center gap-2 mb-0.5">
                       <Activity className="h-3.5 w-3.5 text-primary-foreground/60" />
                       <span className="text-[10px] font-semibold text-primary-foreground/50 uppercase tracking-widest">
-                        {new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "long", year: "numeric" })}
+                        {new Date().toLocaleDateString("pt-BR", { timeZone: "America/Campo_Grande", day: "2-digit", month: "long", year: "numeric" })}
                       </span>
                     </div>
                     <h2 className="text-lg sm:text-xl font-extrabold tracking-tight">

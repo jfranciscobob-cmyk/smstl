@@ -69,8 +69,8 @@ export function getEffectiveStatus(
   escalas: EscalaSemanalRow[],
   now: Date = new Date(),
 ): string {
-  // Use Três Lagoas/MS timezone (America/Sao_Paulo) for all calculations
-  const tzOptions = { timeZone: "America/Sao_Paulo" } as const;
+  // Use Três Lagoas/MS timezone (America/Campo_Grande) for all calculations
+  const tzOptions = { timeZone: "America/Campo_Grande" } as const;
   // Priority statuses always win
   if (PRIORITY_STATUSES.includes(servidor.status_presenca)) {
     return servidor.status_presenca;

@@ -174,7 +174,7 @@ function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
 }
 
 // ─── Clock component ───
-const TZ_OPTIONS = { timeZone: "America/Sao_Paulo" } as const;
+const TZ_OPTIONS = { timeZone: "America/Campo_Grande" } as const;
 
 function LiveClock() {
   const [now, setNow] = useState(new Date());
