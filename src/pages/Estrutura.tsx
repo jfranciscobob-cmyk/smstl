@@ -362,7 +362,7 @@ function EstruturaContent() {
   };
 
   const assignServidor = async (servidorId: string, diretoriaId: string, unidadeId: string, coordenacaoId?: string) => {
-    const ok = await assignServidoresToUnidade([servidorId], diretoriaId, unidadeId);
+    const ok = await checkAndAssignServidores([servidorId], diretoriaId, unidadeId);
     if (!ok) return;
 
     if (coordenacaoId) {
