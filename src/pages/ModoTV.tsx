@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef, type RefObject } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB } from "@/hooks/useServidores";
@@ -51,6 +51,65 @@ function AnimatedCard({ children, delay = 0, className = "" }: { children: React
         transition: `opacity 0.6s ease-out ${delay}ms, transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) ${delay}ms`,
       }}
     >
+      {children}
+    </div>
+  );
+}
+
+// ─── JS-based smooth auto-scroll for TV panels ───
+function useAutoScroll(duration = 28000): RefObject<HTMLDivElement | null> {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    // Reset scroll on mount
+    el.scrollTop = 0;
+    // Wait a moment then check if scrollable
+    const startDelay = setTimeout(() => {
+      if (!el) return;
+      const maxScroll = el.scrollHeight - el.clientHeight;
+      if (maxScroll <= 5) return; // No need to scroll
+      // Scroll down slowly over most of the duration, pause at ends
+      const pauseTime = duration * 0.12; // 12% pause at top and bottom
+      const scrollTime = duration - pauseTime * 2;
+      let raf: number;
+      let startTime: number | null = null;
+      const animate = (now: number) => {
+        if (!startTime) startTime = now;
+        const elapsed = now - startTime;
+        const currentMax = el.scrollHeight - el.clientHeight;
+        if (currentMax <= 0) return;
+        if (elapsed < pauseTime) {
+          // Pause at top
+          el.scrollTop = 0;
+        } else if (elapsed < pauseTime + scrollTime) {
+          // Smooth scroll down
+          const scrollProgress = (elapsed - pauseTime) / scrollTime;
+          const eased = scrollProgress < 0.5
+            ? 2 * scrollProgress * scrollProgress
+            : 1 - Math.pow(-2 * scrollProgress + 2, 2) / 2;
+          el.scrollTop = eased * currentMax;
+        } else {
+          // Pause at bottom
+          el.scrollTop = currentMax;
+        }
+        if (elapsed < duration) {
+          raf = requestAnimationFrame(animate);
+        }
+      };
+      raf = requestAnimationFrame(animate);
+      return () => cancelAnimationFrame(raf);
+    }, 600);
+    return () => clearTimeout(startDelay);
+  }, [duration]);
+  return ref;
+}
+
+// ─── ScrollContainer component for TV slides ───
+function TVScrollArea({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const scrollRef = useAutoScroll(28000);
+  return (
+    <div ref={scrollRef} className={`tv-auto-scroll ${className}`} style={{ scrollbarWidth: "none" }}>
       {children}
     </div>
   );
@@ -321,16 +380,16 @@ function SlideOverview({ servidores, diretorias, unidades }: { servidores: Servi
   ];
 
   return (
-    <div className="h-full flex flex-col justify-between p-8">
+    <div className="h-full flex flex-col justify-between p-4 sm:p-6 lg:p-8">
       <TVHeader title="Secretaria Municipal de Saúde" subtitle="Painel Geral de Monitoramento" icon={<Shield className="h-7 w-7 text-white" />} />
 
-      <div className="grid grid-cols-6 gap-4 my-3">
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-4 my-3">
         {kpis.map((k, i) => <KPICard key={k.label} {...k} delay={200 + i * 120} />)}
       </div>
 
-      <div className="grid grid-cols-12 gap-5 my-3 flex-1">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-5 my-3 flex-1 overflow-hidden">
         {/* Left: Presence + details */}
-        <div className="col-span-5 flex flex-col gap-4">
+        <div className="hidden md:flex col-span-5 flex-col gap-4">
           <GlowCard color="teal" className="flex-1">
             <div className="p-5 flex flex-col items-center justify-center h-full">
               <RadialGauge pct={presencaPct} size={150} strokeWidth={12} label="Taxa de Presença" />
@@ -339,7 +398,7 @@ function SlideOverview({ servidores, diretorias, unidades }: { servidores: Servi
         </div>
 
         {/* Center: Bars by diretoria */}
-        <div className="col-span-4 flex flex-col gap-3">
+        <div className="col-span-1 md:col-span-4 flex flex-col gap-3">
           <GlowCard>
             <div className="p-4">
               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Top Diretorias</p>
@@ -369,7 +428,7 @@ function SlideOverview({ servidores, diretorias, unidades }: { servidores: Servi
         </div>
 
         {/* Right: Composition */}
-        <div className="col-span-3 flex flex-col gap-3">
+        <div className="hidden md:flex col-span-3 flex-col gap-3">
           <GlowCard className="flex-1">
             <div className="p-4 h-full flex flex-col">
               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Estrutura</p>
@@ -561,7 +620,7 @@ function SlideDiretoriaDetalhe({
   const vinculoColors = ["#0d9488", "#3b82f6", "#475569"];
 
   return (
-    <div className="h-full flex flex-col p-8">
+    <div className="h-full flex flex-col p-4 sm:p-6 lg:p-8">
       <TVHeader
         title={diretoria.nome}
         subtitle={`${stats.total} servidores · ${dirUnidades.length} unidades · ${coordIds.size} coordenadores`}
@@ -569,7 +628,7 @@ function SlideDiretoriaDetalhe({
       />
 
       {/* KPIs */}
-      <div className="grid grid-cols-6 gap-3 mb-4">
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3 mb-4">
         <KPICard label="Total" value={stats.total} gradient="from-slate-700/90 to-slate-800/90" icon={<Users className="h-5 w-5" />} delay={150} />
         <KPICard label="Presentes" value={stats.presentes} gradient="from-emerald-600/90 to-green-800/90" icon={<CheckCircle className="h-5 w-5" />} delay={250} />
         <KPICard label="Férias" value={stats.ferias} gradient="from-amber-600/90 to-orange-800/90" icon={<Palmtree className="h-5 w-5" />} delay={350} />
@@ -578,14 +637,14 @@ function SlideDiretoriaDetalhe({
         <KPICard label="F. Críticas" value={funcCriticas} gradient="from-cyan-600/90 to-teal-800/90" icon={<Activity className="h-5 w-5" />} delay={650} />
       </div>
 
-      <div className="flex-1 grid grid-cols-12 gap-4 overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4 overflow-hidden">
         {/* Left: Gauge */}
-        <div className="col-span-2 flex flex-col items-center justify-center">
+        <div className="hidden md:flex col-span-2 flex-col items-center justify-center">
           <RadialGauge pct={presencaPct} size={140} strokeWidth={12} label="Presença" />
         </div>
 
         {/* Center: Unit list */}
-        <div className="col-span-7 overflow-y-auto tv-auto-scroll space-y-2 pr-2" style={{ scrollbarWidth: "none" }}>
+        <TVScrollArea className="col-span-1 md:col-span-7 overflow-y-auto space-y-2 pr-2">
           {unidadeData.map((uni, i) => (
             <UnitRow key={uni.id} {...uni} delay={200 + i * 80} />
           ))}
@@ -598,10 +657,10 @@ function SlideDiretoriaDetalhe({
               </div>
             </AnimatedCard>
           )}
-        </div>
+        </TVScrollArea>
 
         {/* Right: Composition */}
-        <div className="col-span-3">
+        <div className="hidden md:block col-span-3">
           <GlowCard className="h-full">
             <div className="p-4 h-full flex flex-col">
               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Composição</p>
@@ -661,8 +720,8 @@ function SlideDiretoriaServidores({
         subtitle={`${statusLabel} — ${dirServs.length} servidores`}
         icon={statusIcon}
       />
-      <div className="flex-1 overflow-y-auto tv-auto-scroll pr-2" style={{ scrollbarWidth: "none" }}>
-        <div className="grid grid-cols-3 gap-3">
+      <TVScrollArea className="flex-1 overflow-y-auto pr-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {dirServs.map((s, i) => (
             <AnimatedCard key={s.id} delay={80 + i * 30}>
               <div className={`rounded-xl bg-[#0f1a2e]/80 border border-[#1e3a5f]/40 p-3.5 hover:border-teal-500/30 transition-all`}>
@@ -684,7 +743,7 @@ function SlideDiretoriaServidores({
             <p className="text-slate-600 text-lg">Nenhum servidor com status "{statusLabel}"</p>
           </div>
         )}
-      </div>
+      </TVScrollArea>
     </div>
   );
 }
@@ -712,14 +771,12 @@ function SlideDiretoriaAlertas({
   const feriasVencidas = dirServs.filter(s => (s.ferias_vencidas ?? 0) > 0);
   const semEscala = dirServs.filter(s => !s.escala_inicio1 && !s.escala_total_horas);
   const funcoesCriticasAusentes = dirServs.filter(s => s.funcao_critica && s.status_presenca !== "presente");
-  const duploVinculo = dirServs.filter(s => s.duplo_vinculo);
 
   const alerts = [
     { label: "Contratos Vencendo (30d)", items: contratosVencendo, color: "from-red-600/90 to-rose-800/90", icon: <FileText className="h-5 w-5 text-white" /> },
     { label: "Férias Vencidas", items: feriasVencidas, color: "from-amber-600/90 to-orange-800/90", icon: <Calendar className="h-5 w-5 text-white" /> },
     { label: "Sem Escala Cadastrada", items: semEscala, color: "from-slate-600/90 to-slate-800/90", icon: <Clock className="h-5 w-5 text-white" /> },
     { label: "Funções Críticas Ausentes", items: funcoesCriticasAusentes, color: "from-purple-600/90 to-violet-800/90", icon: <Activity className="h-5 w-5 text-white" /> },
-    { label: "Duplo Vínculo", items: duploVinculo, color: "from-cyan-600/90 to-teal-800/90", icon: <Users className="h-5 w-5 text-white" /> },
   ].filter(a => a.items.length > 0);
 
   return (
@@ -729,7 +786,7 @@ function SlideDiretoriaAlertas({
         subtitle={`${alerts.length} alertas ativos`}
         icon={<AlertTriangle className="h-7 w-7 text-white" />}
       />
-      <div className="flex-1 overflow-y-auto tv-auto-scroll space-y-4" style={{ scrollbarWidth: "none" }}>
+      <TVScrollArea className="flex-1 overflow-y-auto space-y-4">
         {alerts.map((alert, ai) => (
           <AnimatedCard key={alert.label} delay={200 + ai * 150}>
             <GlowCard color={ai === 0 ? "red" : ai === 1 ? "amber" : "teal"}>
@@ -743,7 +800,7 @@ function SlideDiretoriaAlertas({
                     <p className="text-[10px] text-slate-500">{alert.items.length} servidor{alert.items.length > 1 ? "es" : ""}</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {alert.items.slice(0, 12).map(s => (
                     <div key={s.id} className="rounded-lg bg-[#0a1628]/80 border border-[#1e3a5f]/30 p-2">
                       <p className="text-[11px] font-bold text-white truncate">{s.nome}</p>
@@ -767,7 +824,7 @@ function SlideDiretoriaAlertas({
             <p className="text-slate-600 text-sm">Tudo sob controle nesta diretoria</p>
           </div>
         )}
-      </div>
+      </TVScrollArea>
     </div>
   );
 }
@@ -804,7 +861,7 @@ function SlideDiretoriaCoordenadores({
         subtitle={`${dirUnidades.length} unidades`}
         icon={<UserCheck className="h-7 w-7 text-white" />}
       />
-      <div className="flex-1 overflow-y-auto tv-auto-scroll space-y-3 pr-2" style={{ scrollbarWidth: "none" }}>
+      <TVScrollArea className="flex-1 overflow-y-auto space-y-3 pr-2">
         {uniCoordData.map((d, i) => {
           const textColor = d.pct >= 80 ? "text-emerald-400" : d.pct >= 60 ? "text-amber-400" : "text-red-400";
           return (
@@ -837,7 +894,7 @@ function SlideDiretoriaCoordenadores({
             </AnimatedCard>
           );
         })}
-      </div>
+      </TVScrollArea>
     </div>
   );
 }
@@ -864,7 +921,7 @@ function SlideMapaUnidades({ servidores, unidades, diretorias, coordenadoresUnid
   return (
     <div className="h-full flex flex-col p-8">
       <TVHeader title="Mapa de Presença por Diretoria" subtitle={`${grouped.length} diretorias · ${unidades.length} unidades`} icon={<MapPin className="h-7 w-7 text-white" />} />
-      <div className="flex-1 overflow-y-auto tv-auto-scroll pr-2 space-y-5" style={{ scrollbarWidth: "none" }}>
+      <TVScrollArea className="flex-1 overflow-y-auto pr-2 space-y-5">
         {grouped.map((g, gi) => (
           <AnimatedCard key={g.dir.id} delay={100 + gi * 120}>
             <GlowCard color={gi % 2 === 0 ? "teal" : "emerald"}>
@@ -905,7 +962,7 @@ function SlideMapaUnidades({ servidores, unidades, diretorias, coordenadoresUnid
             </GlowCard>
           </AnimatedCard>
         ))}
-      </div>
+      </TVScrollArea>
     </div>
   );
 }
@@ -997,7 +1054,7 @@ export default function ModoTV() {
   const [slideDirection, setSlideDirection] = useState<"left" | "right">("left");
   const [transitioning, setTransitioning] = useState(false);
 
-  const SLIDE_DURATION = 20000;
+  const SLIDE_DURATION = 30000;
   const TRANSITION_DURATION = 900;
 
   const loadData = useCallback(async () => {
