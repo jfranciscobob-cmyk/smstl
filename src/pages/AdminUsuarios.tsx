@@ -240,7 +240,7 @@ export default function AdminUsuarios() {
   // Helper to get location labels
   const getLocationLabels = (userId: string, userRoles: string[]) => {
     const labels: string[] = [];
-    if (userRoles.includes("diretor")) {
+    if (userRoles.includes("diretor") || userRoles.includes("coordenador_geral")) {
       const ids = getUserDiretoriaIds(userId);
       ids.forEach(id => {
         const d = diretorias.find(d => d.id === id);
