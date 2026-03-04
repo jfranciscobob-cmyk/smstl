@@ -770,8 +770,8 @@ function MonitorContent() {
                 })}
 
                 {/* Sem diretoria */}
-                {(() => {
-                  const semDir = servidores.filter(s => !s.diretoria_id);
+                {isAdmin && (() => {
+                  const semDir = allowedServidores.filter(s => !s.diretoria_id);
                   if (semDir.length === 0) return null;
                   const folha = semDir.reduce((s, sv) => s + (sv.salario || 0), 0);
                   return (
