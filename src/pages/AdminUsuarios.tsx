@@ -87,6 +87,7 @@ export default function AdminUsuarios() {
     setRequests((req.data ?? []) as RegistrationRequest[]);
     setDiretorias((dir.data ?? []) as DiretoriaOption[]);
     setUnidades((uni.data ?? []) as UnidadeOption[]);
+    setAgrupamentos((agr.data ?? []) as AgrupamentoOption[]);
     setUserDiretorias((ud.data ?? []) as UserDiretoria[]);
     setUserUnidades((uu.data ?? []) as UserUnidade[]);
     setLoading(false);

@@ -529,7 +529,7 @@ function MonitorContent() {
 
   // Unit summary card (used in hierarchy view)
   const UnitSummaryCard = ({ uni }: { uni: UnidadeDB }) => {
-    const uniServs = servidores.filter(s => s.unidade_id === uni.id);
+    const uniServs = allowedServidores.filter(s => s.unidade_id === uni.id);
     const uniPresentes = uniServs.filter(s => s.status_presenca === "presente").length;
     const uniFolha = uniServs.reduce((sum, s) => sum + (s.salario || 0), 0);
     const pct = uniServs.length > 0 ? Math.round((uniPresentes / uniServs.length) * 100) : 0;
