@@ -17,7 +17,7 @@ export default function Login() {
   const [regNome, setRegNome] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
-  const [regRole, setRegRole] = useState<"diretor" | "coordenador">("coordenador");
+  const [regRole, setRegRole] = useState<"diretor" | "coordenador" | "coordenador_geral">("coordenador");
   const [diretorias, setDiretorias] = useState<{ id: string; nome: string }[]>([]);
   const [regDiretoriaId, setRegDiretoriaId] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -146,10 +146,11 @@ export default function Login() {
               <label className="text-sm font-medium text-foreground">Papel *</label>
               <select
                 value={regRole}
-                onChange={e => setRegRole(e.target.value as "diretor" | "coordenador")}
+                onChange={e => setRegRole(e.target.value as "diretor" | "coordenador" | "coordenador_geral")}
                 className="w-full h-11 rounded-lg border border-input bg-card px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="coordenador">Coordenador</option>
+                <option value="coordenador_geral">Coordenador Geral</option>
                 <option value="diretor">Diretor</option>
               </select>
             </div>
@@ -173,6 +174,8 @@ export default function Login() {
                 <p className="text-[10px] text-muted-foreground">
                   {regRole === "coordenador"
                     ? "O diretor desta pasta receberá sua solicitação para aprovação."
+                    : regRole === "coordenador_geral"
+                    ? "Selecione a diretoria principal. Coordenador Geral tem acesso de diretor."
                     : "Selecione a diretoria que você irá gerenciar."}
                 </p>
               </div>
@@ -264,7 +267,7 @@ export default function Login() {
             <UserPlus className="h-4 w-4" /> Solicitar acesso ao sistema
           </button>
           <p className="text-xs text-muted-foreground">
-            Diretores e coordenadores podem solicitar acesso. A aprovação é feita pela administração.
+            Diretores, coordenadores gerais e coordenadores podem solicitar acesso. A aprovação é feita pela administração.
           </p>
         </div>
       </div>

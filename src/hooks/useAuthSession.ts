@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
 export interface UserRole {
-  role: "admin" | "diretor" | "coordenador";
+  role: "admin" | "diretor" | "coordenador" | "coordenador_geral";
 }
 
 export interface AuthSession {
@@ -16,6 +16,7 @@ export interface AuthSession {
   isAdmin: boolean;
   isDiretor: boolean;
   isCoordenador: boolean;
+  isCoordenadorGeral: boolean;
   hasFullAccess: boolean;
   hasFinancialAccess: boolean;
   signOut: () => Promise<void>;
@@ -140,7 +141,9 @@ export function useAuthSession(): AuthSession {
   }, []);
 
   const isAdmin = roles.some((r) => r.role === "admin");
-  const isDiretor = roles.some((r) => r.role === "diretor");
+  const isCoordenadorGeral = roles.some((r) => r.role === "coordenador_geral");
+  // coordenador_geral has the same access as diretor
+  const isDiretor = roles.some((r) => r.role === "diretor") || isCoordenadorGeral;
   const isCoordenador = roles.some((r) => r.role === "coordenador");
   const hasFullAccess = isAdmin || isDiretor;
   const hasFinancialAccess = isAdmin || acessoFinanceiro;
@@ -155,6 +158,6 @@ export function useAuthSession(): AuthSession {
     // backwards compat
     diretoriaId: diretoriaIds[0] ?? null,
     unidadeId: unidadeIds[0] ?? null,
-    loading, isAdmin, isDiretor, isCoordenador, hasFullAccess, hasFinancialAccess, signOut,
+    loading, isAdmin, isDiretor, isCoordenador, isCoordenadorGeral, hasFullAccess, hasFinancialAccess, signOut,
   };
 }

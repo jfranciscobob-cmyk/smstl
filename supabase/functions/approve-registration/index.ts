@@ -33,7 +33,8 @@ serve(async (req) => {
 
     const isAdmin = roles?.some(r => r.role === "admin");
     const isDiretor = roles?.some(r => r.role === "diretor");
-    if (!isAdmin && !isDiretor) throw new Error("Sem permissão");
+    const isCoordenadorGeral = roles?.some(r => r.role === "coordenador_geral");
+    if (!isAdmin && !isDiretor && !isCoordenadorGeral) throw new Error("Sem permissão");
 
     const { request_id, action, motivo_rejeicao } = await req.json();
 
@@ -50,9 +51,9 @@ serve(async (req) => {
     if (reqError || !request) throw new Error("Solicitação não encontrada");
     if (request.status !== "pendente") throw new Error("Solicitação já foi respondida");
 
-    // Diretor can only approve coordenador requests
-    if (isDiretor && !isAdmin && request.role_requested === "diretor") {
-      throw new Error("Apenas administradores podem aprovar diretores");
+    // Diretor/Coordenador Geral can only approve coordenador requests
+    if ((isDiretor || isCoordenadorGeral) && !isAdmin && (request.role_requested === "diretor" || request.role_requested === "coordenador_geral")) {
+      throw new Error("Apenas administradores podem aprovar diretores e coordenadores gerais");
     }
 
     if (action === "rejeitar") {
