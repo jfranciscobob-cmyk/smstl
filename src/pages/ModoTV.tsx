@@ -995,7 +995,7 @@ export default function ModoTV() {
   const [slideDirection, setSlideDirection] = useState<"left" | "right">("left");
   const [transitioning, setTransitioning] = useState(false);
 
-  const SLIDE_DURATION = 20000;
+  const SLIDE_DURATION = 30000;
   const TRANSITION_DURATION = 900;
 
   const loadData = useCallback(async () => {
