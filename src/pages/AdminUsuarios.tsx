@@ -5,6 +5,7 @@ import { ArrowLeft, Loader2, UserPlus, Shield, Building2, Users, Pencil, Key, X,
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuthSession } from "@/hooks/useAuthSession";
+import GerenciarAvisos from "@/components/GerenciarAvisos";
 
 interface ProfileRow {
   id: string;
@@ -620,6 +621,12 @@ export default function AdminUsuarios() {
             </div>
           )}
         </div>
+        {/* Seção de Avisos (apenas admin) */}
+        {isAdmin && (
+          <div className="mt-8 pt-6 border-t border-border">
+            <GerenciarAvisos />
+          </div>
+        )}
       </main>
     </div>
   );

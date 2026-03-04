@@ -141,6 +141,71 @@ export type Database = {
           },
         ]
       }
+      avisos: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          criado_por: string
+          destinatario_tipo: string
+          destinatario_user_id: string | null
+          id: string
+          mensagem: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          criado_por: string
+          destinatario_tipo?: string
+          destinatario_user_id?: string | null
+          id?: string
+          mensagem: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          criado_por?: string
+          destinatario_tipo?: string
+          destinatario_user_id?: string | null
+          id?: string
+          mensagem?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      avisos_lidos: {
+        Row: {
+          aviso_id: string
+          id: string
+          lido_at: string
+          user_id: string
+        }
+        Insert: {
+          aviso_id: string
+          id?: string
+          lido_at?: string
+          user_id: string
+        }
+        Update: {
+          aviso_id?: string
+          id?: string
+          lido_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avisos_lidos_aviso_id_fkey"
+            columns: ["aviso_id"]
+            isOneToOne: false
+            referencedRelation: "avisos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coordenacoes: {
         Row: {
           created_at: string

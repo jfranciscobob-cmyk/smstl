@@ -16,6 +16,7 @@ import SetupAdmin from "./pages/SetupAdmin";
 import NotFound from "./pages/NotFound";
 import Manual from "./pages/Manual";
 import ModoTV from "./pages/ModoTV";
+import AvisoPopup from "./components/AvisoPopup";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -94,17 +95,20 @@ function AppRoutes() {
   }
 
   return (
-    <Routes>
-      <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
-      <Route path="/" element={<ProtectedRoute auth={auth}><Dashboard /></ProtectedRoute>} />
-      <Route path="/estrutura" element={<ProtectedRoute auth={auth} requireFullAccess><Estrutura /></ProtectedRoute>} />
-      <Route path="/monitor" element={<ProtectedRoute auth={auth}><MonitorUnidade /></ProtectedRoute>} />
-      <Route path="/acesso" element={<ProtectedRoute auth={auth}><AcessoRapido /></ProtectedRoute>} />
-      <Route path="/admin/usuarios" element={<ProtectedRoute auth={auth} requireFullAccess><AdminUsuarios /></ProtectedRoute>} />
-      <Route path="/manual" element={<ProtectedRoute auth={auth}><Manual /></ProtectedRoute>} />
-      <Route path="/tv" element={<ModoTV />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <>
+      {user && <AvisoPopup userId={user.id} />}
+      <Routes>
+        <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+        <Route path="/" element={<ProtectedRoute auth={auth}><Dashboard /></ProtectedRoute>} />
+        <Route path="/estrutura" element={<ProtectedRoute auth={auth} requireFullAccess><Estrutura /></ProtectedRoute>} />
+        <Route path="/monitor" element={<ProtectedRoute auth={auth}><MonitorUnidade /></ProtectedRoute>} />
+        <Route path="/acesso" element={<ProtectedRoute auth={auth}><AcessoRapido /></ProtectedRoute>} />
+        <Route path="/admin/usuarios" element={<ProtectedRoute auth={auth} requireFullAccess><AdminUsuarios /></ProtectedRoute>} />
+        <Route path="/manual" element={<ProtectedRoute auth={auth}><Manual /></ProtectedRoute>} />
+        <Route path="/tv" element={<ModoTV />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
   );
 }
 
