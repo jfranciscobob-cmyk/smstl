@@ -201,8 +201,48 @@ function EstruturaContent() {
   };
 
   // Assign servidor to unidade/coordenação
-  const assignServidoresToUnidade = async (servidorIds: string[], diretoriaId: string, unidadeId: string) => {
-    if (servidorIds.length === 0) return false;
+  // Check if servers have existing allocations and show reallocation dialog if needed
+  const checkAndAssignServidores = (servidorIds: string[], diretoriaId: string, unidadeId?: string) => {
+    const selected = servidorIds.map(id => servidores.find(s => s.id === id)).filter(Boolean) as ServidorDB[];
+    const allocated = selected.filter(s => s.diretoria_id || s.unidade_id);
+    const unallocated = selected.filter(s => !s.diretoria_id && !s.unidade_id);
+
+    // If there are allocated servers, show the reallocation dialog
+    if (allocated.length > 0) {
+      setReallocationRequest({
+        servidorIds: allocated.map(s => s.id),
+        targetDiretoriaId: diretoriaId,
+        targetUnidadeId: unidadeId,
+      });
+
+      // Store the action for unallocated servers to execute after dialog
+      if (unallocated.length > 0) {
+        setPendingAllocationAction(() => async () => {
+          await doAssignServidoresToUnidade(unallocated.map(s => s.id), diretoriaId, unidadeId);
+        });
+      }
+
+      setReallocationOpen(true);
+      return false; // Don't close the assign panel yet
+    }
+
+    // No conflicts, proceed directly
+    return doAssignServidoresToUnidade(servidorIds, diretoriaId, unidadeId);
+  };
+
+  const doAssignServidoresToUnidade = async (servidorIds: string[], diretoriaId: string, unidadeId?: string): Promise<boolean> => {
+    if (servidorIds.length === 0) return true;
+
+    if (!unidadeId) {
+      // Assigning directly to diretoria
+      const { error } = await supabase.from("servidores").update({ diretoria_id: diretoriaId, unidade_id: null, coordenacao_id: null }).in("id", servidorIds);
+      if (error) {
+        toast({ title: "Erro", description: error.message, variant: "destructive" });
+        return false;
+      }
+      toast({ title: `${servidorIds.length} servidor(es) vinculado(s)!` });
+      return true;
+    }
 
     const selected = servidores.filter(s => servidorIds.includes(s.id));
     const hasExtraUnidade = (servidorId: string) => servidoresUnidades.some(su => su.servidor_id === servidorId);
@@ -278,6 +318,47 @@ function EstruturaContent() {
     });
 
     return true;
+  };
+
+  const handleReallocationComplete = async (action: "kept_both" | "pending_approval") => {
+    // Execute pending allocation for unallocated servers
+    if (pendingAllocationAction) {
+      await pendingAllocationAction();
+      setPendingAllocationAction(null);
+    }
+
+    if (action === "kept_both" && reallocationRequest) {
+      // For "keep both", proceed with adding them to the new location too
+      const req = reallocationRequest;
+      if (req.targetUnidadeId) {
+        // Add to servidores_unidades junction
+        const payload = req.servidorIds.map(servidor_id => ({
+          servidor_id,
+          unidade_id: req.targetUnidadeId!,
+        }));
+        // Check existing
+        const { data: existentes } = await supabase
+          .from("servidores_unidades")
+          .select("servidor_id")
+          .eq("unidade_id", req.targetUnidadeId)
+          .in("servidor_id", req.servidorIds);
+        const existentesSet = new Set((existentes ?? []).map(r => r.servidor_id));
+        const toInsert = payload.filter(p => !existentesSet.has(p.servidor_id));
+        if (toInsert.length > 0) {
+          await supabase.from("servidores_unidades").insert(toInsert);
+        }
+      } else {
+        // Just diretoria - update diretoria_id but keep existing unidade
+        // Actually for "keep both" at diretoria level, we just add the new diretoria reference
+        // Since servidores only has one diretoria_id, we keep original and just notify
+      }
+    }
+
+    setReallocationRequest(null);
+    setAssigningTo(null);
+    setAssignSearch("");
+    setAssignSelectedIds(new Set());
+    loadData();
   };
 
   const assignServidor = async (servidorId: string, diretoriaId: string, unidadeId: string, coordenacaoId?: string) => {
