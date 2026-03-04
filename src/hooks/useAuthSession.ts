@@ -143,7 +143,8 @@ export function useAuthSession(): AuthSession {
   const isAdmin = roles.some((r) => r.role === "admin");
   const isDiretor = roles.some((r) => r.role === "diretor");
   const isCoordenador = roles.some((r) => r.role === "coordenador");
-  const hasFullAccess = isAdmin || isDiretor;
+  const isCoordenadorGeral = roles.some((r) => r.role === "coordenador_geral");
+  const hasFullAccess = isAdmin || isDiretor || isCoordenadorGeral;
   const hasFinancialAccess = isAdmin || acessoFinanceiro;
 
   const signOut = async () => {
