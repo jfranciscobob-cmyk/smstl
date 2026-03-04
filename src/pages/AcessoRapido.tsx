@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { ServidorDB, DiretoriaDB, UnidadeDB, CoordenadorUnidadeDB } from "@/hooks/useServidores";
 import {
-  ArrowLeft, Loader2, Building2, Users, ChevronRight, UserCheck, Shield, Briefcase,
+  ArrowLeft, Loader2, Building2, Users, ChevronRight, UserCheck, Shield, Briefcase, Monitor,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
