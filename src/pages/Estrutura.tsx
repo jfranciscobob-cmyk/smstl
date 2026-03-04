@@ -790,8 +790,8 @@ function EstruturaContent() {
             );
           })()}
 
-          {/* Servidores da Secretaria (sem diretoria) */}
-          {expanded["secretaria"] !== false && (
+          {/* Servidores da Secretaria (sem diretoria) - admin only */}
+          {isAdmin && expanded["secretaria"] !== false && (
             <div className="px-5 py-3 border-t border-border/30">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
