@@ -6,6 +6,7 @@ import { DashboardHeader } from "@/components/DashboardHeader";
 import { EditServidorModal } from "@/components/EditServidorModal";
 import { CreateServidorModal } from "@/components/CreateServidorModal";
 import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB, type CoordenacaoDB } from "@/hooks/useServidores";
+import { applyAutoPresenca, type EscalaSemanalRow } from "@/lib/presencaAutomatica";
 import { Link } from "react-router-dom";
 import {
   Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Search,
@@ -134,6 +135,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
   const [coordUnidades, setCoordUnidades] = useState<{ id: string; servidor_id: string; unidade_id: string }[]>([]);
   const [servidoresUnidades, setServidoresUnidades] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
   const [faltasAbonadas, setFaltasAbonadas] = useState<{ servidor_id: string; data: string }[]>([]);
+  const [escalasSemanais, setEscalasSemanais] = useState<EscalaSemanalRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [editingServidor, setEditingServidor] = useState<ServidorDB | null>(null);
@@ -164,7 +166,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
     };
 
     try {
-      const [allServidores, diretoriasRes, unidadesRes, coordenacoesRes, coordUnidadesRes, faltasRes, srvUnidadesRes] = await Promise.all([
+      const [allServidores, diretoriasRes, unidadesRes, coordenacoesRes, coordUnidadesRes, faltasRes, srvUnidadesRes, escalasRes] = await Promise.all([
         fetchAllServidores(),
         supabase.from("diretorias").select("*").order("nome"),
         supabase.from("unidades").select("*").order("nome"),
@@ -172,6 +174,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
         supabase.from("coordenadores_unidades").select("*"),
         supabase.from("faltas_abonadas").select("servidor_id, data"),
         supabase.from("servidores_unidades").select("servidor_id, unidade_id"),
+        supabase.from("escalas_semanais").select("servidor_id, dia_semana, entrada1, saida1, entrada2, saida2"),
       ]);
 
       if (diretoriasRes.error || unidadesRes.error || coordenacoesRes.error) {
@@ -185,6 +188,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
       setCoordUnidades(coordUnidadesRes.data ?? []);
       setServidoresUnidades((srvUnidadesRes.data ?? []) as { servidor_id: string; unidade_id: string }[]);
       setFaltasAbonadas((faltasRes.data ?? []) as { servidor_id: string; data: string }[]);
+      setEscalasSemanais((escalasRes.data ?? []) as EscalaSemanalRow[]);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : "Erro ao carregar dados");
     } finally {
@@ -230,6 +234,12 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
     return servidores;
   }, [servidores, unidades, isAdmin, isDiretor, isCoordenador, userDirIds, userUniIds, servidoresUnidades]);
 
+  // Apply auto-presence based on escalas_semanais for fixed schedules
+  const servidoresComPresenca = useMemo(
+    () => applyAutoPresenca(filteredServidores, escalasSemanais),
+    [filteredServidores, escalasSemanais],
+  );
+
   const filteredDiretorias = useMemo(() => {
     if (isAdmin) return diretorias;
     if (isDiretor && userDirIds.length > 0) {
@@ -253,7 +263,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
     return unidades;
   }, [unidades, isAdmin, isDiretor, isCoordenador, userDirIds, userUniIds]);
 
-  const stats = useMemo(() => computeStats(filteredServidores), [filteredServidores]);
+  const stats = useMemo(() => computeStats(servidoresComPresenca), [servidoresComPresenca]);
 
   const folhaTotal = useMemo(() => filteredServidores.reduce((sum, s) => sum + (s.salario || 0), 0), [filteredServidores]);
 
@@ -262,6 +272,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
     { name: "Férias", value: stats.ferias },
     { name: "Afastados", value: stats.afastados },
     { name: "Ausentes", value: stats.ausentes },
+    { name: "Folga", value: stats.folga },
   ].filter(d => d.value > 0), [stats]);
 
   const vinculoData = useMemo(() => {
@@ -271,8 +282,8 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
   }, [filteredServidores]);
 
   const funcoesCriticasDescobertas = useMemo(
-    () => filteredServidores.filter(s => s.funcao_critica && s.status_presenca !== "presente"),
-    [filteredServidores]
+    () => servidoresComPresenca.filter(s => s.funcao_critica && s.status_presenca !== "presente"),
+    [servidoresComPresenca]
   );
 
   const contratosVencendo = useMemo(() => {
@@ -317,15 +328,15 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
 
   // ── Servidores sem escala ou férias atualizadas ──
   const semEscala = useMemo(() =>
-    filteredServidores.filter(s => !s.escala_inicio1 && !s.escala_total_horas),
-    [filteredServidores]
+    servidoresComPresenca.filter(s => s.tipo_escala === 'fixa' && !s.escala_inicio1 && !s.escala_total_horas),
+    [servidoresComPresenca]
   );
   const semFerias = useMemo(() =>
-    filteredServidores.filter(s => !s.ferias_ano_referencia && !s.ferias_periodo1_inicio),
-    [filteredServidores]
+    servidoresComPresenca.filter(s => !s.ferias_ano_referencia && !s.ferias_periodo1_inicio),
+    [servidoresComPresenca]
   );
 
-  const statusColors = ["hsl(152 60% 40%)", "hsl(38 92% 50%)", "hsl(0 72% 51%)", "hsl(200 10% 46%)"];
+  const statusColors = ["hsl(152 60% 40%)", "hsl(38 92% 50%)", "hsl(0 72% 51%)", "hsl(200 10% 46%)", "hsl(220 13% 69%)"];
   const vinculoColors = ["hsl(174 62% 30%)", "hsl(38 92% 50%)", "hsl(210 75% 50%)", "hsl(270 50% 55%)", "hsl(200 10% 46%)"];
 
   return (
@@ -335,7 +346,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
         onSignOut={signOut}
         onCreateServidor={() => setShowCreateModal(true)}
         diretorias={filteredDiretorias}
-        servidores={filteredServidores}
+        servidores={servidoresComPresenca}
       />
 
       <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
@@ -507,7 +518,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
                 <p className="text-[9px] font-semibold text-primary/70 uppercase tracking-wider">Alocados</p>
               </Link>
               <Link to="/monitor?filter=duplo_vinculo" className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-center transition-all hover:shadow-md hover:-translate-y-0.5" title="Servidores com dois vínculos">
-                <p className="text-lg font-extrabold font-mono text-amber-600 dark:text-amber-400">{filteredServidores.filter(s => s.duplo_vinculo).length}</p>
+                <p className="text-lg font-extrabold font-mono text-amber-600 dark:text-amber-400">{servidoresComPresenca.filter(s => s.duplo_vinculo).length}</p>
                 <p className="text-[9px] font-semibold text-amber-600/70 dark:text-amber-400/70 uppercase tracking-wider">Duplo Vínculo</p>
               </Link>
             </div>
@@ -524,7 +535,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {filteredDiretorias.map(dir => {
-                  const ds = filteredServidores.filter(s => s.diretoria_id === dir.id);
+                  const ds = servidoresComPresenca.filter(s => s.diretoria_id === dir.id);
                   const dp = ds.filter(s => s.status_presenca === "presente").length;
                   const dFerias = ds.filter(s => s.status_presenca === "ferias").length;
                   const dAfastados = ds.filter(s => s.status_presenca === "afastado").length;
@@ -533,7 +544,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
                   const cob = ds.length > 0 ? Math.round((dp / ds.length) * 100) : 0;
                   const cobColor = cob >= 80 ? "text-success" : cob >= 50 ? "text-warning" : "text-destructive";
                   const cobBg = cob >= 80 ? "bg-success" : cob >= 50 ? "bg-warning" : "bg-destructive";
-                  const diretor = filteredServidores.find(s => s.diretoria_id === dir.id && s.is_diretor);
+                  const diretor = servidoresComPresenca.find(s => s.diretoria_id === dir.id && s.is_diretor);
                   const criticas = ds.filter(s => s.funcao_critica && s.status_presenca !== "presente");
                   
                   // Faltas abonadas risk for this diretoria
@@ -551,7 +562,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
                       .map(cu => cu.servidor_id)
                   )];
                   const coordenadoresAtivos = coordServidorIds
-                    .map(id => filteredServidores.find(s => s.id === id))
+                    .map(id => servidoresComPresenca.find(s => s.id === id))
                     .filter(Boolean) as ServidorDB[];
 
                   return (
@@ -667,7 +678,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
 
                 {/* Sem diretoria */}
                 {(() => {
-                  const semDir = filteredServidores.filter(s => !s.diretoria_id);
+                  const semDir = servidoresComPresenca.filter(s => !s.diretoria_id);
                   if (semDir.length === 0) return null;
                   const sp = semDir.filter(s => s.status_presenca === "presente").length;
                   const folha = semDir.reduce((s, sv) => s + (sv.salario || 0), 0);
@@ -707,7 +718,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
                 <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
                   Presença vs Ausências por Diretoria
                 </h3>
-                <DiretoriaBarChart diretorias={filteredDiretorias} servidores={filteredServidores} />
+                <DiretoriaBarChart diretorias={filteredDiretorias} servidores={servidoresComPresenca} />
               </div>
 
               {/* Alertas */}

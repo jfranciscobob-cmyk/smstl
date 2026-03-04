@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import type { ServidorDB, DiretoriaDB, UnidadeDB, FuncaoDB, AtestadoDB, FaltaAbonadaDB, AfastamentoDB } from "@/hooks/useServidores";
+import { applyAutoPresenca, type EscalaSemanalRow } from "@/lib/presencaAutomatica";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft, Loader2, Users, Clock, AlertTriangle, Palmtree, FileText,
@@ -36,6 +37,7 @@ function MonitorContent() {
   const [afastamentos, setAfastamentos] = useState<AfastamentoDB[]>([]);
   const [loading, setLoading] = useState(true);
   const [coordUniData, setCoordUniData] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
+  const [escalasSemanais, setEscalasSemanais] = useState<EscalaSemanalRow[]>([]);
 
   // Atestado form
   const [showAtestadoForm, setShowAtestadoForm] = useState(false);
@@ -102,7 +104,7 @@ function MonitorContent() {
       if (data.length < PAGE) break;
       offset += PAGE;
     }
-    const [d, u, f, a, fa, af, cu] = await Promise.all([
+    const [d, u, f, a, fa, af, cu, es] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("funcoes").select("*").order("nome"),
@@ -110,6 +112,7 @@ function MonitorContent() {
       supabase.from("faltas_abonadas").select("*").order("data", { ascending: false }),
       supabase.from("afastamentos").select("*").order("data_inicio", { ascending: false }),
       supabase.from("coordenadores_unidades").select("*"),
+      supabase.from("escalas_semanais").select("servidor_id, dia_semana, entrada1, saida1, entrada2, saida2"),
     ]);
     setServidores(allSrv as ServidorDB[]);
     setDiretorias((d.data ?? []) as DiretoriaDB[]);
@@ -119,6 +122,7 @@ function MonitorContent() {
     setFaltasAbonadas((fa.data ?? []) as FaltaAbonadaDB[]);
     setAfastamentos((af.data ?? []) as AfastamentoDB[]);
     setCoordUniData((cu.data ?? []) as { servidor_id: string; unidade_id: string }[]);
+    setEscalasSemanais((es.data ?? []) as EscalaSemanalRow[]);
     setLoading(false);
   }, []);
 
@@ -168,7 +172,7 @@ function MonitorContent() {
     return unidades;
   }, [unidades, isAdmin, isDiretor, isCoordenador, userDiretoriaIds, userUnidadeIds]);
 
-  const allowedServidores = useMemo(() => {
+  const allowedServidoresRaw = useMemo(() => {
     if (isAdmin) return servidores;
     if (isDiretor && userDiretoriaIds.length > 0) {
       return servidores.filter(s => s.diretoria_id && userDiretoriaIds.includes(s.diretoria_id));
@@ -178,6 +182,12 @@ function MonitorContent() {
     }
     return servidores;
   }, [servidores, isAdmin, isDiretor, isCoordenador, userDiretoriaIds, userUnidadeIds]);
+
+  // Apply auto-presence based on escalas_semanais for fixed schedules
+  const allowedServidores = useMemo(
+    () => applyAutoPresenca(allowedServidoresRaw, escalasSemanais),
+    [allowedServidoresRaw, escalasSemanais],
+  );
 
   // Filter servidores based on view
   const filteredServidores = useMemo(() => {
@@ -189,6 +199,7 @@ function MonitorContent() {
     else if (activeFilter === "ferias") result = result.filter(s => s.status_presenca === "ferias");
     else if (activeFilter === "afastados") result = result.filter(s => s.status_presenca === "afastado");
     else if (activeFilter === "ausentes") result = result.filter(s => s.status_presenca === "ausente");
+    else if (activeFilter === "folga") result = result.filter(s => s.status_presenca === "folga");
     else if (activeFilter === "concursados") result = result.filter(s => (s.vinculo || "").includes("CONCURSADO"));
     else if (activeFilter === "contratados") result = result.filter(s => (s.vinculo || "").includes("CONTRATO"));
     else if (activeFilter === "duplo_vinculo") result = result.filter(s => s.duplo_vinculo);
