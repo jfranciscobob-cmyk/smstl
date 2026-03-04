@@ -1020,6 +1020,7 @@ function EstruturaContent() {
                           </div>
                         )}
                       </button>
+                      {canManageDiretoria(dir.id) && (
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => setCreateServidorTarget({ diretoria_id: dir.id })}
@@ -1027,12 +1028,18 @@ function EstruturaContent() {
                         >
                           <UserPlus className="h-3.5 w-3.5" />
                         </button>
+                        {canManageStructure && (
+                        <>
                         <button onClick={() => { setEditingId(dir.id); setEditingValue(dir.nome); }} className="p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                           <Edit2 className="h-3.5 w-3.5" />
                         </button>
                         <button onClick={() => deleteDiretoria(dir.id)} className="p-1.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
+                        </>
+                        )}
+                      </div>
+                      )}
                       </div>
                     </div>
 
