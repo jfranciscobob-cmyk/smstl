@@ -81,16 +81,22 @@ export function getEffectiveStatus(
     return servidor.status_presenca;
   }
 
-  // Fixed schedule: find today's escala using local TZ (Três Lagoas/MS)
+  // Fixed schedule: check if servidor has ANY escalas configured at all
+  const servidorEscalas = escalas.filter((e) => e.servidor_id === servidor.id);
+
+  // If no escalas configured at all → keep manual status (schedule not set up yet)
+  if (servidorEscalas.length === 0) {
+    return servidor.status_presenca;
+  }
+
+  // Find today's escala using local TZ (Três Lagoas/MS)
   const weekdayLong = new Intl.DateTimeFormat("en-US", { ...tzOptions, weekday: "long" }).format(now);
   const dayMap: Record<string, number> = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
   const localDayOfWeek = dayMap[weekdayLong] ?? now.getDay();
 
-  const todayEscalas = escalas.filter(
-    (e) => e.servidor_id === servidor.id && e.dia_semana === localDayOfWeek,
-  );
+  const todayEscalas = servidorEscalas.filter((e) => e.dia_semana === localDayOfWeek);
 
-  // No escala entry for today → day off
+  // Has escalas configured but none for today → day off
   if (todayEscalas.length === 0) {
     return "folga";
   }

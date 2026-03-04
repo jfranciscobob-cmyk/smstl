@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB } from "@/hooks/useServidores";
+import { applyAutoPresenca, type EscalaSemanalRow } from "@/lib/presencaAutomatica";
 import {
   PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend,
   RadialBarChart, RadialBar,
@@ -972,10 +973,11 @@ export default function ModoTV() {
   const diretoriaParam = searchParams.get("diretoria") || "";
 
   const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem("tv_unlocked") === "1");
-  const [servidores, setServidores] = useState<ServidorDB[]>([]);
+  const [servidoresRaw, setServidoresRaw] = useState<ServidorDB[]>([]);
   const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
   const [coordenadoresUnidades, setCoordenadoresUnidades] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
+  const [escalasSemanais, setEscalasSemanais] = useState<EscalaSemanalRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideDirection, setSlideDirection] = useState<"left" | "right">("left");
@@ -995,15 +997,17 @@ export default function ModoTV() {
       if (data.length < PAGE) break;
       offset += PAGE;
     }
-    const [{ data: dirs }, { data: unis }, { data: cuData }] = await Promise.all([
+    const [{ data: dirs }, { data: unis }, { data: cuData }, { data: escalasData }] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenadores_unidades").select("servidor_id, unidade_id"),
+      supabase.from("escalas_semanais").select("servidor_id, dia_semana, entrada1, saida1, entrada2, saida2"),
     ]);
-    setServidores(allServ as ServidorDB[]);
+    setServidoresRaw(allServ as ServidorDB[]);
     setDiretorias((dirs ?? []) as DiretoriaDB[]);
     setUnidades((unis ?? []) as UnidadeDB[]);
     setCoordenadoresUnidades((cuData ?? []) as { servidor_id: string; unidade_id: string }[]);
+    setEscalasSemanais((escalasData ?? []) as EscalaSemanalRow[]);
     setLoading(false);
   }, []);
 
@@ -1017,10 +1021,15 @@ export default function ModoTV() {
   // Find specific diretoria if param provided
   const targetDiretoria = diretoriaParam ? diretorias.find(d => d.id === diretoriaParam) : null;
 
+  // Apply auto-presence based on escalas_semanais
+  const servidores = useMemo(
+    () => applyAutoPresenca(servidoresRaw, escalasSemanais),
+    [servidoresRaw, escalasSemanais],
+  );
+
   const slides = useMemo(() => {
     if (loading) return [];
     const s: React.ReactNode[] = [];
-
     if (targetDiretoria) {
       // ── MODO DIRETORIA ESPECÍFICA ──
       const dir = targetDiretoria;
