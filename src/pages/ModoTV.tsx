@@ -1355,32 +1355,7 @@ export default function ModoTV() {
         {slides[currentSlide]}
       </div>
 
-      {/* Progress bar removed */}
-
-      {/* Slide indicators */}
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
-        {Array.from({ length: TOTAL_SLIDES }).map((_, i) => (
-          <button
-            key={i}
-            onClick={() => goToSlide(i, i > currentSlide ? "left" : "right")}
-            className={`transition-all duration-500 rounded-full cursor-pointer ${
-              i === currentSlide
-                ? "w-8 h-2.5 bg-gradient-to-r from-teal-400 to-cyan-400 shadow-lg shadow-teal-400/30"
-                : "w-2.5 h-2.5 bg-slate-700/50 hover:bg-slate-600"
-            }`}
-          />
-        ))}
-      </div>
-
-      {/* Slide counter */}
-      <div className="absolute bottom-5 right-8 flex items-center gap-3 z-20">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0f1a2e]/80 border border-[#1e3a5f]/30 backdrop-blur-sm">
-          <Clock className="h-3 w-3 text-slate-600" />
-          <span className="text-[11px] text-slate-500 font-mono font-bold">
-            {currentSlide + 1}<span className="text-slate-700">/</span>{TOTAL_SLIDES}
-          </span>
-        </div>
-      </div>
+      {/* Progress bar, slide indicators and counter removed */}
 
       {/* Logo watermark */}
       <div className="absolute bottom-5 left-8 flex items-center gap-2 z-20 opacity-40">
