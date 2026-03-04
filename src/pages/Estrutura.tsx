@@ -1249,9 +1249,8 @@ function EstruturaContent() {
                                   <button
                                     onClick={async () => {
                                       const ids = Array.from(assignSelectedIds);
-                                      const { error } = await supabase.from("servidores").update({ diretoria_id: dir.id, unidade_id: null, coordenacao_id: null }).in("id", ids);
-                                      if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-                                      toast({ title: `${ids.length} servidor(es) vinculado(s) à diretoria!` });
+                                      const ok = await checkAndAssignServidores(ids, dir.id);
+                                      if (!ok) return;
                                       setAssigningTo(null);
                                       setAssignSearch("");
                                       setAssignSelectedIds(new Set());
