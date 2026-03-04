@@ -262,10 +262,10 @@ export default function AdminUsuarios() {
     onDiretoriasChange: (ids: Set<string>) => void; onUnidadesChange: (ids: Set<string>) => void;
   }) => {
     if (role === "admin") return null;
-    if (role === "diretor") return (
+    if (role === "diretor" || role === "coordenador_geral") return (
       <div className="space-y-2">
         <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-          <MapPin className="h-3 w-3" /> Diretorias do Diretor (múltiplas)
+          <MapPin className="h-3 w-3" /> Diretorias {role === "coordenador_geral" ? "do Coordenador Geral" : "do Diretor"} (múltiplas)
         </label>
         <div className="max-h-48 overflow-y-auto rounded-lg border border-input bg-card p-2 space-y-1">
           {diretorias.map(d => (
@@ -282,7 +282,9 @@ export default function AdminUsuarios() {
             </label>
           ))}
         </div>
-        <p className="text-[10px] text-muted-foreground">O diretor verá os dados de todas as diretorias selecionadas.</p>
+        <p className="text-[10px] text-muted-foreground">
+          {role === "coordenador_geral" ? "O coordenador geral verá os dados de todas as diretorias selecionadas." : "O diretor verá os dados de todas as diretorias selecionadas."}
+        </p>
       </div>
     );
     if (role === "coordenador") {
