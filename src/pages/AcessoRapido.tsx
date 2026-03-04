@@ -144,11 +144,7 @@ export default function AcessoRapido() {
                 const diretoriaNome = getDiretoriaNome(dir.diretoria_id);
                 const dirServs = servidores.filter(s => s.diretoria_id === dir.diretoria_id).length;
                 return (
-                  <Link
-                    key={dir.id}
-                    to={`/monitor?view=diretoria&diretoria=${dir.diretoria_id}`}
-                    className="rounded-xl border border-border bg-card p-5 hover:shadow-md transition-all hover:border-primary/30 group"
-                  >
+                  <div key={dir.id} className="rounded-xl border border-border bg-card p-5 hover:shadow-md transition-all hover:border-primary/30 group">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
                         <Building2 className="h-4 w-4 text-primary" />
@@ -158,21 +154,80 @@ export default function AcessoRapido() {
                         <p className="text-[10px] text-muted-foreground">Diretor(a)</p>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Building2 className="h-3 w-3" />
                         <span className="truncate">{diretoriaNome}</span>
                       </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
                     </div>
-                    <div className="flex items-center gap-1.5 mt-2 text-[10px] text-muted-foreground">
+                    <div className="flex items-center gap-1.5 mb-3 text-[10px] text-muted-foreground">
                       <Users className="h-3 w-3" /> {dirServs} servidores
                     </div>
-                  </Link>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        to={`/monitor?view=diretoria&diretoria=${dir.diretoria_id}`}
+                        className="flex-1 flex items-center justify-center gap-1.5 h-8 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
+                      >
+                        <Eye className="h-3 w-3" /> Monitor
+                      </Link>
+                      <Link
+                        to={`/tv?diretoria=${dir.diretoria_id}`}
+                        className="flex-1 flex items-center justify-center gap-1.5 h-8 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400 text-xs font-medium hover:bg-teal-500/20 transition-colors"
+                      >
+                        <Monitor className="h-3 w-3" /> Modo TV
+                      </Link>
+                    </div>
+                  </div>
                 );
               })}
             </div>
           )}
+        </section>
+
+        {/* TV por Diretoria */}
+        <section className="space-y-3">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+            <Monitor className="h-4 w-4 text-primary" /> Modo TV por Diretoria
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <Link
+              to="/tv"
+              className="rounded-xl border border-teal-500/30 bg-teal-500/5 p-5 hover:shadow-md transition-all hover:border-teal-500/50 group"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="h-9 w-9 rounded-full bg-teal-500/20 flex items-center justify-center">
+                  <Monitor className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-foreground group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">Visão Geral</p>
+                  <p className="text-[10px] text-muted-foreground">Todas as diretorias</p>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-teal-500 transition-colors ml-auto" />
+            </Link>
+            {diretorias.map(dir => {
+              const dirServs = servidores.filter(s => s.diretoria_id === dir.id).length;
+              if (dirServs === 0) return null;
+              return (
+                <Link
+                  key={dir.id}
+                  to={`/tv?diretoria=${dir.id}`}
+                  className="rounded-xl border border-border bg-card p-5 hover:shadow-md transition-all hover:border-teal-500/30 group"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="h-9 w-9 rounded-full bg-teal-500/10 flex items-center justify-center">
+                      <Monitor className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-foreground truncate group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">{dir.nome}</p>
+                      <p className="text-[10px] text-muted-foreground">{dirServs} servidores</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-teal-500 transition-colors ml-auto" />
+                </Link>
+              );
+            })}
+          </div>
         </section>
 
         {/* Coordenadores */}

@@ -896,6 +896,75 @@ function SlideMapaUnidades({ servidores, unidades, diretorias }: { servidores: S
 }
 
 // ═══════════════════════════════════════════════════
+// SLIDE: COMPOSIÇÃO DA DIRETORIA (pie charts)
+// ═══════════════════════════════════════════════════
+function SlideComposicaoDiretoria({ diretoria, servidores }: { diretoria: DiretoriaDB; servidores: ServidorDB[] }) {
+  const dirServs = servidores.filter(s => s.diretoria_id === diretoria.id);
+  const stats = computeStats(dirServs);
+
+  const vinculoData = [
+    { name: "Concursados", value: dirServs.filter(s => (s.vinculo || "").includes("CONCURSADO")).length },
+    { name: "Contratados", value: dirServs.filter(s => (s.vinculo || "").includes("CONTRATO")).length },
+    { name: "Estagiários", value: dirServs.filter(s => s.vinculo === "ESTAGIARIO").length },
+    { name: "Outros", value: dirServs.length - dirServs.filter(s => (s.vinculo || "").includes("CONCURSADO")).length - dirServs.filter(s => (s.vinculo || "").includes("CONTRATO")).length - dirServs.filter(s => s.vinculo === "ESTAGIARIO").length },
+  ].filter(d => d.value > 0);
+
+  const statusData = [
+    { name: "Presentes", value: stats.presentes },
+    { name: "Férias", value: stats.ferias },
+    { name: "Afastados", value: stats.afastados },
+    { name: "Ausentes", value: stats.ausentes },
+  ].filter(d => d.value > 0);
+
+  const coberturaData = [
+    { name: "Integral", value: dirServs.filter(s => s.cobertura_prevista === "INTEGRAL").length },
+    { name: "Parcial", value: dirServs.filter(s => s.cobertura_prevista === "PARCIAL").length },
+  ].filter(d => d.value > 0);
+
+  const vinculoColors = ["#0d9488", "#3b82f6", "#8b5cf6", "#475569"];
+  const statusColors = ["#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
+  const coberturaColors = ["#06b6d4", "#f97316"];
+
+  const renderChart = (data: { name: string; value: number }[], colors: string[], title: string, delay: number) => (
+    <AnimatedCard delay={delay}>
+      <GlowCard>
+        <div className="p-5 flex flex-col items-center">
+          <h3 className="text-sm font-bold text-slate-300 mb-4 uppercase tracking-wider">{title}</h3>
+          <ResponsiveContainer width="100%" height={200}>
+            <PieChart>
+              <Pie data={data} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={4} dataKey="value" stroke="none" animationDuration={1200}>
+                {data.map((_, i) => <Cell key={i} fill={colors[i % colors.length]} />)}
+              </Pie>
+              <Tooltip contentStyle={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: "14px", fontSize: "12px", color: "#fff" }} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="flex flex-wrap gap-4 justify-center mt-3">
+            {data.map((d, i) => (
+              <div key={d.name} className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full shadow-lg" style={{ background: colors[i % colors.length], boxShadow: `0 0 8px ${colors[i % colors.length]}40` }} />
+                <span className="text-xs text-slate-400">{d.name}</span>
+                <span className="text-xs font-black text-white font-mono">{d.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </GlowCard>
+    </AnimatedCard>
+  );
+
+  return (
+    <div className="h-full flex flex-col p-8">
+      <TVHeader title={`Composição — ${diretoria.nome}`} subtitle="Vínculo, status e cobertura" icon={<Briefcase className="h-7 w-7 text-white" />} />
+      <div className="flex-1 grid grid-cols-3 gap-6 mt-4">
+        {renderChart(vinculoData, vinculoColors, "Por Vínculo", 200)}
+        {renderChart(statusData, statusColors, "Por Status", 400)}
+        {renderChart(coberturaData, coberturaColors, "Por Cobertura", 600)}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
 // MAIN TV MODE
 // ═══════════════════════════════════════════════════
 export default function ModoTV() {
