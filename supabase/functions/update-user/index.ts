@@ -60,7 +60,7 @@ serve(async (req) => {
     }
 
     // Update role if provided
-    if (role && ["admin", "diretor", "coordenador"].includes(role)) {
+    if (role && ["admin", "diretor", "coordenador", "coordenador_geral"].includes(role)) {
       // Remove existing roles and set new one
       await supabase.from("user_roles").delete().eq("user_id", user_id);
       const { error: roleError } = await supabase.from("user_roles").insert({ user_id, role });

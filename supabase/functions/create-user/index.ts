@@ -46,7 +46,7 @@ serve(async (req) => {
       throw new Error("Email, senha e papel são obrigatórios");
     }
 
-    if (!["admin", "diretor", "coordenador"].includes(role)) {
+    if (!["admin", "diretor", "coordenador", "coordenador_geral"].includes(role)) {
       throw new Error("Papel inválido");
     }
 

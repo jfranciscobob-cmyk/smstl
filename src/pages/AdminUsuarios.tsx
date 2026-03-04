@@ -137,7 +137,7 @@ export default function AdminUsuarios() {
     }
     const newUserId = data.user_id;
     if (newUserId) {
-      if (form.role === "diretor") await syncUserDiretorias(newUserId, formDiretoriaIds);
+      if (form.role === "diretor" || form.role === "coordenador_geral") await syncUserDiretorias(newUserId, formDiretoriaIds);
       if (form.role === "coordenador") await syncUserUnidades(newUserId, formUnidadeIds);
     }
     toast({ title: "Usuário criado com sucesso!" });
@@ -181,7 +181,7 @@ export default function AdminUsuarios() {
       return;
     }
     // Sync pastas
-    if (editForm.role === "diretor") {
+    if (editForm.role === "diretor" || editForm.role === "coordenador_geral") {
       await syncUserDiretorias(editUser.id, editDiretoriaIds);
       await syncUserUnidades(editUser.id, new Set()); // clear unidades
     } else if (editForm.role === "coordenador") {
@@ -240,7 +240,7 @@ export default function AdminUsuarios() {
   // Helper to get location labels
   const getLocationLabels = (userId: string, userRoles: string[]) => {
     const labels: string[] = [];
-    if (userRoles.includes("diretor")) {
+    if (userRoles.includes("diretor") || userRoles.includes("coordenador_geral")) {
       const ids = getUserDiretoriaIds(userId);
       ids.forEach(id => {
         const d = diretorias.find(d => d.id === id);
