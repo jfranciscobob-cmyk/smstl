@@ -688,23 +688,28 @@ function EstruturaContent() {
               {expanded["secretaria"] !== false ? <ChevronDown className="h-5 w-5 text-primary" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
               <Shield className="h-6 w-6 text-primary" />
               <div>
-                <h2 className="text-lg font-bold text-foreground">Secretaria Municipal de Saúde</h2>
+                <h2 className="text-lg font-bold text-foreground">
+                  {isAdmin ? "Secretaria Municipal de Saúde" : "Minhas Pastas"}
+                </h2>
                 <p className="text-xs text-muted-foreground">
-                  {diretorias.length} diretoria(s) · {servidores.length} total · {secretariaServidores.length} no gabinete
+                  {diretorias.length} diretoria(s) · {isAdmin && `${servidores.length} total · ${secretariaServidores.length} no gabinete`}
+                  {!isAdmin && `${unidades.length} unidade(s)`}
                 </p>
               </div>
             </button>
-            {/* Allocation progress */}
+            {/* Allocation progress - admin only */}
+            {isAdmin && (
             <div className="flex items-center gap-3 mr-3">
               <span className="text-xs text-muted-foreground font-mono">
                 <span className="font-bold text-foreground">{servidores.filter(s => s.diretoria_id).length}</span> alocados
               </span>
               <span className="text-xs text-warning font-mono font-bold">{secretariaServidores.length} pendentes</span>
             </div>
+            )}
           </div>
 
-          {/* Secretário picker */}
-          {(() => {
+          {/* Secretário picker - admin only */}
+          {isAdmin && (() => {
             const secretario = getSecretario();
             return (
               <div className="px-5 py-3 border-t border-border/30 bg-muted/10 flex items-center gap-3 flex-wrap">
@@ -744,8 +749,8 @@ function EstruturaContent() {
             );
           })()}
 
-          {/* Diretor Geral picker */}
-          {(() => {
+          {/* Diretor Geral picker - admin only */}
+          {isAdmin && (() => {
             const diretorGeral = getDiretorGeral();
             return (
               <div className="px-5 py-3 border-t border-border/30 bg-muted/10 flex items-center gap-3 flex-wrap">
