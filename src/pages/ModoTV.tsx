@@ -786,7 +786,7 @@ function SlideDiretoriaAlertas({
         subtitle={`${alerts.length} alertas ativos`}
         icon={<AlertTriangle className="h-7 w-7 text-white" />}
       />
-      <div className="flex-1 overflow-y-auto tv-auto-scroll space-y-4" style={{ scrollbarWidth: "none" }}>
+      <TVScrollArea className="flex-1 overflow-y-auto space-y-4">
         {alerts.map((alert, ai) => (
           <AnimatedCard key={alert.label} delay={200 + ai * 150}>
             <GlowCard color={ai === 0 ? "red" : ai === 1 ? "amber" : "teal"}>
