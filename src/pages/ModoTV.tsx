@@ -1071,7 +1071,7 @@ export default function ModoTV() {
       const dirServs = servidores.filter(sv => sv.diretoria_id === dir.id);
 
       // Slide 1: Overview da diretoria
-      s.push(<SlideDiretoriaDetalhe key="dir-overview" diretoria={dir} servidores={servidores} unidades={unidades} />);
+      s.push(<SlideDiretoriaDetalhe key="dir-overview" diretoria={dir} servidores={servidores} unidades={unidades} coordenadoresUnidades={coordenadoresUnidades} />);
 
       // Slide 2: Coordenadores por unidade
       s.push(<SlideDiretoriaCoordenadores key="dir-coords" diretoria={dir} servidores={servidores} unidades={unidades} coordenadoresUnidades={coordenadoresUnidades} />);
