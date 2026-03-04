@@ -9,6 +9,9 @@ import {
 import { cn } from "@/lib/utils";
 
 export default function AcessoRapido() {
+  const auth = useAuthSession();
+  const { isAdmin, isDiretor, isCoordenador, diretoriaIds, unidadeIds } = auth;
+
   const [servidores, setServidores] = useState<ServidorDB[]>([]);
   const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
@@ -41,18 +44,55 @@ export default function AcessoRapido() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  const diretores = servidores.filter(s => s.is_diretor && s.diretoria_id);
-  const secretario = servidores.find(s => s.is_secretario);
-  const diretorGeral = servidores.find(s => s.is_diretor_geral);
+  // --- Permission-based filtering ---
+  // Admin sees everything. Diretor sees only their diretorias. Coordenador sees only their unidades.
+  const allowedDiretoriaIds = useMemo(() => {
+    if (isAdmin) return null; // null = no filter
+    return new Set(diretoriaIds);
+  }, [isAdmin, diretoriaIds]);
 
-  // Build coordenadores list from junction table (one entry per servidor+unidade)
+  const allowedUnidadeIds = useMemo(() => {
+    if (isAdmin) return null;
+    if (isDiretor) {
+      // Diretor can see all unidades of their diretorias
+      const uniIds = unidades.filter(u => diretoriaIds.includes(u.diretoria_id)).map(u => u.id);
+      return new Set([...unidadeIds, ...uniIds]);
+    }
+    return new Set(unidadeIds);
+  }, [isAdmin, isDiretor, diretoriaIds, unidadeIds, unidades]);
+
+  const filteredDiretorias = useMemo(() => {
+    if (!allowedDiretoriaIds) return diretorias;
+    return diretorias.filter(d => allowedDiretoriaIds.has(d.id));
+  }, [diretorias, allowedDiretoriaIds]);
+
+  const filteredUnidades = useMemo(() => {
+    if (!allowedUnidadeIds) return unidades;
+    return unidades.filter(u => allowedUnidadeIds.has(u.id));
+  }, [unidades, allowedUnidadeIds]);
+
+  const filteredServidores = useMemo(() => {
+    if (isAdmin) return servidores;
+    const uniSet = allowedUnidadeIds;
+    const dirSet = allowedDiretoriaIds;
+    return servidores.filter(s => {
+      if (dirSet && s.diretoria_id && dirSet.has(s.diretoria_id)) return true;
+      if (uniSet && s.unidade_id && uniSet.has(s.unidade_id)) return true;
+      return false;
+    });
+  }, [isAdmin, servidores, allowedDiretoriaIds, allowedUnidadeIds]);
+
+  const diretores = filteredServidores.filter(s => s.is_diretor && s.diretoria_id);
+  const secretario = isAdmin ? servidores.find(s => s.is_secretario) : null;
+  const diretorGeral = isAdmin ? servidores.find(s => s.is_diretor_geral) : null;
+
   const coordenadorEntries = useMemo(() => {
     return coordenadoresUnidades.map(cu => {
       const servidor = servidores.find(s => s.id === cu.servidor_id);
-      const uni = unidades.find(u => u.id === cu.unidade_id);
+      const uni = filteredUnidades.find(u => u.id === cu.unidade_id);
       return servidor && uni ? { servidor, unidade: uni, cuId: cu.id } : null;
     }).filter(Boolean) as { servidor: ServidorDB; unidade: UnidadeDB; cuId: string }[];
-  }, [coordenadoresUnidades, servidores, unidades]);
+  }, [coordenadoresUnidades, servidores, filteredUnidades]);
 
   const getDiretoriaNome = (id: string | null) => diretorias.find(d => d.id === id)?.nome || "—";
 
