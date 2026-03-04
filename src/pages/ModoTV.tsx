@@ -720,7 +720,7 @@ function SlideDiretoriaServidores({
         subtitle={`${statusLabel} — ${dirServs.length} servidores`}
         icon={statusIcon}
       />
-      <div className="flex-1 overflow-y-auto tv-auto-scroll pr-2" style={{ scrollbarWidth: "none" }}>
+      <TVScrollArea className="flex-1 overflow-y-auto pr-2">
         <div className="grid grid-cols-3 gap-3">
           {dirServs.map((s, i) => (
             <AnimatedCard key={s.id} delay={80 + i * 30}>
