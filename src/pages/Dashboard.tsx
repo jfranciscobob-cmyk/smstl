@@ -166,7 +166,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
     };
 
     try {
-      const [allServidores, diretoriasRes, unidadesRes, coordenacoesRes, coordUnidadesRes, faltasRes, srvUnidadesRes] = await Promise.all([
+      const [allServidores, diretoriasRes, unidadesRes, coordenacoesRes, coordUnidadesRes, faltasRes, srvUnidadesRes, escalasRes] = await Promise.all([
         fetchAllServidores(),
         supabase.from("diretorias").select("*").order("nome"),
         supabase.from("unidades").select("*").order("nome"),
@@ -174,6 +174,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
         supabase.from("coordenadores_unidades").select("*"),
         supabase.from("faltas_abonadas").select("servidor_id, data"),
         supabase.from("servidores_unidades").select("servidor_id, unidade_id"),
+        supabase.from("escalas_semanais").select("servidor_id, dia_semana, entrada1, saida1, entrada2, saida2"),
       ]);
 
       if (diretoriasRes.error || unidadesRes.error || coordenacoesRes.error) {
