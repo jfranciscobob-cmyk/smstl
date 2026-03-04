@@ -1750,6 +1750,17 @@ function EstruturaContent() {
         unidades={unidades}
         coordenacoes={coordenacoes}
       />
+
+      <ReallocationDialog
+        open={reallocationOpen}
+        onClose={() => { setReallocationOpen(false); setReallocationRequest(null); setPendingAllocationAction(null); }}
+        request={reallocationRequest}
+        servidores={servidores}
+        diretorias={allDiretorias}
+        unidades={allUnidades}
+        userId={user?.id || ""}
+        onComplete={handleReallocationComplete}
+      />
     </div>
   );
 }
