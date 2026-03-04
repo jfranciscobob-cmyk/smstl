@@ -104,7 +104,7 @@ function MonitorContent() {
       if (data.length < PAGE) break;
       offset += PAGE;
     }
-    const [d, u, f, a, fa, af, cu] = await Promise.all([
+    const [d, u, f, a, fa, af, cu, es] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("funcoes").select("*").order("nome"),
@@ -112,6 +112,7 @@ function MonitorContent() {
       supabase.from("faltas_abonadas").select("*").order("data", { ascending: false }),
       supabase.from("afastamentos").select("*").order("data_inicio", { ascending: false }),
       supabase.from("coordenadores_unidades").select("*"),
+      supabase.from("escalas_semanais").select("servidor_id, dia_semana, entrada1, saida1, entrada2, saida2"),
     ]);
     setServidores(allSrv as ServidorDB[]);
     setDiretorias((d.data ?? []) as DiretoriaDB[]);
@@ -121,6 +122,7 @@ function MonitorContent() {
     setFaltasAbonadas((fa.data ?? []) as FaltaAbonadaDB[]);
     setAfastamentos((af.data ?? []) as AfastamentoDB[]);
     setCoordUniData((cu.data ?? []) as { servidor_id: string; unidade_id: string }[]);
+    setEscalasSemanais((es.data ?? []) as EscalaSemanalRow[]);
     setLoading(false);
   }, []);
 
