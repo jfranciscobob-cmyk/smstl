@@ -336,7 +336,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
     [servidoresComPresenca]
   );
 
-  const statusColors = ["hsl(152 60% 40%)", "hsl(38 92% 50%)", "hsl(0 72% 51%)", "hsl(200 10% 46%)"];
+  const statusColors = ["hsl(152 60% 40%)", "hsl(38 92% 50%)", "hsl(0 72% 51%)", "hsl(200 10% 46%)", "hsl(220 13% 69%)"];
   const vinculoColors = ["hsl(174 62% 30%)", "hsl(38 92% 50%)", "hsl(210 75% 50%)", "hsl(270 50% 55%)", "hsl(200 10% 46%)"];
 
   return (
