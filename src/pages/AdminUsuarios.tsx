@@ -621,6 +621,12 @@ export default function AdminUsuarios() {
             </div>
           )}
         </div>
+        {/* Seção de Avisos (apenas admin) */}
+        {isAdmin && (
+          <div className="mt-8 pt-6 border-t border-border">
+            <GerenciarAvisos />
+          </div>
+        )}
       </main>
     </div>
   );
