@@ -749,7 +749,7 @@ function MonitorContent() {
         {viewMode === "tudo" && !selectedDiretoriaId && (
           <div className="space-y-6">
             {/* Stats row */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
               <div className="rounded-xl border border-border bg-card p-4">
               <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Users className="h-3.5 w-3.5" /> Total</div>
                 <p className="text-2xl font-bold text-foreground">{allowedServidores.length.toLocaleString("pt-BR")}</p>
@@ -766,6 +766,16 @@ function MonitorContent() {
                 <div className="flex items-center gap-2 text-xs text-destructive mb-1"><AlertTriangle className="h-3.5 w-3.5" /> Afastados</div>
                 <p className="text-2xl font-bold text-destructive">{allowedServidores.filter(s => s.status_presenca === "afastado").length}</p>
               </div>
+              <div className="rounded-xl border border-info/30 bg-info/5 p-4">
+                <div className="flex items-center gap-2 text-xs text-info mb-1"><FileText className="h-3.5 w-3.5" /> Atestados</div>
+                <p className="text-2xl font-bold text-info">{activeAtestados.length}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">ativos hoje</p>
+              </div>
+              <div className="rounded-xl border border-violet-500/30 bg-violet-500/5 p-4">
+                <div className="flex items-center gap-2 text-xs text-violet-600 dark:text-violet-400 mb-1"><CalendarCheck className="h-3.5 w-3.5" /> Abonadas</div>
+                <p className="text-2xl font-bold text-violet-600 dark:text-violet-400">{activeFaltasAbonadas.length}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">no ciclo atual</p>
+              </div>
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Clock className="h-3.5 w-3.5" /> Carga Total</div>
                 <p className="text-2xl font-bold text-foreground">{allowedServidores.reduce((s, sv) => s + (sv.escala_total_horas || 0), 0)}h</p>
@@ -777,6 +787,29 @@ function MonitorContent() {
               </div>
               )}
             </div>
+
+            {/* Conflitos de datas */}
+            {conflictsData.length > 0 && (
+              <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Ban className="h-4 w-4 text-destructive" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-destructive">
+                    ⚠ Conflitos de Datas — {conflictsData.length} ocorrência{conflictsData.length > 1 ? "s" : ""}
+                  </span>
+                </div>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {conflictsData.map((c, i) => (
+                    <div key={i} className="flex items-start gap-2 rounded-lg bg-destructive/5 border border-destructive/10 px-3 py-2">
+                      <span className="text-[10px] font-bold text-destructive whitespace-nowrap mt-0.5">{c.tipo}</span>
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-foreground">{c.servidor.nome}</p>
+                        <p className="text-[10px] text-muted-foreground">{c.detalhe}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {semEscala.length > 0 && (
               <div className="rounded-xl border border-amber-500/40 bg-amber-500/10">
