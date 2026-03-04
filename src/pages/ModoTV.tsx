@@ -515,68 +515,157 @@ function SlideRankingDiretorias({ servidores, diretorias }: { servidores: Servid
 }
 
 // ═══════════════════════════════════════════════════
-// SLIDE 3: COMPOSIÇÃO GERAL (pie charts)
+// SLIDE 3: SITUAÇÃO DO EFETIVO (redesigned)
 // ═══════════════════════════════════════════════════
-function SlideComposicao({ servidores }: { servidores: ServidorDB[] }) {
+function SlideComposicao({ servidores, diretorias }: { servidores: ServidorDB[]; diretorias: DiretoriaDB[] }) {
   const stats = computeStats(servidores);
+  const presencaPct = stats.total > 0 ? Math.round((stats.presentes / stats.total) * 100) : 0;
+  const feriasPct = stats.total > 0 ? Math.round((stats.ferias / stats.total) * 100) : 0;
+  const afastadosPct = stats.total > 0 ? Math.round((stats.afastados / stats.total) * 100) : 0;
+  const ausentesPct = stats.total > 0 ? Math.round((stats.ausentes / stats.total) * 100) : 0;
+  const folgaPct = stats.total > 0 ? Math.round((stats.folga / stats.total) * 100) : 0;
 
-  const vinculoData = [
-    { name: "Concursados", value: stats.concursados },
-    { name: "Contratados", value: stats.contratados },
-    { name: "Estagiários", value: servidores.filter(s => s.vinculo === "ESTAGIARIO").length },
-    { name: "Outros", value: stats.total - stats.concursados - stats.contratados - servidores.filter(s => s.vinculo === "ESTAGIARIO").length },
-  ].filter(d => d.value > 0);
+  const estagiarios = servidores.filter(s => s.vinculo === "ESTAGIARIO").length;
+  const outros = stats.total - stats.concursados - stats.contratados - estagiarios;
 
-  const statusData = [
-    { name: "Presentes", value: stats.presentes },
-    { name: "Férias", value: stats.ferias },
-    { name: "Afastados", value: stats.afastados },
-    { name: "Ausentes", value: stats.ausentes },
-  ].filter(d => d.value > 0);
+  // Vínculo breakdown with percentages
+  const vinculoItems = [
+    { label: "Concursados", value: stats.concursados, pct: stats.total > 0 ? Math.round((stats.concursados / stats.total) * 100) : 0, color: "from-teal-500 to-teal-400", dot: "bg-teal-400" },
+    { label: "Contratados", value: stats.contratados, pct: stats.total > 0 ? Math.round((stats.contratados / stats.total) * 100) : 0, color: "from-blue-500 to-blue-400", dot: "bg-blue-400" },
+    { label: "Estagiários", value: estagiarios, pct: stats.total > 0 ? Math.round((estagiarios / stats.total) * 100) : 0, color: "from-violet-500 to-violet-400", dot: "bg-violet-400" },
+    ...(outros > 0 ? [{ label: "Outros", value: outros, pct: stats.total > 0 ? Math.round((outros / stats.total) * 100) : 0, color: "from-slate-500 to-slate-400", dot: "bg-slate-400" }] : []),
+  ];
 
-  const coberturaData = [
-    { name: "Integral", value: servidores.filter(s => s.cobertura_prevista === "INTEGRAL").length },
-    { name: "Parcial", value: servidores.filter(s => s.cobertura_prevista === "PARCIAL").length },
-  ].filter(d => d.value > 0);
+  // Situation breakdown  
+  const situacaoItems = [
+    { label: "Presentes", value: stats.presentes, pct: presencaPct, color: "text-emerald-400", bg: "bg-emerald-500/10", icon: <CheckCircle className="h-5 w-5" /> },
+    { label: "Férias", value: stats.ferias, pct: feriasPct, color: "text-amber-400", bg: "bg-amber-500/10", icon: <Palmtree className="h-5 w-5" /> },
+    { label: "Afastados", value: stats.afastados, pct: afastadosPct, color: "text-red-400", bg: "bg-red-500/10", icon: <AlertTriangle className="h-5 w-5" /> },
+    { label: "Ausentes", value: stats.ausentes, pct: ausentesPct, color: "text-purple-400", bg: "bg-purple-500/10", icon: <Shield className="h-5 w-5" /> },
+    { label: "Folga", value: stats.folga, pct: folgaPct, color: "text-slate-400", bg: "bg-slate-500/10", icon: <Clock className="h-5 w-5" /> },
+  ];
 
-  const vinculoColors = ["#0d9488", "#3b82f6", "#8b5cf6", "#475569"];
-  const statusColors = ["#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
-  const coberturaColors = ["#06b6d4", "#f97316"];
-
-  const renderChart = (data: { name: string; value: number }[], colors: string[], title: string, delay: number) => (
-    <AnimatedCard delay={delay}>
-      <GlowCard>
-        <div className="p-5 flex flex-col items-center">
-          <h3 className="text-sm font-bold text-slate-300 mb-4 uppercase tracking-wider">{title}</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie data={data} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={4} dataKey="value" stroke="none" animationBegin={delay} animationDuration={1200}>
-                {data.map((_, i) => <Cell key={i} fill={colors[i % colors.length]} />)}
-              </Pie>
-              <Tooltip contentStyle={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: "14px", fontSize: "12px", color: "#fff", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)" }} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="flex flex-wrap gap-4 justify-center mt-3">
-            {data.map((d, i) => (
-              <div key={d.name} className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full shadow-lg" style={{ background: colors[i % colors.length], boxShadow: `0 0 8px ${colors[i % colors.length]}40` }} />
-                <span className="text-xs text-slate-400">{d.name}</span>
-                <span className="text-xs font-black text-white font-mono">{d.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </GlowCard>
-    </AnimatedCard>
-  );
+  // Top 3 diretorias by headcount
+  const topDirs = useMemo(() => {
+    return diretorias.map(d => {
+      const count = servidores.filter(s => s.diretoria_id === d.id).length;
+      return { nome: d.nome, count };
+    }).filter(d => d.count > 0).sort((a, b) => b.count - a.count).slice(0, 4);
+  }, [servidores, diretorias]);
 
   return (
-    <div className="h-full flex flex-col p-8">
-      <TVHeader title="Composição da Força de Trabalho" subtitle="Vínculo, status e cobertura" icon={<Briefcase className="h-7 w-7 text-white" />} />
-      <div className="flex-1 grid grid-cols-3 gap-6 mt-4">
-        {renderChart(vinculoData, vinculoColors, "Por Vínculo", 200)}
-        {renderChart(statusData, statusColors, "Por Status", 400)}
-        {renderChart(coberturaData, coberturaColors, "Por Cobertura", 600)}
+    <div className="h-full flex flex-col p-6 lg:p-8">
+      <TVHeader title="Situação do Efetivo" subtitle={`${stats.total} servidores ativos na rede municipal`} icon={<Users className="h-7 w-7 text-white" />} />
+
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4 lg:gap-6 mt-4 overflow-hidden">
+        {/* LEFT: Situation cards */}
+        <div className="col-span-1 md:col-span-5 flex flex-col gap-3">
+          <AnimatedCard delay={100}>
+            <GlowCard color="emerald">
+              <div className="p-4 lg:p-5">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Situação Atual dos Servidores</p>
+                <div className="space-y-3">
+                  {situacaoItems.map((item, i) => (
+                    <div key={item.label} className="flex items-center gap-3">
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${item.bg} ${item.color} flex-shrink-0`}>
+                        {item.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs text-slate-400 font-medium">{item.label}</span>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-lg font-black font-mono ${item.color}`}>{item.value}</span>
+                            <span className="text-[10px] text-slate-600 font-mono">({item.pct}%)</span>
+                          </div>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-[#1a2744] overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${item.bg.replace("/10", "")} opacity-80`}
+                            style={{ width: `${item.pct}%`, transition: "width 1.5s ease-out", background: item.color.includes("emerald") ? "#10b981" : item.color.includes("amber") ? "#f59e0b" : item.color.includes("red") ? "#ef4444" : item.color.includes("purple") ? "#8b5cf6" : "#64748b" }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </GlowCard>
+          </AnimatedCard>
+        </div>
+
+        {/* CENTER: Vínculo breakdown */}
+        <div className="col-span-1 md:col-span-4 flex flex-col gap-3">
+          <AnimatedCard delay={300}>
+            <GlowCard color="teal">
+              <div className="p-4 lg:p-5">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Tipo de Vínculo</p>
+                <div className="space-y-4">
+                  {vinculoItems.map((item) => (
+                    <div key={item.label}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className={`h-3 w-3 rounded-full ${item.dot} shadow-lg`} style={{ boxShadow: `0 0 8px currentColor` }} />
+                          <span className="text-sm text-slate-300 font-medium">{item.label}</span>
+                        </div>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-2xl font-black text-white font-mono">{item.value}</span>
+                          <span className="text-xs text-slate-500 font-mono">{item.pct}%</span>
+                        </div>
+                      </div>
+                      <div className="h-2.5 rounded-full bg-[#1a2744] overflow-hidden">
+                        <div
+                          className={`h-full rounded-full bg-gradient-to-r ${item.color}`}
+                          style={{ width: `${item.pct}%`, transition: "width 1.5s ease-out" }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Funções críticas destaque */}
+                <div className="mt-5 pt-4 border-t border-[#1e3a5f]/40">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Zap className="h-4 w-4 text-amber-400" />
+                      <span className="text-xs text-slate-400 font-medium">Funções Críticas</span>
+                    </div>
+                    <span className="text-xl font-black text-amber-400 font-mono">{stats.funcoesCriticas}</span>
+                  </div>
+                </div>
+              </div>
+            </GlowCard>
+          </AnimatedCard>
+        </div>
+
+        {/* RIGHT: Maiores pastas + gauges */}
+        <div className="col-span-1 md:col-span-3 flex flex-col gap-3">
+          <AnimatedCard delay={500}>
+            <GlowCard color="purple">
+              <div className="p-4 lg:p-5">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Maiores Diretorias</p>
+                <div className="space-y-3">
+                  {topDirs.map((d, i) => (
+                    <div key={d.nome} className="flex items-center gap-3">
+                      <span className="text-lg font-black text-teal-400/50 font-mono w-6">{i + 1}º</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-slate-300 truncate font-medium">{d.nome}</p>
+                        <p className="text-[10px] text-slate-500">{d.count} servidores</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </GlowCard>
+          </AnimatedCard>
+
+          <AnimatedCard delay={650}>
+            <GlowCard color="teal">
+              <div className="p-4 flex items-center justify-center">
+                <RadialGauge pct={presencaPct} size={110} strokeWidth={10} label="Presença Geral" />
+              </div>
+            </GlowCard>
+          </AnimatedCard>
+        </div>
       </div>
     </div>
   );
