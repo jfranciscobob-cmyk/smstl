@@ -620,7 +620,7 @@ function SlideDiretoriaDetalhe({
   const vinculoColors = ["#0d9488", "#3b82f6", "#475569"];
 
   return (
-    <div className="h-full flex flex-col p-8">
+    <div className="h-full flex flex-col p-4 sm:p-6 lg:p-8">
       <TVHeader
         title={diretoria.nome}
         subtitle={`${stats.total} servidores · ${dirUnidades.length} unidades · ${coordIds.size} coordenadores`}
