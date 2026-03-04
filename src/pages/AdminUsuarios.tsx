@@ -429,12 +429,18 @@ export default function AdminUsuarios() {
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground">{req.nome || req.email}</p>
                     <p className="text-xs text-muted-foreground">{req.email}</p>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${roleColor[req.role_requested] || "bg-muted text-muted-foreground"}`}>
                         {req.role_requested === "diretor" && <Building2 className="h-3 w-3 mr-1" />}
                         {req.role_requested === "coordenador" && <Users className="h-3 w-3 mr-1" />}
                         {roleLabel[req.role_requested] || req.role_requested}
                       </span>
+                      {req.diretoria_id && (
+                        <span className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary">
+                          <MapPin className="h-3 w-3" />
+                          {diretorias.find(d => d.id === req.diretoria_id)?.nome || "Diretoria"}
+                        </span>
+                      )}
                       <span className="text-[10px] text-muted-foreground">{new Date(req.created_at).toLocaleDateString("pt-BR")}</span>
                     </div>
                   </div>
