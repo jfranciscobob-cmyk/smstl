@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import {
   Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Monitor, Lock, Activity, MapPin, Briefcase,
-  TrendingUp, Zap, Eye, Clock, UserCheck, FileText, Calendar,
+  TrendingUp, Zap, Eye, Clock, UserCheck, FileText, Calendar, Megaphone,
 } from "lucide-react";
 
 // ─── Animated counter hook ───
