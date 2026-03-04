@@ -154,19 +154,27 @@ export default function Login() {
               </select>
             </div>
 
-            {regRole === "coordenador" && diretorias.length > 0 && (
+            {diretorias.length > 0 && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Diretoria vinculada</label>
+                <label className="text-sm font-medium text-foreground">
+                  Diretoria vinculada {regRole === "coordenador" ? "" : ""}*
+                </label>
                 <select
                   value={regDiretoriaId}
                   onChange={e => setRegDiretoriaId(e.target.value)}
+                  required
                   className="w-full h-11 rounded-lg border border-input bg-card px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  <option value="">Selecione (opcional)</option>
+                  <option value="">Selecione a diretoria</option>
                   {diretorias.map(d => (
                     <option key={d.id} value={d.id}>{d.nome}</option>
                   ))}
                 </select>
+                <p className="text-[10px] text-muted-foreground">
+                  {regRole === "coordenador"
+                    ? "O diretor desta pasta receberá sua solicitação para aprovação."
+                    : "Selecione a diretoria que você irá gerenciar."}
+                </p>
               </div>
             )}
 
