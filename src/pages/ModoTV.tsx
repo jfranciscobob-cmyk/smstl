@@ -639,7 +639,7 @@ function SlideDiretoriaDetalhe({
 
       <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4 overflow-hidden">
         {/* Left: Gauge */}
-        <div className="col-span-2 flex flex-col items-center justify-center">
+        <div className="hidden md:flex col-span-2 flex-col items-center justify-center">
           <RadialGauge pct={presencaPct} size={140} strokeWidth={12} label="Presença" />
         </div>
 
