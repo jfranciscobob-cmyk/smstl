@@ -144,9 +144,44 @@ function MonitorContent() {
 
   const today = new Date();
 
+  // ── Role-based access filtering ──
+  const allowedDiretorias = useMemo(() => {
+    if (isAdmin) return diretorias;
+    if (isDiretor && userDiretoriaIds.length > 0) {
+      return diretorias.filter(d => userDiretoriaIds.includes(d.id));
+    }
+    if (isCoordenador && userUnidadeIds.length > 0) {
+      const dirIds = unidades.filter(u => userUnidadeIds.includes(u.id)).map(u => u.diretoria_id);
+      return diretorias.filter(d => dirIds.includes(d.id));
+    }
+    return diretorias;
+  }, [diretorias, unidades, isAdmin, isDiretor, isCoordenador, userDiretoriaIds, userUnidadeIds]);
+
+  const allowedUnidades = useMemo(() => {
+    if (isAdmin) return unidades;
+    if (isDiretor && userDiretoriaIds.length > 0) {
+      return unidades.filter(u => userDiretoriaIds.includes(u.diretoria_id));
+    }
+    if (isCoordenador && userUnidadeIds.length > 0) {
+      return unidades.filter(u => userUnidadeIds.includes(u.id));
+    }
+    return unidades;
+  }, [unidades, isAdmin, isDiretor, isCoordenador, userDiretoriaIds, userUnidadeIds]);
+
+  const allowedServidores = useMemo(() => {
+    if (isAdmin) return servidores;
+    if (isDiretor && userDiretoriaIds.length > 0) {
+      return servidores.filter(s => s.diretoria_id && userDiretoriaIds.includes(s.diretoria_id));
+    }
+    if (isCoordenador && userUnidadeIds.length > 0) {
+      return servidores.filter(s => s.unidade_id && userUnidadeIds.includes(s.unidade_id));
+    }
+    return servidores;
+  }, [servidores, isAdmin, isDiretor, isCoordenador, userDiretoriaIds, userUnidadeIds]);
+
   // Filter servidores based on view
   const filteredServidores = useMemo(() => {
-    let result = servidores;
+    let result = allowedServidores;
     if (selectedUnidadeId) result = result.filter(s => s.unidade_id === selectedUnidadeId);
     else if (selectedDiretoriaId) result = result.filter(s => s.diretoria_id === selectedDiretoriaId);
 
@@ -159,7 +194,7 @@ function MonitorContent() {
     else if (activeFilter === "duplo_vinculo") result = result.filter(s => s.duplo_vinculo);
 
     return result;
-  }, [servidores, selectedUnidadeId, selectedDiretoriaId, activeFilter]);
+  }, [allowedServidores, selectedUnidadeId, selectedDiretoriaId, activeFilter]);
 
   // Time helpers
   const currentHour = today.getHours();
