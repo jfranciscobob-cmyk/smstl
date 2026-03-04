@@ -141,10 +141,11 @@ export function useAuthSession(): AuthSession {
   }, []);
 
   const isAdmin = roles.some((r) => r.role === "admin");
-  const isDiretor = roles.some((r) => r.role === "diretor");
-  const isCoordenador = roles.some((r) => r.role === "coordenador");
   const isCoordenadorGeral = roles.some((r) => r.role === "coordenador_geral");
-  const hasFullAccess = isAdmin || isDiretor || isCoordenadorGeral;
+  // coordenador_geral has the same access as diretor
+  const isDiretor = roles.some((r) => r.role === "diretor") || isCoordenadorGeral;
+  const isCoordenador = roles.some((r) => r.role === "coordenador");
+  const hasFullAccess = isAdmin || isDiretor;
   const hasFinancialAccess = isAdmin || acessoFinanceiro;
 
   const signOut = async () => {
