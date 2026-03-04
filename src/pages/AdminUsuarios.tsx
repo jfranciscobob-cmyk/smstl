@@ -225,7 +225,15 @@ export default function AdminUsuarios() {
     loadData();
   };
 
-  const pendingRequests = requests.filter(r => r.status === "pendente");
+  const pendingRequests = requests.filter(r => {
+    if (r.status !== "pendente") return false;
+    // Admin sees all, director sees only requests for their diretorias
+    if (isAdmin) return true;
+    if (isDiretor && r.diretoria_id && authDiretoriaIds.includes(r.diretoria_id)) return true;
+    // Directors also see requests without diretoria (coordenador requests)
+    if (isDiretor && !r.diretoria_id) return false;
+    return isAdmin; // fallback
+  });
   const onlineCount = profiles.filter(p => isOnline(p.last_seen_at)).length;
 
   // Helper to get location labels
