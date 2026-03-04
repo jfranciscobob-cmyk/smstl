@@ -530,10 +530,12 @@ function SlideDiretoriaDetalhe({
   diretoria,
   servidores,
   unidades,
+  coordenadoresUnidades = [],
 }: {
   diretoria: DiretoriaDB;
   servidores: ServidorDB[];
   unidades: UnidadeDB[];
+  coordenadoresUnidades?: { servidor_id: string; unidade_id: string }[];
 }) {
   const dirServs = servidores.filter(s => s.diretoria_id === diretoria.id);
   const dirUnidades = unidades.filter(u => u.diretoria_id === diretoria.id);
