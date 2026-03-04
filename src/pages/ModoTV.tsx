@@ -540,6 +540,7 @@ function SlideDiretoriaDetalhe({
   const dirServs = servidores.filter(s => s.diretoria_id === diretoria.id);
   const dirUnidades = unidades.filter(u => u.diretoria_id === diretoria.id);
   const stats = computeStats(dirServs);
+  const coordIds = new Set(coordenadoresUnidades.filter(cu => dirUnidades.some(u => u.id === cu.unidade_id)).map(cu => cu.servidor_id));
   const presencaPct = stats.total > 0 ? Math.round((stats.presentes / stats.total) * 100) : 0;
 
   const unidadeData = dirUnidades.map(uni => {
