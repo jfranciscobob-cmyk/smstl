@@ -824,7 +824,7 @@ function SlideDiretoriaAlertas({
             <p className="text-slate-600 text-sm">Tudo sob controle nesta diretoria</p>
           </div>
         )}
-      </div>
+      </TVScrollArea>
     </div>
   );
 }
