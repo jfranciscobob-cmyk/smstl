@@ -281,8 +281,8 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
   }, [filteredServidores]);
 
   const funcoesCriticasDescobertas = useMemo(
-    () => filteredServidores.filter(s => s.funcao_critica && s.status_presenca !== "presente"),
-    [filteredServidores]
+    () => servidoresComPresenca.filter(s => s.funcao_critica && s.status_presenca !== "presente"),
+    [servidoresComPresenca]
   );
 
   const contratosVencendo = useMemo(() => {
