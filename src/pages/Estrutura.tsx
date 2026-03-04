@@ -1039,8 +1039,7 @@ function EstruturaContent() {
                         </>
                         )}
                       </div>
-                      )}
-                      </div>
+                    </div>
                     </div>
 
                     {/* Diretor picker */}
