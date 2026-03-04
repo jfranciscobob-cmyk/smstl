@@ -81,16 +81,7 @@ export function getEffectiveStatus(
     return servidor.status_presenca;
   }
 
-  // Fixed schedule: find today's escala using local TZ
-  const dayOfWeek = parseInt(
-    new Intl.DateTimeFormat("en-US", { ...tzOptions, weekday: "narrow" }).format(now) === "S"
-      ? // Disambiguate Sun vs Sat
-        new Intl.DateTimeFormat("en-US", { ...tzOptions, weekday: "long" }).format(now).startsWith("Sun") ? "0" : "6"
-      : String(["S","M","T","W","T","F","S"].indexOf(
-          new Intl.DateTimeFormat("en-US", { ...tzOptions, weekday: "narrow" }).format(now)
-        ))
-  );
-  // Simpler approach: use Intl to get the weekday index
+  // Fixed schedule: find today's escala using local TZ (Três Lagoas/MS)
   const weekdayLong = new Intl.DateTimeFormat("en-US", { ...tzOptions, weekday: "long" }).format(now);
   const dayMap: Record<string, number> = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
   const localDayOfWeek = dayMap[weekdayLong] ?? now.getDay();
