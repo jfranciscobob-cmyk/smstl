@@ -397,31 +397,39 @@ function SlideOverview({ servidores, diretorias, unidades }: { servidores: Servi
           </GlowCard>
         </div>
 
-        {/* Center: Bars by diretoria */}
+        {/* Center: Presença por diretoria */}
         <div className="col-span-1 md:col-span-4 flex flex-col gap-3">
           <GlowCard>
             <div className="p-4">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Top Diretorias</p>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Presença por Diretoria</p>
               <div className="space-y-3">
-                {diretorias.slice(0, 5).map(dir => {
-                  const ds = servidores.filter(s => s.diretoria_id === dir.id);
-                  const p = ds.filter(s => s.status_presenca === "presente").length;
-                  const dpct = ds.length > 0 ? Math.round((p / ds.length) * 100) : 0;
-                  return (
+                {diretorias
+                  .map(dir => {
+                    const ds = servidores.filter(s => s.diretoria_id === dir.id);
+                    const p = ds.filter(s => s.status_presenca === "presente").length;
+                    const dpct = ds.length > 0 ? Math.round((p / ds.length) * 100) : 0;
+                    return { ...dir, total: ds.length, presentes: p, dpct };
+                  })
+                  .filter(d => d.total > 0)
+                  .sort((a, b) => b.total - a.total)
+                  .slice(0, 5)
+                  .map(dir => (
                     <div key={dir.id}>
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-[11px] text-slate-400 truncate max-w-[200px]">{dir.nome}</span>
-                        <span className="text-xs font-bold text-white font-mono">{dpct}%</span>
+                        <span className="text-[11px] text-slate-400 truncate max-w-[180px]">{dir.nome}</span>
+                        <span className="text-[10px] text-slate-500 font-mono">{dir.presentes}/{dir.total}</span>
                       </div>
-                      <div className="h-1.5 rounded-full bg-[#1a2744] overflow-hidden">
-                        <div
-                          className={`h-full rounded-full bg-gradient-to-r ${dpct >= 80 ? "from-emerald-500 to-green-400" : dpct >= 60 ? "from-amber-500 to-yellow-400" : "from-red-500 to-rose-400"}`}
-                          style={{ width: `${dpct}%`, transition: "width 1.5s ease-out" }}
-                        />
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-1.5 rounded-full bg-[#1a2744] overflow-hidden">
+                          <div
+                            className={`h-full rounded-full bg-gradient-to-r ${dir.dpct >= 80 ? "from-emerald-500 to-green-400" : dir.dpct >= 60 ? "from-amber-500 to-yellow-400" : "from-red-500 to-rose-400"}`}
+                            style={{ width: `${dir.dpct}%`, transition: "width 1.5s ease-out" }}
+                          />
+                        </div>
+                        <span className={`text-xs font-black font-mono min-w-[32px] text-right ${dir.dpct >= 80 ? "text-emerald-400" : dir.dpct >= 60 ? "text-amber-400" : "text-red-400"}`}>{dir.dpct}%</span>
                       </div>
                     </div>
-                  );
-                })}
+                  ))}
               </div>
             </div>
           </GlowCard>
