@@ -922,13 +922,19 @@ export type Database = {
           diretoria_destino_id: string
           diretoria_origem_id: string
           id: string
+          manter_ambos: boolean
           observacao: string | null
           respondido_at: string | null
           respondido_por_user_id: string | null
           resposta_observacao: string | null
           servidor_id: string
+          setor_destino_id: string | null
+          setor_origem_id: string | null
           solicitante_user_id: string
           status: string
+          tipo: string
+          unidade_destino_id: string | null
+          unidade_origem_id: string | null
           updated_at: string
         }
         Insert: {
@@ -936,13 +942,19 @@ export type Database = {
           diretoria_destino_id: string
           diretoria_origem_id: string
           id?: string
+          manter_ambos?: boolean
           observacao?: string | null
           respondido_at?: string | null
           respondido_por_user_id?: string | null
           resposta_observacao?: string | null
           servidor_id: string
+          setor_destino_id?: string | null
+          setor_origem_id?: string | null
           solicitante_user_id: string
           status?: string
+          tipo?: string
+          unidade_destino_id?: string | null
+          unidade_origem_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -950,13 +962,19 @@ export type Database = {
           diretoria_destino_id?: string
           diretoria_origem_id?: string
           id?: string
+          manter_ambos?: boolean
           observacao?: string | null
           respondido_at?: string | null
           respondido_por_user_id?: string | null
           resposta_observacao?: string | null
           servidor_id?: string
+          setor_destino_id?: string | null
+          setor_origem_id?: string | null
           solicitante_user_id?: string
           status?: string
+          tipo?: string
+          unidade_destino_id?: string | null
+          unidade_origem_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -979,6 +997,34 @@ export type Database = {
             columns: ["servidor_id"]
             isOneToOne: false
             referencedRelation: "servidores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transferencias_setor_destino_id_fkey"
+            columns: ["setor_destino_id"]
+            isOneToOne: false
+            referencedRelation: "setores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transferencias_setor_origem_id_fkey"
+            columns: ["setor_origem_id"]
+            isOneToOne: false
+            referencedRelation: "setores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transferencias_unidade_destino_id_fkey"
+            columns: ["unidade_destino_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transferencias_unidade_origem_id_fkey"
+            columns: ["unidade_origem_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
             referencedColumns: ["id"]
           },
         ]
