@@ -51,6 +51,7 @@ export default function AdminUsuarios() {
   const [requests, setRequests] = useState<RegistrationRequest[]>([]);
   const [diretorias, setDiretorias] = useState<DiretoriaOption[]>([]);
   const [unidades, setUnidades] = useState<UnidadeOption[]>([]);
+  const [agrupamentos, setAgrupamentos] = useState<AgrupamentoOption[]>([]);
   const [userDiretorias, setUserDiretorias] = useState<UserDiretoria[]>([]);
   const [userUnidades, setUserUnidades] = useState<UserUnidade[]>([]);
   const [loading, setLoading] = useState(true);
