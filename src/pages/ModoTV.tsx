@@ -628,7 +628,7 @@ function SlideDiretoriaDetalhe({
       />
 
       {/* KPIs */}
-      <div className="grid grid-cols-6 gap-3 mb-4">
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3 mb-4">
         <KPICard label="Total" value={stats.total} gradient="from-slate-700/90 to-slate-800/90" icon={<Users className="h-5 w-5" />} delay={150} />
         <KPICard label="Presentes" value={stats.presentes} gradient="from-emerald-600/90 to-green-800/90" icon={<CheckCircle className="h-5 w-5" />} delay={250} />
         <KPICard label="Férias" value={stats.ferias} gradient="from-amber-600/90 to-orange-800/90" icon={<Palmtree className="h-5 w-5" />} delay={350} />
