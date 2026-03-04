@@ -127,6 +127,80 @@ function AlertCard({ title, count, icon, color, items }: {
   );
 }
 
+// ─── Alerta agrupado por Diretoria ───
+function AlertaPorDiretoria({ titulo, total, servidores, diretorias, icon, borderColor, bgColor, textColor, chipBg, chipText, onEdit }: {
+  titulo: string; total: number; servidores: ServidorDB[]; diretorias: DiretoriaDB[];
+  icon: React.ReactNode; borderColor: string; bgColor: string; textColor: string;
+  chipBg: string; chipText: string; onEdit: (s: ServidorDB) => void;
+}) {
+  const [expandedDirs, setExpandedDirs] = useState<Record<string, boolean>>({});
+
+  const groups = useMemo(() => {
+    const map = new Map<string, { dir: DiretoriaDB | null; items: ServidorDB[] }>();
+    servidores.forEach(s => {
+      const dirId = s.diretoria_id || "__sem_diretoria__";
+      if (!map.has(dirId)) {
+        const dir = diretorias.find(d => d.id === dirId) || null;
+        map.set(dirId, { dir, items: [] });
+      }
+      map.get(dirId)!.items.push(s);
+    });
+    return Array.from(map.values()).sort((a, b) => b.items.length - a.items.length);
+  }, [servidores, diretorias]);
+
+  const toggle = (id: string) => setExpandedDirs(prev => ({ ...prev, [id]: !prev[id] }));
+
+  return (
+    <div className={`rounded-xl border ${borderColor} ${bgColor} p-4`}>
+      <div className="flex items-center gap-2 mb-3">
+        {icon}
+        <span className={`text-xs font-bold uppercase tracking-wider ${textColor}`}>
+          {titulo} — {total} servidor{total > 1 ? "es" : ""}
+        </span>
+      </div>
+      <div className="space-y-2">
+        {groups.map(({ dir, items }) => {
+          const key = dir?.id || "__sem__";
+          const isOpen = expandedDirs[key] ?? false;
+          return (
+            <div key={key} className="rounded-lg bg-background/40 border border-border/30 overflow-hidden">
+              <button
+                onClick={() => toggle(key)}
+                className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-background/60 transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-xs font-bold text-foreground">{dir?.nome || "Sem diretoria"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-extrabold font-mono ${textColor}`}>{items.length}</span>
+                  <ChevronRight className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${isOpen ? "rotate-90" : ""}`} />
+                </div>
+              </button>
+              {isOpen && (
+                <div className="px-3 pb-2 flex flex-wrap gap-1.5">
+                  {items.slice(0, 20).map(s => (
+                    <button
+                      key={s.id}
+                      onClick={() => onEdit(s)}
+                      className={`text-[11px] ${chipBg} ${chipText} rounded-md px-2 py-0.5 transition-colors cursor-pointer`}
+                    >
+                      {s.nome}
+                    </button>
+                  ))}
+                  {items.length > 20 && (
+                    <span className="text-[10px] text-muted-foreground/60 self-center">+{items.length - 20} mais</span>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isDiretor, isCoordenador, servidorId, userDiretoriaIds, userUnidadeIds }: { signOut: () => void; userEmail?: string; hasFinancialAccess?: boolean; isAdmin?: boolean; isDiretor?: boolean; isCoordenador?: boolean; servidorId?: string | null; userDiretoriaIds?: string[]; userUnidadeIds?: string[] }) {
   const [servidores, setServidores] = useState<ServidorDB[]>([]);
   const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
@@ -350,56 +424,38 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
       />
 
       <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
-        {/* ═══ Alertas de Atualização Pendente ═══ */}
+        {/* ═══ Alertas de Atualização Pendente (por Diretoria) ═══ */}
         {!isLoading && (isDiretor || isCoordenador || isAdmin) && (semEscala.length > 0 || semFerias.length > 0) && (
           <div className="space-y-3">
             {semEscala.length > 0 && (
-              <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
-                    Escala não cadastrada — {semEscala.length} servidor{semEscala.length > 1 ? "es" : ""}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {semEscala.slice(0, 15).map(s => (
-                    <button
-                      key={s.id}
-                      onClick={() => setEditingServidor(s)}
-                      className="text-[11px] bg-amber-500/15 hover:bg-amber-500/30 text-amber-800 dark:text-amber-200 rounded-md px-2 py-0.5 transition-colors cursor-pointer"
-                    >
-                      {s.nome}
-                    </button>
-                  ))}
-                  {semEscala.length > 15 && (
-                    <span className="text-[10px] text-amber-600/60 dark:text-amber-400/60 self-center">+{semEscala.length - 15} mais</span>
-                  )}
-                </div>
-              </div>
+              <AlertaPorDiretoria
+                titulo="Escala não cadastrada"
+                total={semEscala.length}
+                servidores={semEscala}
+                diretorias={filteredDiretorias}
+                icon={<Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />}
+                borderColor="border-amber-500/40"
+                bgColor="bg-amber-500/10"
+                textColor="text-amber-700 dark:text-amber-300"
+                chipBg="bg-amber-500/15 hover:bg-amber-500/30"
+                chipText="text-amber-800 dark:text-amber-200"
+                onEdit={setEditingServidor}
+              />
             )}
             {semFerias.length > 0 && (
-              <div className="rounded-xl border border-orange-500/40 bg-orange-500/10 p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Calendar className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300">
-                    Férias não atualizadas — {semFerias.length} servidor{semFerias.length > 1 ? "es" : ""}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {semFerias.slice(0, 15).map(s => (
-                    <button
-                      key={s.id}
-                      onClick={() => setEditingServidor(s)}
-                      className="text-[11px] bg-orange-500/15 hover:bg-orange-500/30 text-orange-800 dark:text-orange-200 rounded-md px-2 py-0.5 transition-colors cursor-pointer"
-                    >
-                      {s.nome}
-                    </button>
-                  ))}
-                  {semFerias.length > 15 && (
-                    <span className="text-[10px] text-orange-600/60 dark:text-orange-400/60 self-center">+{semFerias.length - 15} mais</span>
-                  )}
-                </div>
-              </div>
+              <AlertaPorDiretoria
+                titulo="Férias não atualizadas"
+                total={semFerias.length}
+                servidores={semFerias}
+                diretorias={filteredDiretorias}
+                icon={<Calendar className="h-4 w-4 text-orange-600 dark:text-orange-400" />}
+                borderColor="border-orange-500/40"
+                bgColor="bg-orange-500/10"
+                textColor="text-orange-700 dark:text-orange-300"
+                chipBg="bg-orange-500/15 hover:bg-orange-500/30"
+                chipText="text-orange-800 dark:text-orange-200"
+                onEdit={setEditingServidor}
+              />
             )}
           </div>
         )}
@@ -445,7 +501,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
                     <div className="flex items-center gap-2 mb-0.5">
                       <Activity className="h-3.5 w-3.5 text-primary-foreground/60" />
                       <span className="text-[10px] font-semibold text-primary-foreground/50 uppercase tracking-widest">
-                        {new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
+                        {new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "long", year: "numeric" })}
                       </span>
                     </div>
                     <h2 className="text-lg sm:text-xl font-extrabold tracking-tight">
