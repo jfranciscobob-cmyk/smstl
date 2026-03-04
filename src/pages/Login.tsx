@@ -17,7 +17,7 @@ export default function Login() {
   const [regNome, setRegNome] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
-  const [regRole, setRegRole] = useState<"diretor" | "coordenador">("coordenador");
+  const [regRole, setRegRole] = useState<"diretor" | "coordenador" | "coordenador_geral">("coordenador");
   const [diretorias, setDiretorias] = useState<{ id: string; nome: string }[]>([]);
   const [regDiretoriaId, setRegDiretoriaId] = useState("");
   const [submitting, setSubmitting] = useState(false);
