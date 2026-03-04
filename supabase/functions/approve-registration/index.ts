@@ -33,7 +33,8 @@ serve(async (req) => {
 
     const isAdmin = roles?.some(r => r.role === "admin");
     const isDiretor = roles?.some(r => r.role === "diretor");
-    if (!isAdmin && !isDiretor) throw new Error("Sem permissão");
+    const isCoordenadorGeral = roles?.some(r => r.role === "coordenador_geral");
+    if (!isAdmin && !isDiretor && !isCoordenadorGeral) throw new Error("Sem permissão");
 
     const { request_id, action, motivo_rejeicao } = await req.json();
 
