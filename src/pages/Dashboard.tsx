@@ -127,6 +127,80 @@ function AlertCard({ title, count, icon, color, items }: {
   );
 }
 
+// ─── Alerta agrupado por Diretoria ───
+function AlertaPorDiretoria({ titulo, total, servidores, diretorias, icon, borderColor, bgColor, textColor, chipBg, chipText, onEdit }: {
+  titulo: string; total: number; servidores: ServidorDB[]; diretorias: DiretoriaDB[];
+  icon: React.ReactNode; borderColor: string; bgColor: string; textColor: string;
+  chipBg: string; chipText: string; onEdit: (s: ServidorDB) => void;
+}) {
+  const [expandedDirs, setExpandedDirs] = useState<Record<string, boolean>>({});
+
+  const groups = useMemo(() => {
+    const map = new Map<string, { dir: DiretoriaDB | null; items: ServidorDB[] }>();
+    servidores.forEach(s => {
+      const dirId = s.diretoria_id || "__sem_diretoria__";
+      if (!map.has(dirId)) {
+        const dir = diretorias.find(d => d.id === dirId) || null;
+        map.set(dirId, { dir, items: [] });
+      }
+      map.get(dirId)!.items.push(s);
+    });
+    return Array.from(map.values()).sort((a, b) => b.items.length - a.items.length);
+  }, [servidores, diretorias]);
+
+  const toggle = (id: string) => setExpandedDirs(prev => ({ ...prev, [id]: !prev[id] }));
+
+  return (
+    <div className={`rounded-xl border ${borderColor} ${bgColor} p-4`}>
+      <div className="flex items-center gap-2 mb-3">
+        {icon}
+        <span className={`text-xs font-bold uppercase tracking-wider ${textColor}`}>
+          {titulo} — {total} servidor{total > 1 ? "es" : ""}
+        </span>
+      </div>
+      <div className="space-y-2">
+        {groups.map(({ dir, items }) => {
+          const key = dir?.id || "__sem__";
+          const isOpen = expandedDirs[key] ?? false;
+          return (
+            <div key={key} className="rounded-lg bg-background/40 border border-border/30 overflow-hidden">
+              <button
+                onClick={() => toggle(key)}
+                className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-background/60 transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-xs font-bold text-foreground">{dir?.nome || "Sem diretoria"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-extrabold font-mono ${textColor}`}>{items.length}</span>
+                  <ChevronRight className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${isOpen ? "rotate-90" : ""}`} />
+                </div>
+              </button>
+              {isOpen && (
+                <div className="px-3 pb-2 flex flex-wrap gap-1.5">
+                  {items.slice(0, 20).map(s => (
+                    <button
+                      key={s.id}
+                      onClick={() => onEdit(s)}
+                      className={`text-[11px] ${chipBg} ${chipText} rounded-md px-2 py-0.5 transition-colors cursor-pointer`}
+                    >
+                      {s.nome}
+                    </button>
+                  ))}
+                  {items.length > 20 && (
+                    <span className="text-[10px] text-muted-foreground/60 self-center">+{items.length - 20} mais</span>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isDiretor, isCoordenador, servidorId, userDiretoriaIds, userUnidadeIds }: { signOut: () => void; userEmail?: string; hasFinancialAccess?: boolean; isAdmin?: boolean; isDiretor?: boolean; isCoordenador?: boolean; servidorId?: string | null; userDiretoriaIds?: string[]; userUnidadeIds?: string[] }) {
   const [servidores, setServidores] = useState<ServidorDB[]>([]);
   const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
