@@ -517,7 +517,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
                 <p className="text-[9px] font-semibold text-primary/70 uppercase tracking-wider">Alocados</p>
               </Link>
               <Link to="/monitor?filter=duplo_vinculo" className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-center transition-all hover:shadow-md hover:-translate-y-0.5" title="Servidores com dois vínculos">
-                <p className="text-lg font-extrabold font-mono text-amber-600 dark:text-amber-400">{filteredServidores.filter(s => s.duplo_vinculo).length}</p>
+                <p className="text-lg font-extrabold font-mono text-amber-600 dark:text-amber-400">{servidoresComPresenca.filter(s => s.duplo_vinculo).length}</p>
                 <p className="text-[9px] font-semibold text-amber-600/70 dark:text-amber-400/70 uppercase tracking-wider">Duplo Vínculo</p>
               </Link>
             </div>
