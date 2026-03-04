@@ -501,6 +501,97 @@ function MonitorContent() {
     }).sort((a, b) => b.daysFromAdmission - a.daysFromAdmission);
   }, [filteredServidores]);
 
+  // ── Faltas abonadas ativas no ciclo atual ──
+  const activeFaltasAbonadas = useMemo(() => {
+    const srvIds = new Set(filteredServidores.map(s => s.id));
+    const now = new Date();
+    return faltasAbonadas.filter(f => {
+      if (!srvIds.has(f.servidor_id)) return false;
+      const srv = servidores.find(s => s.id === f.servidor_id);
+      if (!srv) return false;
+      const admDate = srv.data_admissao ? parseISO(srv.data_admissao) : null;
+      let cycleStart: Date;
+      if (admDate) {
+        cycleStart = new Date(now.getFullYear(), admDate.getMonth(), admDate.getDate());
+        if (isAfter(cycleStart, now)) cycleStart.setFullYear(cycleStart.getFullYear() - 1);
+      } else {
+        cycleStart = new Date(now.getFullYear(), 0, 1);
+      }
+      try { const fd = parseISO(f.data); return !isBefore(fd, cycleStart) && !isAfter(fd, now); } catch { return false; }
+    });
+  }, [faltasAbonadas, filteredServidores, servidores]);
+
+  // ── Conflitos: férias cruzando com atestado ou falta abonada ──
+  const conflictsData = useMemo(() => {
+    const conflicts: { servidor: ServidorDB; tipo: string; detalhe: string }[] = [];
+    const srvIds = new Set(filteredServidores.map(s => s.id));
+
+    filteredServidores.forEach(srv => {
+      if (srv.status_presenca !== "ferias" && !srv.ferias_periodo1_inicio) return;
+      // Build férias intervals
+      const fIntervals: { start: Date; end: Date }[] = [];
+      if (srv.ferias_periodo1_inicio && srv.ferias_periodo1_fim) {
+        try { fIntervals.push({ start: parseISO(srv.ferias_periodo1_inicio), end: parseISO(srv.ferias_periodo1_fim) }); } catch {}
+      }
+      if (srv.ferias_periodo2_inicio && srv.ferias_periodo2_fim) {
+        try { fIntervals.push({ start: parseISO(srv.ferias_periodo2_inicio), end: parseISO(srv.ferias_periodo2_fim) }); } catch {}
+      }
+      if (fIntervals.length === 0) return;
+
+      // Check atestados overlap
+      atestados.filter(a => a.servidor_id === srv.id).forEach(at => {
+        try {
+          const atStart = parseISO(at.data_inicio);
+          const atEnd = parseISO(at.data_fim);
+          fIntervals.forEach(fi => {
+            if (isBefore(atStart, fi.end) && isAfter(atEnd, fi.start)) {
+              conflicts.push({
+                servidor: srv,
+                tipo: "Férias × Atestado",
+                detalhe: `Atestado ${format(atStart, "dd/MM")}–${format(atEnd, "dd/MM")} cruza com férias ${format(fi.start, "dd/MM")}–${format(fi.end, "dd/MM")}`
+              });
+            }
+          });
+        } catch {}
+      });
+
+      // Check faltas abonadas overlap
+      faltasAbonadas.filter(f => f.servidor_id === srv.id).forEach(fa => {
+        try {
+          const faDate = parseISO(fa.data);
+          fIntervals.forEach(fi => {
+            if (isWithinInterval(faDate, { start: fi.start, end: fi.end })) {
+              conflicts.push({
+                servidor: srv,
+                tipo: "Férias × Falta Abonada",
+                detalhe: `Falta abonada em ${format(faDate, "dd/MM")} durante férias ${format(fi.start, "dd/MM")}–${format(fi.end, "dd/MM")}`
+              });
+            }
+          });
+        } catch {}
+      });
+
+      // Check afastamento overlap with férias
+      afastamentos.filter(a => a.servidor_id === srv.id).forEach(af => {
+        try {
+          const afStart = parseISO(af.data_inicio);
+          const afEnd = af.data_fim ? parseISO(af.data_fim) : addDays(new Date(), 365);
+          fIntervals.forEach(fi => {
+            if (isBefore(afStart, fi.end) && isAfter(afEnd, fi.start)) {
+              conflicts.push({
+                servidor: srv,
+                tipo: "Férias × Afastamento",
+                detalhe: `${af.motivo} ${format(afStart, "dd/MM")}${af.data_fim ? "–" + format(parseISO(af.data_fim), "dd/MM") : " (aberto)"} cruza com férias ${format(fi.start, "dd/MM")}–${format(fi.end, "dd/MM")}`
+              });
+            }
+          });
+        } catch {}
+      });
+    });
+
+    return conflicts;
+  }, [filteredServidores, atestados, faltasAbonadas, afastamentos]);
+
   // Navigation
   const setView = (mode: string, dirId?: string, uniId?: string) => {
     const params: Record<string, string> = { view: mode };
