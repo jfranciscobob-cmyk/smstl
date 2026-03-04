@@ -721,7 +721,7 @@ function SlideDiretoriaServidores({
         icon={statusIcon}
       />
       <TVScrollArea className="flex-1 overflow-y-auto pr-2">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {dirServs.map((s, i) => (
             <AnimatedCard key={s.id} delay={80 + i * 30}>
               <div className={`rounded-xl bg-[#0f1a2e]/80 border border-[#1e3a5f]/40 p-3.5 hover:border-teal-500/30 transition-all`}>
