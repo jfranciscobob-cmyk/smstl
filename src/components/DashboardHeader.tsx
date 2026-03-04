@@ -153,6 +153,14 @@ export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, direto
               )}
 
               <Link
+                to="/avisos"
+                className="hidden sm:flex h-8 sm:h-9 items-center gap-1.5 sm:gap-2 rounded-lg bg-primary-foreground/10 border border-primary-foreground/10 px-2 sm:px-3.5 text-xs font-semibold text-primary-foreground hover:bg-primary-foreground/20 transition-all"
+              >
+                <Megaphone className="h-3.5 w-3.5" />
+                <span className="hidden lg:inline">Avisos</span>
+              </Link>
+
+              <Link
                 to="/manual"
                 className="hidden sm:flex h-8 sm:h-9 items-center gap-1.5 sm:gap-2 rounded-lg bg-primary-foreground/10 border border-primary-foreground/10 px-2 sm:px-3.5 text-xs font-semibold text-primary-foreground hover:bg-primary-foreground/20 transition-all"
               >
