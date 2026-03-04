@@ -398,7 +398,7 @@ function SlideOverview({ servidores, diretorias, unidades }: { servidores: Servi
         </div>
 
         {/* Center: Bars by diretoria */}
-        <div className="col-span-4 flex flex-col gap-3">
+        <div className="col-span-1 md:col-span-4 flex flex-col gap-3">
           <GlowCard>
             <div className="p-4">
               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Top Diretorias</p>
