@@ -861,7 +861,7 @@ function SlideDiretoriaCoordenadores({
         subtitle={`${dirUnidades.length} unidades`}
         icon={<UserCheck className="h-7 w-7 text-white" />}
       />
-      <div className="flex-1 overflow-y-auto tv-auto-scroll space-y-3 pr-2" style={{ scrollbarWidth: "none" }}>
+      <TVScrollArea className="flex-1 overflow-y-auto space-y-3 pr-2">
         {uniCoordData.map((d, i) => {
           const textColor = d.pct >= 80 ? "text-emerald-400" : d.pct >= 60 ? "text-amber-400" : "text-red-400";
           return (
