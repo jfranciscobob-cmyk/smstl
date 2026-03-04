@@ -501,6 +501,97 @@ function MonitorContent() {
     }).sort((a, b) => b.daysFromAdmission - a.daysFromAdmission);
   }, [filteredServidores]);
 
+  // ── Faltas abonadas ativas no ciclo atual ──
+  const activeFaltasAbonadas = useMemo(() => {
+    const srvIds = new Set(filteredServidores.map(s => s.id));
+    const now = new Date();
+    return faltasAbonadas.filter(f => {
+      if (!srvIds.has(f.servidor_id)) return false;
+      const srv = servidores.find(s => s.id === f.servidor_id);
+      if (!srv) return false;
+      const admDate = srv.data_admissao ? parseISO(srv.data_admissao) : null;
+      let cycleStart: Date;
+      if (admDate) {
+        cycleStart = new Date(now.getFullYear(), admDate.getMonth(), admDate.getDate());
+        if (isAfter(cycleStart, now)) cycleStart.setFullYear(cycleStart.getFullYear() - 1);
+      } else {
+        cycleStart = new Date(now.getFullYear(), 0, 1);
+      }
+      try { const fd = parseISO(f.data); return !isBefore(fd, cycleStart) && !isAfter(fd, now); } catch { return false; }
+    });
+  }, [faltasAbonadas, filteredServidores, servidores]);
+
+  // ── Conflitos: férias cruzando com atestado ou falta abonada ──
+  const conflictsData = useMemo(() => {
+    const conflicts: { servidor: ServidorDB; tipo: string; detalhe: string }[] = [];
+    const srvIds = new Set(filteredServidores.map(s => s.id));
+
+    filteredServidores.forEach(srv => {
+      if (srv.status_presenca !== "ferias" && !srv.ferias_periodo1_inicio) return;
+      // Build férias intervals
+      const fIntervals: { start: Date; end: Date }[] = [];
+      if (srv.ferias_periodo1_inicio && srv.ferias_periodo1_fim) {
+        try { fIntervals.push({ start: parseISO(srv.ferias_periodo1_inicio), end: parseISO(srv.ferias_periodo1_fim) }); } catch {}
+      }
+      if (srv.ferias_periodo2_inicio && srv.ferias_periodo2_fim) {
+        try { fIntervals.push({ start: parseISO(srv.ferias_periodo2_inicio), end: parseISO(srv.ferias_periodo2_fim) }); } catch {}
+      }
+      if (fIntervals.length === 0) return;
+
+      // Check atestados overlap
+      atestados.filter(a => a.servidor_id === srv.id).forEach(at => {
+        try {
+          const atStart = parseISO(at.data_inicio);
+          const atEnd = parseISO(at.data_fim);
+          fIntervals.forEach(fi => {
+            if (isBefore(atStart, fi.end) && isAfter(atEnd, fi.start)) {
+              conflicts.push({
+                servidor: srv,
+                tipo: "Férias × Atestado",
+                detalhe: `Atestado ${format(atStart, "dd/MM")}–${format(atEnd, "dd/MM")} cruza com férias ${format(fi.start, "dd/MM")}–${format(fi.end, "dd/MM")}`
+              });
+            }
+          });
+        } catch {}
+      });
+
+      // Check faltas abonadas overlap
+      faltasAbonadas.filter(f => f.servidor_id === srv.id).forEach(fa => {
+        try {
+          const faDate = parseISO(fa.data);
+          fIntervals.forEach(fi => {
+            if (isWithinInterval(faDate, { start: fi.start, end: fi.end })) {
+              conflicts.push({
+                servidor: srv,
+                tipo: "Férias × Falta Abonada",
+                detalhe: `Falta abonada em ${format(faDate, "dd/MM")} durante férias ${format(fi.start, "dd/MM")}–${format(fi.end, "dd/MM")}`
+              });
+            }
+          });
+        } catch {}
+      });
+
+      // Check afastamento overlap with férias
+      afastamentos.filter(a => a.servidor_id === srv.id).forEach(af => {
+        try {
+          const afStart = parseISO(af.data_inicio);
+          const afEnd = af.data_fim ? parseISO(af.data_fim) : addDays(new Date(), 365);
+          fIntervals.forEach(fi => {
+            if (isBefore(afStart, fi.end) && isAfter(afEnd, fi.start)) {
+              conflicts.push({
+                servidor: srv,
+                tipo: "Férias × Afastamento",
+                detalhe: `${af.motivo} ${format(afStart, "dd/MM")}${af.data_fim ? "–" + format(parseISO(af.data_fim), "dd/MM") : " (aberto)"} cruza com férias ${format(fi.start, "dd/MM")}–${format(fi.end, "dd/MM")}`
+              });
+            }
+          });
+        } catch {}
+      });
+    });
+
+    return conflicts;
+  }, [filteredServidores, atestados, faltasAbonadas, afastamentos]);
+
   // Navigation
   const setView = (mode: string, dirId?: string, uniId?: string) => {
     const params: Record<string, string> = { view: mode };
@@ -658,7 +749,7 @@ function MonitorContent() {
         {viewMode === "tudo" && !selectedDiretoriaId && (
           <div className="space-y-6">
             {/* Stats row */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
               <div className="rounded-xl border border-border bg-card p-4">
               <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Users className="h-3.5 w-3.5" /> Total</div>
                 <p className="text-2xl font-bold text-foreground">{allowedServidores.length.toLocaleString("pt-BR")}</p>
@@ -675,6 +766,16 @@ function MonitorContent() {
                 <div className="flex items-center gap-2 text-xs text-destructive mb-1"><AlertTriangle className="h-3.5 w-3.5" /> Afastados</div>
                 <p className="text-2xl font-bold text-destructive">{allowedServidores.filter(s => s.status_presenca === "afastado").length}</p>
               </div>
+              <div className="rounded-xl border border-info/30 bg-info/5 p-4">
+                <div className="flex items-center gap-2 text-xs text-info mb-1"><FileText className="h-3.5 w-3.5" /> Atestados</div>
+                <p className="text-2xl font-bold text-info">{activeAtestados.length}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">ativos hoje</p>
+              </div>
+              <div className="rounded-xl border border-violet-500/30 bg-violet-500/5 p-4">
+                <div className="flex items-center gap-2 text-xs text-violet-600 dark:text-violet-400 mb-1"><CalendarCheck className="h-3.5 w-3.5" /> Abonadas</div>
+                <p className="text-2xl font-bold text-violet-600 dark:text-violet-400">{activeFaltasAbonadas.length}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">no ciclo atual</p>
+              </div>
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Clock className="h-3.5 w-3.5" /> Carga Total</div>
                 <p className="text-2xl font-bold text-foreground">{allowedServidores.reduce((s, sv) => s + (sv.escala_total_horas || 0), 0)}h</p>
@@ -686,6 +787,29 @@ function MonitorContent() {
               </div>
               )}
             </div>
+
+            {/* Conflitos de datas */}
+            {conflictsData.length > 0 && (
+              <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Ban className="h-4 w-4 text-destructive" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-destructive">
+                    ⚠ Conflitos de Datas — {conflictsData.length} ocorrência{conflictsData.length > 1 ? "s" : ""}
+                  </span>
+                </div>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {conflictsData.map((c, i) => (
+                    <div key={i} className="flex items-start gap-2 rounded-lg bg-destructive/5 border border-destructive/10 px-3 py-2">
+                      <span className="text-[10px] font-bold text-destructive whitespace-nowrap mt-0.5">{c.tipo}</span>
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-foreground">{c.servidor.nome}</p>
+                        <p className="text-[10px] text-muted-foreground">{c.detalhe}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {semEscala.length > 0 && (
               <div className="rounded-xl border border-amber-500/40 bg-amber-500/10">
@@ -812,7 +936,7 @@ function MonitorContent() {
         {selectedDiretoriaId && !selectedUnidadeId && (
           <div className="space-y-6">
             {/* Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Users className="h-3.5 w-3.5" /> Total</div>
                 <p className="text-2xl font-bold text-foreground">{filteredServidores.length}</p>
@@ -829,12 +953,45 @@ function MonitorContent() {
                 <div className="flex items-center gap-2 text-xs text-destructive mb-1"><AlertTriangle className="h-3.5 w-3.5" /> Afastados</div>
                 <p className="text-2xl font-bold text-destructive">{afastados}</p>
               </div>
+              <div className="rounded-xl border border-info/30 bg-info/5 p-4">
+                <div className="flex items-center gap-2 text-xs text-info mb-1"><FileText className="h-3.5 w-3.5" /> Atestados</div>
+                <p className="text-2xl font-bold text-info">{activeAtestados.length}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">ativos hoje</p>
+              </div>
+              <div className="rounded-xl border border-violet-500/30 bg-violet-500/5 p-4">
+                <div className="flex items-center gap-2 text-xs text-violet-600 dark:text-violet-400 mb-1"><CalendarCheck className="h-3.5 w-3.5" /> Abonadas</div>
+                <p className="text-2xl font-bold text-violet-600 dark:text-violet-400">{activeFaltasAbonadas.length}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">no ciclo atual</p>
+              </div>
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Clock className="h-3.5 w-3.5" /> Carga</div>
                 <p className="text-2xl font-bold text-foreground">{totalHoras}h</p>
               </div>
               <PayrollCard servs={filteredServidores} label="Folha Diretoria" />
             </div>
+
+            {/* Conflitos de datas */}
+            {conflictsData.length > 0 && (
+              <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Ban className="h-4 w-4 text-destructive" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-destructive">
+                    ⚠ Conflitos de Datas — {conflictsData.length}
+                  </span>
+                </div>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {conflictsData.map((c, i) => (
+                    <div key={i} className="flex items-start gap-2 rounded-lg bg-destructive/5 border border-destructive/10 px-3 py-2">
+                      <span className="text-[10px] font-bold text-destructive whitespace-nowrap mt-0.5">{c.tipo}</span>
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-foreground">{c.servidor.nome}</p>
+                        <p className="text-[10px] text-muted-foreground">{c.detalhe}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {semEscala.length > 0 && (
               <div className="rounded-xl border border-amber-500/40 bg-amber-500/10">
@@ -955,7 +1112,7 @@ function MonitorContent() {
         {selectedUnidadeId && (
           <div className="space-y-6">
             {/* Stats cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Users className="h-3.5 w-3.5" /> Total</div>
                 <p className="text-2xl font-bold text-foreground">{filteredServidores.length}</p>
@@ -972,12 +1129,45 @@ function MonitorContent() {
                 <div className="flex items-center gap-2 text-xs text-destructive mb-1"><AlertTriangle className="h-3.5 w-3.5" /> Afastados</div>
                 <p className="text-2xl font-bold text-destructive">{afastados}</p>
               </div>
+              <div className="rounded-xl border border-info/30 bg-info/5 p-4">
+                <div className="flex items-center gap-2 text-xs text-info mb-1"><FileText className="h-3.5 w-3.5" /> Atestados</div>
+                <p className="text-2xl font-bold text-info">{activeAtestados.length}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">ativos hoje</p>
+              </div>
+              <div className="rounded-xl border border-violet-500/30 bg-violet-500/5 p-4">
+                <div className="flex items-center gap-2 text-xs text-violet-600 dark:text-violet-400 mb-1"><CalendarCheck className="h-3.5 w-3.5" /> Abonadas</div>
+                <p className="text-2xl font-bold text-violet-600 dark:text-violet-400">{activeFaltasAbonadas.length}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">no ciclo atual</p>
+              </div>
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1"><Clock className="h-3.5 w-3.5" /> Carga</div>
                 <p className="text-2xl font-bold text-foreground">{totalHoras}h</p>
               </div>
               <PayrollCard servs={filteredServidores} label="Folha Unidade" />
             </div>
+
+            {/* Conflitos de datas */}
+            {conflictsData.length > 0 && (
+              <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Ban className="h-4 w-4 text-destructive" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-destructive">
+                    ⚠ Conflitos de Datas — {conflictsData.length}
+                  </span>
+                </div>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {conflictsData.map((c, i) => (
+                    <div key={i} className="flex items-start gap-2 rounded-lg bg-destructive/5 border border-destructive/10 px-3 py-2">
+                      <span className="text-[10px] font-bold text-destructive whitespace-nowrap mt-0.5">{c.tipo}</span>
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-foreground">{c.servidor.nome}</p>
+                        <p className="text-[10px] text-muted-foreground">{c.detalhe}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {semEscala.length > 0 && (
               <div className="rounded-xl border border-amber-500/40 bg-amber-500/10">
