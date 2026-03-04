@@ -327,12 +327,12 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
 
   // ── Servidores sem escala ou férias atualizadas ──
   const semEscala = useMemo(() =>
-    filteredServidores.filter(s => !s.escala_inicio1 && !s.escala_total_horas),
-    [filteredServidores]
+    servidoresComPresenca.filter(s => s.tipo_escala === 'fixa' && !s.escala_inicio1 && !s.escala_total_horas),
+    [servidoresComPresenca]
   );
   const semFerias = useMemo(() =>
-    filteredServidores.filter(s => !s.ferias_ano_referencia && !s.ferias_periodo1_inicio),
-    [filteredServidores]
+    servidoresComPresenca.filter(s => !s.ferias_ano_referencia && !s.ferias_periodo1_inicio),
+    [servidoresComPresenca]
   );
 
   const statusColors = ["hsl(152 60% 40%)", "hsl(38 92% 50%)", "hsl(0 72% 51%)", "hsl(200 10% 46%)"];
