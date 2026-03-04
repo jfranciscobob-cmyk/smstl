@@ -1151,6 +1151,13 @@ export default function ModoTV() {
   const [slideDirection, setSlideDirection] = useState<"left" | "right">("left");
   const [transitioning, setTransitioning] = useState(false);
 
+  // Avisos banner state
+  interface TVAviso { id: string; titulo: string; mensagem: string; destinatario_tipo: string; destinatario_diretoria_id: string | null; }
+  const [avisos, setAvisos] = useState<TVAviso[]>([]);
+  const [currentAvisoIndex, setCurrentAvisoIndex] = useState(0);
+  const [showAvisoBanner, setShowAvisoBanner] = useState(false);
+  const AVISO_DURATION = 120000; // 2 minutes
+
   const SLIDE_DURATION = 30000;
   const TRANSITION_DURATION = 900;
 
