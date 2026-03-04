@@ -800,7 +800,7 @@ function SlideDiretoriaAlertas({
                     <p className="text-[10px] text-slate-500">{alert.items.length} servidor{alert.items.length > 1 ? "es" : ""}</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {alert.items.slice(0, 12).map(s => (
                     <div key={s.id} className="rounded-lg bg-[#0a1628]/80 border border-[#1e3a5f]/30 p-2">
                       <p className="text-[11px] font-bold text-white truncate">{s.nome}</p>
