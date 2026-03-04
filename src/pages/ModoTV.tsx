@@ -631,6 +631,214 @@ function SlideDiretoriaDetalhe({
 }
 
 // ═══════════════════════════════════════════════════
+// SLIDE: DIRETORIA - LISTA DE SERVIDORES POR STATUS
+// ═══════════════════════════════════════════════════
+function SlideDiretoriaServidores({
+  diretoria,
+  servidores,
+  status,
+  statusLabel,
+  statusIcon,
+  statusColor,
+}: {
+  diretoria: DiretoriaDB;
+  servidores: ServidorDB[];
+  status: string;
+  statusLabel: string;
+  statusIcon: React.ReactNode;
+  statusColor: string;
+}) {
+  const dirServs = servidores.filter(s => s.diretoria_id === diretoria.id && s.status_presenca === status);
+
+  return (
+    <div className="h-full flex flex-col p-8">
+      <TVHeader
+        title={`${diretoria.nome}`}
+        subtitle={`${statusLabel} — ${dirServs.length} servidores`}
+        icon={statusIcon}
+      />
+      <div className="flex-1 overflow-y-auto tv-auto-scroll pr-2" style={{ scrollbarWidth: "none" }}>
+        <div className="grid grid-cols-3 gap-3">
+          {dirServs.map((s, i) => (
+            <AnimatedCard key={s.id} delay={80 + i * 30}>
+              <div className={`rounded-xl bg-[#0f1a2e]/80 border border-[#1e3a5f]/40 p-3.5 hover:border-teal-500/30 transition-all`}>
+                <p className="text-sm font-bold text-white truncate">{s.nome}</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">{s.cargo}</p>
+                <div className="flex items-center gap-2 mt-2 text-[10px]">
+                  <span className={`px-2 py-0.5 rounded-full font-bold ${statusColor}`}>{statusLabel}</span>
+                  <span className="text-slate-600">{s.vinculo}</span>
+                </div>
+                {s.escala_inicio1 && (
+                  <p className="text-[10px] text-slate-600 mt-1 font-mono">{s.escala_inicio1}–{s.escala_fim1}</p>
+                )}
+              </div>
+            </AnimatedCard>
+          ))}
+        </div>
+        {dirServs.length === 0 && (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-slate-600 text-lg">Nenhum servidor com status "{statusLabel}"</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// SLIDE: DIRETORIA - CONTRATOS E ALERTAS
+// ═══════════════════════════════════════════════════
+function SlideDiretoriaAlertas({
+  diretoria,
+  servidores,
+}: {
+  diretoria: DiretoriaDB;
+  servidores: ServidorDB[];
+}) {
+  const dirServs = servidores.filter(s => s.diretoria_id === diretoria.id);
+  const now = new Date();
+  const in30 = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  const contratosVencendo = dirServs.filter(s => {
+    if (!s.data_encerramento_contrato) return false;
+    const d = new Date(s.data_encerramento_contrato);
+    return d >= now && d <= in30;
+  });
+
+  const feriasVencidas = dirServs.filter(s => (s.ferias_vencidas ?? 0) > 0);
+  const semEscala = dirServs.filter(s => !s.escala_inicio1 && !s.escala_total_horas);
+  const funcoesCriticasAusentes = dirServs.filter(s => s.funcao_critica && s.status_presenca !== "presente");
+  const duploVinculo = dirServs.filter(s => s.duplo_vinculo);
+
+  const alerts = [
+    { label: "Contratos Vencendo (30d)", items: contratosVencendo, color: "from-red-600/90 to-rose-800/90", icon: <FileText className="h-5 w-5 text-white" /> },
+    { label: "Férias Vencidas", items: feriasVencidas, color: "from-amber-600/90 to-orange-800/90", icon: <Calendar className="h-5 w-5 text-white" /> },
+    { label: "Sem Escala Cadastrada", items: semEscala, color: "from-slate-600/90 to-slate-800/90", icon: <Clock className="h-5 w-5 text-white" /> },
+    { label: "Funções Críticas Ausentes", items: funcoesCriticasAusentes, color: "from-purple-600/90 to-violet-800/90", icon: <Activity className="h-5 w-5 text-white" /> },
+    { label: "Duplo Vínculo", items: duploVinculo, color: "from-cyan-600/90 to-teal-800/90", icon: <Users className="h-5 w-5 text-white" /> },
+  ].filter(a => a.items.length > 0);
+
+  return (
+    <div className="h-full flex flex-col p-8">
+      <TVHeader
+        title={`Alertas — ${diretoria.nome}`}
+        subtitle={`${alerts.length} alertas ativos`}
+        icon={<AlertTriangle className="h-7 w-7 text-white" />}
+      />
+      <div className="flex-1 overflow-y-auto tv-auto-scroll space-y-4" style={{ scrollbarWidth: "none" }}>
+        {alerts.map((alert, ai) => (
+          <AnimatedCard key={alert.label} delay={200 + ai * 150}>
+            <GlowCard color={ai === 0 ? "red" : ai === 1 ? "amber" : "teal"}>
+              <div className="p-5">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${alert.color}`}>
+                    {alert.icon}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-white">{alert.label}</p>
+                    <p className="text-[10px] text-slate-500">{alert.items.length} servidor{alert.items.length > 1 ? "es" : ""}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {alert.items.slice(0, 12).map(s => (
+                    <div key={s.id} className="rounded-lg bg-[#0a1628]/80 border border-[#1e3a5f]/30 p-2">
+                      <p className="text-[11px] font-bold text-white truncate">{s.nome}</p>
+                      <p className="text-[9px] text-slate-600 truncate">{s.cargo}</p>
+                    </div>
+                  ))}
+                  {alert.items.length > 12 && (
+                    <div className="rounded-lg bg-[#0a1628]/50 border border-dashed border-[#1e3a5f]/30 p-2 flex items-center justify-center">
+                      <span className="text-[10px] text-slate-600">+{alert.items.length - 12} mais</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </GlowCard>
+          </AnimatedCard>
+        ))}
+        {alerts.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full gap-4">
+            <CheckCircle className="h-16 w-16 text-emerald-500/30" />
+            <p className="text-emerald-400 text-lg font-bold">Sem alertas ativos</p>
+            <p className="text-slate-600 text-sm">Tudo sob controle nesta diretoria</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// SLIDE: DIRETORIA - COORDENADORES POR UNIDADE
+// ═══════════════════════════════════════════════════
+function SlideDiretoriaCoordenadores({
+  diretoria,
+  servidores,
+  unidades,
+  coordenadoresUnidades,
+}: {
+  diretoria: DiretoriaDB;
+  servidores: ServidorDB[];
+  unidades: UnidadeDB[];
+  coordenadoresUnidades: { servidor_id: string; unidade_id: string }[];
+}) {
+  const dirUnidades = unidades.filter(u => u.diretoria_id === diretoria.id);
+
+  const uniCoordData = dirUnidades.map(uni => {
+    const uniServs = servidores.filter(s => s.unidade_id === uni.id);
+    const coordIds = [...new Set(coordenadoresUnidades.filter(cu => cu.unidade_id === uni.id).map(cu => cu.servidor_id))];
+    const coords = coordIds.map(id => servidores.find(s => s.id === id)).filter(Boolean) as ServidorDB[];
+    const presentes = uniServs.filter(s => s.status_presenca === "presente").length;
+    const pct = uniServs.length > 0 ? Math.round((presentes / uniServs.length) * 100) : 0;
+    return { uni, coords, total: uniServs.length, presentes, pct };
+  }).filter(d => d.total > 0).sort((a, b) => b.total - a.total);
+
+  return (
+    <div className="h-full flex flex-col p-8">
+      <TVHeader
+        title={`Coordenadores — ${diretoria.nome}`}
+        subtitle={`${dirUnidades.length} unidades`}
+        icon={<UserCheck className="h-7 w-7 text-white" />}
+      />
+      <div className="flex-1 overflow-y-auto tv-auto-scroll space-y-3 pr-2" style={{ scrollbarWidth: "none" }}>
+        {uniCoordData.map((d, i) => {
+          const textColor = d.pct >= 80 ? "text-emerald-400" : d.pct >= 60 ? "text-amber-400" : "text-red-400";
+          return (
+            <AnimatedCard key={d.uni.id} delay={150 + i * 100}>
+              <div className="rounded-xl bg-[#0f1a2e]/80 border border-[#1e3a5f]/40 p-4 hover:border-teal-500/30 transition-all">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border border-teal-500/20">
+                      <MapPin className="h-4 w-4 text-teal-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-white">{d.uni.sigla} — {d.uni.nome}</p>
+                      <p className="text-[10px] text-slate-500">{d.total} servidores · {d.presentes} presentes</p>
+                    </div>
+                  </div>
+                  <span className={`text-xl font-black font-mono ${textColor}`}>{d.pct}%</span>
+                </div>
+                {d.coords.length > 0 ? (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {d.coords.map(c => (
+                      <span key={c.id} className="inline-flex items-center gap-1.5 rounded-lg bg-teal-500/10 border border-teal-500/20 px-3 py-1.5 text-xs font-bold text-teal-300">
+                        <UserCheck className="h-3.5 w-3.5" /> {c.nome}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-slate-600 mt-2 italic">Sem coordenador designado</p>
+                )}
+              </div>
+            </AnimatedCard>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
 // SLIDE: MAPA DE PRESENÇA POR UNIDADE
 // ═══════════════════════════════════════════════════
 function SlideMapaUnidades({ servidores, unidades, diretorias }: { servidores: ServidorDB[]; unidades: UnidadeDB[]; diretorias: DiretoriaDB[] }) {
