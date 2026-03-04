@@ -1029,7 +1029,7 @@ export default function ModoTV() {
 
   const slides = useMemo(() => {
     if (loading) return [];
-
+    const s: React.ReactNode[] = [];
     if (targetDiretoria) {
       // ── MODO DIRETORIA ESPECÍFICA ──
       const dir = targetDiretoria;
