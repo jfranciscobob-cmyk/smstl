@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB } from "@/hooks/useServidores";
 import {
@@ -7,7 +8,7 @@ import {
 } from "recharts";
 import {
   Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Monitor, Lock, Activity, MapPin, Briefcase,
-  TrendingUp, Zap, Eye, Clock,
+  TrendingUp, Zap, Eye, Clock, UserCheck, FileText, Calendar,
 } from "lucide-react";
 
 // ─── Animated counter hook ───
