@@ -33,7 +33,8 @@ interface RegistrationRequest {
 }
 
 interface DiretoriaOption { id: string; nome: string; }
-interface UnidadeOption { id: string; nome: string; sigla: string; diretoria_id: string; }
+interface UnidadeOption { id: string; nome: string; sigla: string; diretoria_id: string; agrupamento_id: string | null; }
+interface AgrupamentoOption { id: string; nome: string; diretoria_id: string; }
 interface UserDiretoria { id: string; user_id: string; diretoria_id: string; }
 interface UserUnidade { id: string; user_id: string; unidade_id: string; }
 
