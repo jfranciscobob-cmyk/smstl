@@ -661,7 +661,8 @@ function EstruturaContent() {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6 max-w-4xl">
-        {/* Add Diretoria */}
+        {/* Add Diretoria - admin only */}
+        {canManageStructure && (
         <div className="glass-card rounded-xl p-5">
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Nova Diretoria</h2>
           <div className="flex gap-2">
@@ -677,6 +678,7 @@ function EstruturaContent() {
             </button>
           </div>
         </div>
+        )}
 
         {/* Secretaria root card */}
         <div className="glass-card rounded-xl overflow-hidden border-2 border-primary/20">
