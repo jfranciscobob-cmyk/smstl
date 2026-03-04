@@ -181,9 +181,9 @@ export default function AcessoRapido() {
             <p className="text-sm text-muted-foreground italic">Nenhum diretor atribuído.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {diretores.map(dir => {
+              {diretores.filter(dir => !allowedDiretoriaIds || allowedDiretoriaIds.has(dir.diretoria_id!)).map(dir => {
                 const diretoriaNome = getDiretoriaNome(dir.diretoria_id);
-                const dirServs = servidores.filter(s => s.diretoria_id === dir.diretoria_id).length;
+                const dirServs = filteredServidores.filter(s => s.diretoria_id === dir.diretoria_id).length;
                 return (
                   <div key={dir.id} className="rounded-xl border border-border bg-card p-5 hover:shadow-md transition-all hover:border-primary/30 group">
                     <div className="flex items-center gap-3 mb-3">
