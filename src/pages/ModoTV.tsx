@@ -712,14 +712,12 @@ function SlideDiretoriaAlertas({
   const feriasVencidas = dirServs.filter(s => (s.ferias_vencidas ?? 0) > 0);
   const semEscala = dirServs.filter(s => !s.escala_inicio1 && !s.escala_total_horas);
   const funcoesCriticasAusentes = dirServs.filter(s => s.funcao_critica && s.status_presenca !== "presente");
-  const duploVinculo = dirServs.filter(s => s.duplo_vinculo);
 
   const alerts = [
     { label: "Contratos Vencendo (30d)", items: contratosVencendo, color: "from-red-600/90 to-rose-800/90", icon: <FileText className="h-5 w-5 text-white" /> },
     { label: "Férias Vencidas", items: feriasVencidas, color: "from-amber-600/90 to-orange-800/90", icon: <Calendar className="h-5 w-5 text-white" /> },
     { label: "Sem Escala Cadastrada", items: semEscala, color: "from-slate-600/90 to-slate-800/90", icon: <Clock className="h-5 w-5 text-white" /> },
     { label: "Funções Críticas Ausentes", items: funcoesCriticasAusentes, color: "from-purple-600/90 to-violet-800/90", icon: <Activity className="h-5 w-5 text-white" /> },
-    { label: "Duplo Vínculo", items: duploVinculo, color: "from-cyan-600/90 to-teal-800/90", icon: <Users className="h-5 w-5 text-white" /> },
   ].filter(a => a.items.length > 0);
 
   return (
