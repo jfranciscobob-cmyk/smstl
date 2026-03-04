@@ -272,6 +272,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
     { name: "Férias", value: stats.ferias },
     { name: "Afastados", value: stats.afastados },
     { name: "Ausentes", value: stats.ausentes },
+    { name: "Folga", value: stats.folga },
   ].filter(d => d.value > 0), [stats]);
 
   const vinculoData = useMemo(() => {
