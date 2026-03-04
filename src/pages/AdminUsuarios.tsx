@@ -280,15 +280,13 @@ export default function AdminUsuarios() {
       const dirGroups = diretorias.map(dir => {
         const dirUnidades = unidades.filter(u => u.diretoria_id === dir.id);
         const dirAgrupamentos = agrupamentos.filter(a => a.diretoria_id === dir.id);
-        // Units with agrupamento
         const agrupGroups = dirAgrupamentos.map(agr => ({
           agrupamento: agr,
           units: dirUnidades.filter(u => u.agrupamento_id === agr.id),
         })).filter(g => g.units.length > 0);
-        // Units without agrupamento
         const semAgrupamento = dirUnidades.filter(u => !u.agrupamento_id);
-        return { diretoria: dir, agrupGroups, semAgrupamento };
-      }).filter(g => g.agrupGroups.length > 0 || g.semAgrupamento.length > 0);
+        return { diretoria: dir, agrupGroups, semAgrupamento, allUnits: dirUnidades };
+      }).filter(g => g.allUnits.length > 0);
 
       const toggleAll = (unitIds: string[], checked: boolean) => {
         const next = new Set(unidadeIds);
@@ -301,46 +299,58 @@ export default function AdminUsuarios() {
           <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
             <MapPin className="h-3 w-3" /> Unidades do Coordenador (múltiplas)
           </label>
-          <div className="max-h-64 overflow-y-auto rounded-lg border border-input bg-card p-2 space-y-3">
-            {dirGroups.map(dg => (
-              <div key={dg.diretoria.id}>
-                <p className="text-[10px] font-bold text-primary uppercase tracking-wider px-2 py-1 bg-primary/5 rounded">
-                  {dg.diretoria.nome}
-                </p>
-                {dg.agrupGroups.map(ag => {
-                  const allIds = ag.units.map(u => u.id);
-                  const allChecked = allIds.every(id => unidadeIds.has(id));
-                  return (
-                    <div key={ag.agrupamento.id} className="ml-2 mt-1">
-                      <label className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50 cursor-pointer text-xs font-semibold text-foreground">
-                        <Checkbox
-                          checked={allChecked}
-                          onCheckedChange={(checked) => toggleAll(allIds, !!checked)}
-                        />
-                        📁 {ag.agrupamento.nome} ({ag.units.length} unid.)
-                      </label>
-                      <div className="ml-4 space-y-0.5">
-                        {ag.units.map(u => (
-                          <label key={u.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50 cursor-pointer text-sm">
+          <div className="max-h-72 overflow-y-auto rounded-lg border border-input bg-card p-2 space-y-1">
+            {dirGroups.map(dg => {
+              const allDirIds = dg.allUnits.map(u => u.id);
+              const allDirChecked = allDirIds.length > 0 && allDirIds.every(id => unidadeIds.has(id));
+              const someDirChecked = !allDirChecked && allDirIds.some(id => unidadeIds.has(id));
+              const selectedCount = allDirIds.filter(id => unidadeIds.has(id)).length;
+              return (
+                <div key={dg.diretoria.id} className="rounded-lg border border-border overflow-hidden mb-2">
+                  <label className="flex items-center gap-2 px-3 py-2 bg-primary/10 cursor-pointer hover:bg-primary/15 transition-colors">
+                    <Checkbox
+                      checked={allDirChecked}
+                      // @ts-ignore
+                      indeterminate={someDirChecked}
+                      onCheckedChange={(checked) => toggleAll(allDirIds, !!checked)}
+                    />
+                    <Building2 className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-xs font-bold text-primary flex-1">{dg.diretoria.nome}</span>
+                    <span className="text-[10px] text-muted-foreground">{selectedCount}/{allDirIds.length}</span>
+                  </label>
+                  <div className="p-1.5 space-y-0.5">
+                    {dg.agrupGroups.map(ag => {
+                      const allIds = ag.units.map(u => u.id);
+                      const allChecked = allIds.every(id => unidadeIds.has(id));
+                      return (
+                        <div key={ag.agrupamento.id} className="ml-1">
+                          <label className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50 cursor-pointer text-xs font-semibold text-foreground">
                             <Checkbox
-                              checked={unidadeIds.has(u.id)}
-                              onCheckedChange={(checked) => {
-                                const next = new Set(unidadeIds);
-                                if (checked) next.add(u.id); else next.delete(u.id);
-                                onUnidadesChange(next);
-                              }}
+                              checked={allChecked}
+                              onCheckedChange={(checked) => toggleAll(allIds, !!checked)}
                             />
-                            {u.nome} ({u.sigla})
+                            📁 {ag.agrupamento.nome} ({ag.units.length})
                           </label>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-                {dg.semAgrupamento.length > 0 && (
-                  <div className="ml-2 mt-1 space-y-0.5">
+                          <div className="ml-5 space-y-0.5">
+                            {ag.units.map(u => (
+                              <label key={u.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50 cursor-pointer text-sm">
+                                <Checkbox
+                                  checked={unidadeIds.has(u.id)}
+                                  onCheckedChange={(checked) => {
+                                    const next = new Set(unidadeIds);
+                                    if (checked) next.add(u.id); else next.delete(u.id);
+                                    onUnidadesChange(next);
+                                  }}
+                                />
+                                {u.nome} ({u.sigla})
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
                     {dg.semAgrupamento.map(u => (
-                      <label key={u.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50 cursor-pointer text-sm">
+                      <label key={u.id} className="flex items-center gap-2 px-2 py-1 ml-1 rounded hover:bg-muted/50 cursor-pointer text-sm">
                         <Checkbox
                           checked={unidadeIds.has(u.id)}
                           onCheckedChange={(checked) => {
@@ -353,11 +363,11 @@ export default function AdminUsuarios() {
                       </label>
                     ))}
                   </div>
-                )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
-          <p className="text-[10px] text-muted-foreground">O coordenador verá apenas os dados das unidades selecionadas. Marque um agrupamento para selecionar todas as unidades dele.</p>
+          <p className="text-[10px] text-muted-foreground">Marque a diretoria para selecionar todas as unidades dela, ou escolha individualmente.</p>
         </div>
       );
     }
