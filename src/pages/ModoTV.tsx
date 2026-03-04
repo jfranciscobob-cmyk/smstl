@@ -1320,6 +1320,32 @@ export default function ModoTV() {
     return () => window.removeEventListener("keydown", handler);
   }, [currentSlide, TOTAL_SLIDES, goToSlide]);
 
+  // Aviso banner: show each aviso for 2 minutes, cycling through them
+  useEffect(() => {
+    if (avisos.length === 0) {
+      setShowAvisoBanner(false);
+      return;
+    }
+    setShowAvisoBanner(true);
+    setCurrentAvisoIndex(0);
+  }, [avisos.length]);
+
+  useEffect(() => {
+    if (!showAvisoBanner || avisos.length === 0) return;
+    const timer = setInterval(() => {
+      setCurrentAvisoIndex(prev => {
+        const next = prev + 1;
+        if (next >= avisos.length) {
+          // All avisos shown, hide banner
+          setShowAvisoBanner(false);
+          return 0;
+        }
+        return next;
+      });
+    }, AVISO_DURATION);
+    return () => clearInterval(timer);
+  }, [showAvisoBanner, avisos.length, AVISO_DURATION]);
+
   if (!unlocked) return <PasswordGate onUnlock={() => setUnlocked(true)} />;
 
   if (loading) {
