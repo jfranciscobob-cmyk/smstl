@@ -172,7 +172,7 @@ function MonitorContent() {
     return unidades;
   }, [unidades, isAdmin, isDiretor, isCoordenador, userDiretoriaIds, userUnidadeIds]);
 
-  const allowedServidores = useMemo(() => {
+  const allowedServidoresRaw = useMemo(() => {
     if (isAdmin) return servidores;
     if (isDiretor && userDiretoriaIds.length > 0) {
       return servidores.filter(s => s.diretoria_id && userDiretoriaIds.includes(s.diretoria_id));
@@ -182,6 +182,12 @@ function MonitorContent() {
     }
     return servidores;
   }, [servidores, isAdmin, isDiretor, isCoordenador, userDiretoriaIds, userUnidadeIds]);
+
+  // Apply auto-presence based on escalas_semanais for fixed schedules
+  const allowedServidores = useMemo(
+    () => applyAutoPresenca(allowedServidoresRaw, escalasSemanais),
+    [allowedServidoresRaw, escalasSemanais],
+  );
 
   // Filter servidores based on view
   const filteredServidores = useMemo(() => {
