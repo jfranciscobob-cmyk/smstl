@@ -717,7 +717,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
                 <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
                   Presença vs Ausências por Diretoria
                 </h3>
-                <DiretoriaBarChart diretorias={filteredDiretorias} servidores={filteredServidores} />
+                <DiretoriaBarChart diretorias={filteredDiretorias} servidores={servidoresComPresenca} />
               </div>
 
               {/* Alertas */}
