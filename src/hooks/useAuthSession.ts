@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
 export interface UserRole {
-  role: "admin" | "diretor" | "coordenador";
+  role: "admin" | "diretor" | "coordenador" | "coordenador_geral";
 }
 
 export interface AuthSession {
