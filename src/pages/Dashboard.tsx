@@ -6,6 +6,7 @@ import { DashboardHeader } from "@/components/DashboardHeader";
 import { EditServidorModal } from "@/components/EditServidorModal";
 import { CreateServidorModal } from "@/components/CreateServidorModal";
 import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB, type CoordenacaoDB } from "@/hooks/useServidores";
+import { applyAutoPresenca, type EscalaSemanalRow } from "@/lib/presencaAutomatica";
 import { Link } from "react-router-dom";
 import {
   Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Search,
