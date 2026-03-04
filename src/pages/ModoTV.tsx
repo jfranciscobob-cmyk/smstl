@@ -660,7 +660,7 @@ function SlideDiretoriaDetalhe({
         </TVScrollArea>
 
         {/* Right: Composition */}
-        <div className="col-span-3">
+        <div className="hidden md:block col-span-3">
           <GlowCard className="h-full">
             <div className="p-4 h-full flex flex-col">
               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Composição</p>
