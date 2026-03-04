@@ -113,6 +113,7 @@ function TVScrollArea({ children, className = "" }: { children: React.ReactNode;
       {children}
     </div>
   );
+}
 
 // ─── Animated radial gauge ───
 function RadialGauge({ pct, size = 120, strokeWidth = 10, label }: { pct: number; size?: number; strokeWidth?: number; label?: string }) {
