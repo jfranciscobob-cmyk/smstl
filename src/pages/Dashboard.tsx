@@ -188,6 +188,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
       setCoordUnidades(coordUnidadesRes.data ?? []);
       setServidoresUnidades((srvUnidadesRes.data ?? []) as { servidor_id: string; unidade_id: string }[]);
       setFaltasAbonadas((faltasRes.data ?? []) as { servidor_id: string; data: string }[]);
+      setEscalasSemanais((escalasRes.data ?? []) as EscalaSemanalRow[]);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : "Erro ao carregar dados");
     } finally {
