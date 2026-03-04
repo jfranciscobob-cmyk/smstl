@@ -389,7 +389,7 @@ function SlideOverview({ servidores, diretorias, unidades }: { servidores: Servi
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-5 my-3 flex-1 overflow-hidden">
         {/* Left: Presence + details */}
-        <div className="col-span-5 flex flex-col gap-4">
+        <div className="hidden md:flex col-span-5 flex-col gap-4">
           <GlowCard color="teal" className="flex-1">
             <div className="p-5 flex flex-col items-center justify-center h-full">
               <RadialGauge pct={presencaPct} size={150} strokeWidth={12} label="Taxa de Presença" />
