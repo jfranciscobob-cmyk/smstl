@@ -637,7 +637,7 @@ function SlideDiretoriaDetalhe({
         <KPICard label="F. Críticas" value={funcCriticas} gradient="from-cyan-600/90 to-teal-800/90" icon={<Activity className="h-5 w-5" />} delay={650} />
       </div>
 
-      <div className="flex-1 grid grid-cols-12 gap-4 overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4 overflow-hidden">
         {/* Left: Gauge */}
         <div className="col-span-2 flex flex-col items-center justify-center">
           <RadialGauge pct={presencaPct} size={140} strokeWidth={12} label="Presença" />
