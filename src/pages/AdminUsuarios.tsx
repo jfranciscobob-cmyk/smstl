@@ -485,6 +485,7 @@ export default function AdminUsuarios() {
                 <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
                   className="w-full h-9 rounded-lg border border-input bg-card px-3 text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none">
                   <option value="coordenador">Coordenador</option>
+                  <option value="coordenador_geral">Coordenador Geral</option>
                   <option value="diretor">Diretor</option>
                   <option value="admin">Administrador</option>
                 </select>
