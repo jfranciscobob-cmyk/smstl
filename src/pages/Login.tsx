@@ -267,7 +267,7 @@ export default function Login() {
             <UserPlus className="h-4 w-4" /> Solicitar acesso ao sistema
           </button>
           <p className="text-xs text-muted-foreground">
-            Diretores e coordenadores podem solicitar acesso. A aprovação é feita pela administração.
+            Diretores, coordenadores gerais e coordenadores podem solicitar acesso. A aprovação é feita pela administração.
           </p>
         </div>
       </div>
