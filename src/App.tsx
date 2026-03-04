@@ -16,6 +16,7 @@ import SetupAdmin from "./pages/SetupAdmin";
 import NotFound from "./pages/NotFound";
 import Manual from "./pages/Manual";
 import ModoTV from "./pages/ModoTV";
+import Avisos from "./pages/Avisos";
 import AvisoPopup from "./components/AvisoPopup";
 import { Loader2 } from "lucide-react";
 
