@@ -885,7 +885,7 @@ function MonitorContent() {
                 Unidades de {currentDiretoria?.nome}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {unidades.filter(u => u.diretoria_id === selectedDiretoriaId).map(uni => (
+                {allowedUnidades.filter(u => u.diretoria_id === selectedDiretoriaId).map(uni => (
                   <UnitSummaryCard key={uni.id} uni={uni} />
                 ))}
               </div>
