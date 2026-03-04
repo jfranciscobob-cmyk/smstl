@@ -64,6 +64,10 @@ function EstruturaContent() {
   const [newAgrupamento, setNewAgrupamento] = useState<{ nome: string; diretoria_id: string } | null>(null);
   const [pickingAgrupCoord, setPickingAgrupCoord] = useState<string | null>(null);
   const [agrupCoordSearch, setAgrupCoordSearch] = useState("");
+  // Reallocation dialog state
+  const [reallocationRequest, setReallocationRequest] = useState<ReallocationRequest | null>(null);
+  const [reallocationOpen, setReallocationOpen] = useState(false);
+  const [pendingAllocationAction, setPendingAllocationAction] = useState<(() => Promise<void>) | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
