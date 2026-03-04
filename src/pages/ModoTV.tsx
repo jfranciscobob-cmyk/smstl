@@ -1172,19 +1172,29 @@ export default function ModoTV() {
       if (data.length < PAGE) break;
       offset += PAGE;
     }
-    const [{ data: dirs }, { data: unis }, { data: cuData }, { data: escalasData }] = await Promise.all([
+    const [{ data: dirs }, { data: unis }, { data: cuData }, { data: escalasData }, { data: avisosData }] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenadores_unidades").select("servidor_id, unidade_id"),
       supabase.from("escalas_semanais").select("servidor_id, dia_semana, entrada1, saida1, entrada2, saida2"),
+      supabase.from("avisos").select("id, titulo, mensagem, destinatario_tipo, destinatario_diretoria_id").eq("ativo", true).order("created_at", { ascending: false }),
     ]);
     setServidoresRaw(allServ as ServidorDB[]);
     setDiretorias((dirs ?? []) as DiretoriaDB[]);
     setUnidades((unis ?? []) as UnidadeDB[]);
     setCoordenadoresUnidades((cuData ?? []) as { servidor_id: string; unidade_id: string }[]);
     setEscalasSemanais((escalasData ?? []) as EscalaSemanalRow[]);
+    
+    // Filter avisos relevant to this TV (by diretoria param or "todos")
+    const relevantAvisos = ((avisosData ?? []) as TVAviso[]).filter(a => {
+      if (a.destinatario_tipo === "todos") return true;
+      if (a.destinatario_tipo === "diretoria" && diretoriaParam && a.destinatario_diretoria_id === diretoriaParam) return true;
+      return false;
+    });
+    setAvisos(relevantAvisos);
+    
     setLoading(false);
-  }, []);
+  }, [diretoriaParam]);
 
   // Tick every 60s to recalculate auto-presence with fresh "now"
   const [presencaTick, setPresencaTick] = useState(0);
