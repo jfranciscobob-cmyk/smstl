@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Shield, Network, LogOut, UserPlus, Key, ArrowRightLeft, BookOpen, Circle, UserCheck } from "lucide-react";
+import { Shield, Network, LogOut, UserPlus, Key, ArrowRightLeft, BookOpen, Circle, UserCheck, Megaphone } from "lucide-react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { supabase } from "@/integrations/supabase/client";
 import type { DiretoriaDB, ServidorDB } from "@/hooks/useServidores";
