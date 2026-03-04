@@ -899,10 +899,14 @@ function SlideMapaUnidades({ servidores, unidades, diretorias }: { servidores: S
 // MAIN TV MODE
 // ═══════════════════════════════════════════════════
 export default function ModoTV() {
+  const [searchParams] = useSearchParams();
+  const diretoriaParam = searchParams.get("diretoria") || "";
+
   const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem("tv_unlocked") === "1");
   const [servidores, setServidores] = useState<ServidorDB[]>([]);
   const [diretorias, setDiretorias] = useState<DiretoriaDB[]>([]);
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
+  const [coordenadoresUnidades, setCoordenadoresUnidades] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideDirection, setSlideDirection] = useState<"left" | "right">("left");
@@ -922,13 +926,15 @@ export default function ModoTV() {
       if (data.length < PAGE) break;
       offset += PAGE;
     }
-    const [{ data: dirs }, { data: unis }] = await Promise.all([
+    const [{ data: dirs }, { data: unis }, { data: cuData }] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
+      supabase.from("coordenadores_unidades").select("servidor_id, unidade_id"),
     ]);
     setServidores(allServ as ServidorDB[]);
     setDiretorias((dirs ?? []) as DiretoriaDB[]);
     setUnidades((unis ?? []) as UnidadeDB[]);
+    setCoordenadoresUnidades((cuData ?? []) as { servidor_id: string; unidade_id: string }[]);
     setLoading(false);
   }, []);
 
@@ -939,19 +945,58 @@ export default function ModoTV() {
     return () => clearInterval(interval);
   }, [unlocked, loadData]);
 
+  // Find specific diretoria if param provided
+  const targetDiretoria = diretoriaParam ? diretorias.find(d => d.id === diretoriaParam) : null;
+
   const slides = useMemo(() => {
     if (loading) return [];
     const s: React.ReactNode[] = [];
-    s.push(<SlideOverview key="overview" servidores={servidores} diretorias={diretorias} unidades={unidades} />);
-    s.push(<SlideRankingDiretorias key="ranking" servidores={servidores} diretorias={diretorias} />);
-    s.push(<SlideComposicao key="composicao" servidores={servidores} />);
-    const dirsComServs = diretorias.filter(d => servidores.some(s => s.diretoria_id === d.id));
-    dirsComServs.forEach(dir => {
-      s.push(<SlideDiretoriaDetalhe key={`dir-${dir.id}`} diretoria={dir} servidores={servidores} unidades={unidades} />);
-    });
-    s.push(<SlideMapaUnidades key="mapa" servidores={servidores} unidades={unidades} diretorias={diretorias} />);
+
+    if (targetDiretoria) {
+      // ── MODO DIRETORIA ESPECÍFICA ──
+      const dir = targetDiretoria;
+      const dirServs = servidores.filter(sv => sv.diretoria_id === dir.id);
+
+      // Slide 1: Overview da diretoria
+      s.push(<SlideDiretoriaDetalhe key="dir-overview" diretoria={dir} servidores={servidores} unidades={unidades} />);
+
+      // Slide 2: Coordenadores por unidade
+      s.push(<SlideDiretoriaCoordenadores key="dir-coords" diretoria={dir} servidores={servidores} unidades={unidades} coordenadoresUnidades={coordenadoresUnidades} />);
+
+      // Slide 3: Servidores presentes
+      if (dirServs.filter(sv => sv.status_presenca === "presente").length > 0) {
+        s.push(<SlideDiretoriaServidores key="dir-presentes" diretoria={dir} servidores={servidores} status="presente" statusLabel="Presentes" statusIcon={<CheckCircle className="h-7 w-7 text-white" />} statusColor="bg-emerald-500/20 text-emerald-400" />);
+      }
+
+      // Slide 4: Servidores em férias
+      if (dirServs.filter(sv => sv.status_presenca === "ferias").length > 0) {
+        s.push(<SlideDiretoriaServidores key="dir-ferias" diretoria={dir} servidores={servidores} status="ferias" statusLabel="Férias" statusIcon={<Palmtree className="h-7 w-7 text-white" />} statusColor="bg-amber-500/20 text-amber-400" />);
+      }
+
+      // Slide 5: Servidores afastados
+      if (dirServs.filter(sv => sv.status_presenca === "afastado").length > 0) {
+        s.push(<SlideDiretoriaServidores key="dir-afastados" diretoria={dir} servidores={servidores} status="afastado" statusLabel="Afastados" statusIcon={<AlertTriangle className="h-7 w-7 text-white" />} statusColor="bg-red-500/20 text-red-400" />);
+      }
+
+      // Slide 6: Alertas
+      s.push(<SlideDiretoriaAlertas key="dir-alertas" diretoria={dir} servidores={servidores} />);
+
+      // Slide 7: Composição
+      s.push(<SlideComposicaoDiretoria key="dir-composicao" diretoria={dir} servidores={servidores} />);
+
+    } else {
+      // ── MODO GERAL (original) ──
+      s.push(<SlideOverview key="overview" servidores={servidores} diretorias={diretorias} unidades={unidades} />);
+      s.push(<SlideRankingDiretorias key="ranking" servidores={servidores} diretorias={diretorias} />);
+      s.push(<SlideComposicao key="composicao" servidores={servidores} />);
+      const dirsComServs = diretorias.filter(d => servidores.some(sv => sv.diretoria_id === d.id));
+      dirsComServs.forEach(dir => {
+        s.push(<SlideDiretoriaDetalhe key={`dir-${dir.id}`} diretoria={dir} servidores={servidores} unidades={unidades} />);
+      });
+      s.push(<SlideMapaUnidades key="mapa" servidores={servidores} unidades={unidades} diretorias={diretorias} />);
+    }
     return s;
-  }, [servidores, diretorias, unidades, loading]);
+  }, [servidores, diretorias, unidades, loading, targetDiretoria, coordenadoresUnidades]);
 
   const TOTAL_SLIDES = slides.length;
 
