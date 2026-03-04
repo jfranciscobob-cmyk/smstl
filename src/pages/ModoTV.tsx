@@ -962,7 +962,7 @@ function SlideMapaUnidades({ servidores, unidades, diretorias, coordenadoresUnid
             </GlowCard>
           </AnimatedCard>
         ))}
-      </div>
+      </TVScrollArea>
     </div>
   );
 }
