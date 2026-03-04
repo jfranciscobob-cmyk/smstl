@@ -1041,10 +1041,11 @@ export default function ModoTV() {
   // Find specific diretoria if param provided
   const targetDiretoria = diretoriaParam ? diretorias.find(d => d.id === diretoriaParam) : null;
 
-  // Apply auto-presence based on escalas_semanais
+  // Apply auto-presence based on escalas_semanais (recalculates every tick)
   const servidores = useMemo(
-    () => applyAutoPresenca(servidoresRaw, escalasSemanais),
-    [servidoresRaw, escalasSemanais],
+    () => applyAutoPresenca(servidoresRaw, escalasSemanais, new Date()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [servidoresRaw, escalasSemanais, presencaTick],
   );
 
   const slides = useMemo(() => {
