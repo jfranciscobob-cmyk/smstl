@@ -1524,7 +1524,7 @@ function EstruturaContent() {
                                     {assignSelectedIds.size > 0 && (
                                       <button
                                         onClick={async () => {
-                                          const ok = await assignServidoresToUnidade(
+                                          const ok = await checkAndAssignServidores(
                                             Array.from(assignSelectedIds),
                                             assigningTo.diretoria_id,
                                             uni.id
