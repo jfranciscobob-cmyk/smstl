@@ -146,7 +146,9 @@ export type Database = {
           ativo: boolean
           created_at: string
           criado_por: string
+          destinatario_diretoria_id: string | null
           destinatario_tipo: string
+          destinatario_unidade_id: string | null
           destinatario_user_id: string | null
           id: string
           mensagem: string
@@ -157,7 +159,9 @@ export type Database = {
           ativo?: boolean
           created_at?: string
           criado_por: string
+          destinatario_diretoria_id?: string | null
           destinatario_tipo?: string
+          destinatario_unidade_id?: string | null
           destinatario_user_id?: string | null
           id?: string
           mensagem: string
@@ -168,14 +172,31 @@ export type Database = {
           ativo?: boolean
           created_at?: string
           criado_por?: string
+          destinatario_diretoria_id?: string | null
           destinatario_tipo?: string
+          destinatario_unidade_id?: string | null
           destinatario_user_id?: string | null
           id?: string
           mensagem?: string
           titulo?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avisos_destinatario_diretoria_id_fkey"
+            columns: ["destinatario_diretoria_id"]
+            isOneToOne: false
+            referencedRelation: "diretorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avisos_destinatario_unidade_id_fkey"
+            columns: ["destinatario_unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avisos_lidos: {
         Row: {

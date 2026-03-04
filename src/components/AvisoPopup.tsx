@@ -8,6 +8,10 @@ interface Aviso {
   titulo: string;
   mensagem: string;
   created_at: string;
+  destinatario_tipo: string;
+  destinatario_user_id: string | null;
+  destinatario_diretoria_id: string | null;
+  destinatario_unidade_id: string | null;
 }
 
 export default function AvisoPopup({ userId }: { userId: string }) {
@@ -21,28 +25,47 @@ export default function AvisoPopup({ userId }: { userId: string }) {
   }, [userId]);
 
   async function loadAvisosPendentes() {
-    // Busca avisos ativos destinados a "todos" ou ao usuário específico
+    // Load all active avisos
     const { data: todosAvisos, error: err1 } = await supabase
       .from("avisos")
-      .select("id, titulo, mensagem, created_at")
+      .select("id, titulo, mensagem, created_at, destinatario_tipo, destinatario_user_id, destinatario_diretoria_id, destinatario_unidade_id")
       .eq("ativo", true)
-      .or(`destinatario_tipo.eq.todos,and(destinatario_tipo.eq.usuario,destinatario_user_id.eq.${userId})`)
       .order("created_at", { ascending: false });
 
     if (err1 || !todosAvisos || todosAvisos.length === 0) return;
 
-    // Busca quais o usuário já leu
-    const { data: lidos } = await supabase
-      .from("avisos_lidos")
-      .select("aviso_id")
-      .eq("user_id", userId);
+    // Load user's profile to get their diretoria/unidade
+    const [profileRes, userDiretoriasRes, userUnidadesRes, lidosRes] = await Promise.all([
+      supabase.from("profiles").select("diretoria_id, unidade_id").eq("id", userId).maybeSingle(),
+      supabase.from("user_diretorias").select("diretoria_id").eq("user_id", userId),
+      supabase.from("user_unidades").select("unidade_id").eq("user_id", userId),
+      supabase.from("avisos_lidos").select("aviso_id").eq("user_id", userId),
+    ]);
 
-    const lidosSet = new Set((lidos || []).map((l: any) => l.aviso_id));
-    const pendentes = todosAvisos.filter((a: any) => !lidosSet.has(a.id));
+    const userDirIds = new Set([
+      ...(userDiretoriasRes.data || []).map((d: any) => d.diretoria_id),
+      ...(profileRes.data?.diretoria_id ? [profileRes.data.diretoria_id] : []),
+    ]);
+    const userUniIds = new Set([
+      ...(userUnidadesRes.data || []).map((u: any) => u.unidade_id),
+      ...(profileRes.data?.unidade_id ? [profileRes.data.unidade_id] : []),
+    ]);
 
-    setAvisos(pendentes);
-    if (pendentes.length > 0) {
-      setCurrentAviso(pendentes[0]);
+    const lidosSet = new Set((lidosRes.data || []).map((l: any) => l.aviso_id));
+
+    // Filter: user sees avisos targeted to them
+    const relevantes = (todosAvisos as Aviso[]).filter(a => {
+      if (lidosSet.has(a.id)) return false;
+      if (a.destinatario_tipo === "todos") return true;
+      if (a.destinatario_tipo === "usuario" && a.destinatario_user_id === userId) return true;
+      if (a.destinatario_tipo === "diretoria" && a.destinatario_diretoria_id && userDirIds.has(a.destinatario_diretoria_id)) return true;
+      if (a.destinatario_tipo === "unidade" && a.destinatario_unidade_id && userUniIds.has(a.destinatario_unidade_id)) return true;
+      return false;
+    });
+
+    setAvisos(relevantes);
+    if (relevantes.length > 0) {
+      setCurrentAviso(relevantes[0]);
     }
   }
 

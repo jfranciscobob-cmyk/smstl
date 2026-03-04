@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Shield, Network, LogOut, UserPlus, Key, ArrowRightLeft, BookOpen, Circle, UserCheck } from "lucide-react";
+import { Shield, Network, LogOut, UserPlus, Key, ArrowRightLeft, BookOpen, Circle, UserCheck, Megaphone } from "lucide-react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { supabase } from "@/integrations/supabase/client";
 import type { DiretoriaDB, ServidorDB } from "@/hooks/useServidores";
@@ -151,6 +151,14 @@ export function DashboardHeader({ userEmail, onSignOut, onCreateServidor, direto
                   )}
                 </Link>
               )}
+
+              <Link
+                to="/avisos"
+                className="hidden sm:flex h-8 sm:h-9 items-center gap-1.5 sm:gap-2 rounded-lg bg-primary-foreground/10 border border-primary-foreground/10 px-2 sm:px-3.5 text-xs font-semibold text-primary-foreground hover:bg-primary-foreground/20 transition-all"
+              >
+                <Megaphone className="h-3.5 w-3.5" />
+                <span className="hidden lg:inline">Avisos</span>
+              </Link>
 
               <Link
                 to="/manual"
