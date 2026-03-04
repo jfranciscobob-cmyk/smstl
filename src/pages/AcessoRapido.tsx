@@ -281,7 +281,7 @@ export default function AcessoRapido() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {coordenadorEntries.map(({ servidor, unidade, cuId }) => {
-                const uniServs = servidores.filter(s => s.unidade_id === unidade.id).length;
+                const uniServs = filteredServidores.filter(s => s.unidade_id === unidade.id).length;
                 return (
                   <Link
                     key={cuId}
