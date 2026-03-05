@@ -5,7 +5,7 @@ import { LoginForm } from "@/components/LoginForm";
 import { supabase } from "@/integrations/supabase/client";
 import type { DiretoriaDB, UnidadeDB, CoordenacaoDB, ServidorDB, SetorDB, FuncaoDB, CoordenadorUnidadeDB, AgrupamentoDB } from "@/hooks/useServidores";
 import {
-  Building2, Plus, Trash2, Edit2, ChevronDown, ChevronRight, ArrowLeft, Loader2, Shield, X, Check, Network, Users, UserPlus, Crown, Star, Briefcase, Eye, Layers, Stethoscope
+  Building2, Plus, Trash2, Edit2, ChevronDown, ChevronRight, ArrowLeft, Loader2, Shield, X, Check, Network, Users, UserPlus, Crown, Star, Briefcase, Eye, Layers, Stethoscope, Search
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -68,6 +68,8 @@ function EstruturaContent() {
   const [reallocationRequest, setReallocationRequest] = useState<ReallocationRequest | null>(null);
   const [reallocationOpen, setReallocationOpen] = useState(false);
   const [pendingAllocationAction, setPendingAllocationAction] = useState<(() => Promise<void>) | null>(null);
+  // Global search
+  const [globalSearch, setGlobalSearch] = useState("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -747,6 +749,59 @@ function EstruturaContent() {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6 max-w-4xl">
+        {/* Global search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            value={globalSearch}
+            onChange={e => setGlobalSearch(e.target.value)}
+            placeholder="Pesquisar servidor por nome, cargo ou matrícula..."
+            className="w-full h-10 rounded-lg border border-input bg-card pl-10 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+          {globalSearch && (
+            <button onClick={() => setGlobalSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          )}
+          {globalSearch.length >= 2 && (() => {
+            const q = globalSearch.toLowerCase();
+            const results = servidores.filter(s =>
+              s.nome.toLowerCase().includes(q) ||
+              s.cargo?.toLowerCase().includes(q) ||
+              s.matricula?.toLowerCase().includes(q)
+            ).slice(0, 15);
+            if (results.length === 0) return (
+              <div className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-card shadow-lg p-3 text-sm text-muted-foreground">
+                Nenhum servidor encontrado.
+              </div>
+            );
+            return (
+              <div className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-card shadow-lg max-h-72 overflow-y-auto">
+                {results.map(s => {
+                  const dir = allDiretorias.find(d => d.id === s.diretoria_id);
+                  const uni = allUnidades.find(u => u.id === s.unidade_id);
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => { setEditingServidor(s as any); setGlobalSearch(""); }}
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-left hover:bg-muted/50 transition-colors border-b border-border/30 last:border-0"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-foreground truncate">{s.nome}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {s.cargo} · {s.vinculo}
+                          {dir ? ` · ${dir.nome}` : ""}
+                          {uni ? ` → ${uni.nome}` : ""}
+                        </p>
+                      </div>
+                      <Edit2 className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </div>
         {/* Add Diretoria - admin only */}
         {canManageStructure && (
         <div className="glass-card rounded-xl p-5">
