@@ -1690,7 +1690,7 @@ function MonitorContent() {
                           <div className="flex items-center gap-3 text-xs flex-wrap">
                             <span className="text-muted-foreground">{fServs.length} total</span>
                             <span className="text-success font-medium">{fPresentes} presentes</span>
-                            {fFolha > 0 && <span className="text-primary font-mono font-medium">{formatCurrency(fFolha)}</span>}
+                            {hasFinancialAccess && fFolha > 0 && <span className="text-primary font-mono font-medium">{formatCurrency(fFolha)}</span>}
                           </div>
                         </div>
                       );
