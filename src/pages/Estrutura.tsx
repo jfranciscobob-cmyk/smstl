@@ -68,6 +68,8 @@ function EstruturaContent() {
   const [reallocationRequest, setReallocationRequest] = useState<ReallocationRequest | null>(null);
   const [reallocationOpen, setReallocationOpen] = useState(false);
   const [pendingAllocationAction, setPendingAllocationAction] = useState<(() => Promise<void>) | null>(null);
+  // Global search
+  const [globalSearch, setGlobalSearch] = useState("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
