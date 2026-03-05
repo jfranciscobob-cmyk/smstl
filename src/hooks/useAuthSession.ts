@@ -146,7 +146,7 @@ export function useAuthSession(): AuthSession {
   const isDiretor = roles.some((r) => r.role === "diretor") || isCoordenadorGeral;
   const isCoordenador = roles.some((r) => r.role === "coordenador");
   const hasFullAccess = isAdmin || isDiretor;
-  const hasFinancialAccess = isAdmin || acessoFinanceiro;
+  const hasFinancialAccess = isAdmin;
 
   const signOut = async () => {
     await supabase.auth.signOut();
