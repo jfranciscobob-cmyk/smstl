@@ -1732,7 +1732,7 @@ function MonitorContent() {
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Turno 2</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Total</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Escala</th>
-                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Salário</th>
+                      {hasFinancialAccess && <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Salário</th>}
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">F.Abon.</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Status</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap w-10">Sem.</th>
@@ -1785,7 +1785,7 @@ function MonitorContent() {
                                 {s.tipo_escala === "plantao_12x36" ? "12×36" : s.tipo_escala === "plantao_24x72" ? "24×72" : s.tipo_escala === "plantao_12x60" ? "12×60" : s.tipo_escala === "variavel" ? "Var." : "Fixa"}
                               </span>
                             </td>
-                            <td className="py-2 font-mono text-primary whitespace-nowrap">{s.salario > 0 ? formatCurrency(s.salario) : "—"}</td>
+                            {hasFinancialAccess && <td className="py-2 font-mono text-primary whitespace-nowrap">{s.salario > 0 ? formatCurrency(s.salario) : "—"}</td>}
                             <td className="py-2">
                               <span className={cn("text-xs font-mono font-bold", faltaInfo.usadas >= 5 ? "text-destructive" : faltaInfo.usadas >= 3 ? "text-warning" : "text-muted-foreground")}>{faltaInfo.usadas}/5</span>
                             </td>
