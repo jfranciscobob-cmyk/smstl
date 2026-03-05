@@ -5,7 +5,7 @@ import { LoginForm } from "@/components/LoginForm";
 import { supabase } from "@/integrations/supabase/client";
 import type { DiretoriaDB, UnidadeDB, CoordenacaoDB, ServidorDB, SetorDB, FuncaoDB, CoordenadorUnidadeDB, AgrupamentoDB } from "@/hooks/useServidores";
 import {
-  Building2, Plus, Trash2, Edit2, ChevronDown, ChevronRight, ArrowLeft, Loader2, Shield, X, Check, Network, Users, UserPlus, Crown, Star, Briefcase, Eye, Layers, Stethoscope
+  Building2, Plus, Trash2, Edit2, ChevronDown, ChevronRight, ArrowLeft, Loader2, Shield, X, Check, Network, Users, UserPlus, Crown, Star, Briefcase, Eye, Layers, Stethoscope, Search
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
