@@ -309,6 +309,8 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
       .on("postgres_changes", { event: "*", schema: "public", table: "coordenacoes" }, loadData)
       .on("postgres_changes", { event: "*", schema: "public", table: "servidores_unidades" }, loadData)
       .on("postgres_changes", { event: "*", schema: "public", table: "faltas_abonadas" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "atestados" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "afastamentos" }, loadData)
       .on("postgres_changes", { event: "*", schema: "public", table: "escalas_semanais" }, loadData)
       .subscribe();
     return () => { supabase.removeChannel(channel); };
