@@ -704,7 +704,7 @@ function SlideDiretoriaDetalhe({
     const us = dirServs.filter(s => s.unidade_id === uni.id);
     const presentes = us.filter(s => s.status_presenca === "presente").length;
     const pct = us.length > 0 ? Math.round((presentes / us.length) * 100) : 0;
-    return { id: uni.id, nome: uni.nome, sigla: uni.sigla, total: us.length, presentes, ferias: us.filter(s => s.status_presenca === "ferias").length, afastados: us.filter(s => s.status_presenca === "afastado").length, pct };
+    return { id: uni.id, nome: uni.nome, sigla: uni.sigla, total: us.length, presentes, ferias: us.filter(s => s.status_presenca === "ferias").length, afastados: us.filter(s => isAfastadoLikeStatus(s.status_presenca)).length, pct };
   }).filter(u => u.total > 0).sort((a, b) => b.total - a.total);
 
   const semUnidade = dirServs.filter(s => !s.unidade_id || !dirUnidades.find(u => u.id === s.unidade_id));
