@@ -323,12 +323,12 @@ function MonitorContent() {
   }, [filteredServidores]);
 
   const activeAtestados = useMemo(() => {
-    const srvIds = new Set(filteredServidores.map(s => s.id));
-    return atestados.filter(a => {
+    const srvIds = new Set(filteredServidores.map((s) => s.id));
+    return atestados.filter((a) => {
       if (!srvIds.has(a.servidor_id)) return false;
-      try { return isWithinInterval(today, { start: parseISO(a.data_inicio), end: parseISO(a.data_fim) }); } catch { return false; }
+      return isTodayWithinRange(a.data_inicio, a.data_fim);
     });
-  }, [atestados, filteredServidores]);
+  }, [atestados, filteredServidores, isTodayWithinRange]);
 
   const endingSoonAtestados = useMemo(() => {
     const limit = addDays(today, 7);
