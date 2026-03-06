@@ -768,7 +768,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
 
                 {/* Sem diretoria */}
                 {(() => {
-                  const semDir = servidoresComPresenca.filter(s => !s.diretoria_id);
+                  const semDir = servidoresComPresenca.filter(s => (servidorDiretoriaIdsByServidor.get(s.id)?.size ?? 0) === 0);
                   if (semDir.length === 0) return null;
                   const sp = semDir.filter(s => s.status_presenca === "presente").length;
                   const folha = semDir.reduce((s, sv) => s + (sv.salario || 0), 0);
