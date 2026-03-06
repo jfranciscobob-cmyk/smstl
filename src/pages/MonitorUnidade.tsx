@@ -848,7 +848,7 @@ function MonitorContent() {
               </div>
               <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
                 <div className="flex items-center gap-2 text-xs text-destructive mb-1"><AlertTriangle className="h-3.5 w-3.5" /> Afastados</div>
-                <p className="text-2xl font-bold text-destructive">{allowedServidores.filter(s => s.status_presenca === "afastado").length}</p>
+                <p className="text-2xl font-bold text-destructive">{allowedServidores.filter(s => isAfastadoLikeStatus(s.status_presenca)).length}</p>
               </div>
               <div className="rounded-xl border border-info/30 bg-info/5 p-4">
                 <div className="flex items-center gap-2 text-xs text-info mb-1"><FileText className="h-3.5 w-3.5" /> Atestados</div>
