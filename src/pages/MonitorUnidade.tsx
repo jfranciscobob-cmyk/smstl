@@ -37,6 +37,7 @@ function MonitorContent() {
   const [afastamentos, setAfastamentos] = useState<AfastamentoDB[]>([]);
   const [loading, setLoading] = useState(true);
   const [coordUniData, setCoordUniData] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
+  const [servidoresUnidades, setServidoresUnidades] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
   const [escalasSemanais, setEscalasSemanais] = useState<EscalaSemanalRow[]>([]);
 
   // Atestado form
