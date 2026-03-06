@@ -14,6 +14,8 @@ import { format, parseISO, isWithinInterval, addDays, isBefore, isAfter, differe
 import { cn } from "@/lib/utils";
 import { EscalaSemanalEditor } from "@/components/EscalaSemanalEditor";
 import { TransferServidorModal } from "@/components/TransferServidorModal";
+import { isAfastadoLikeStatus } from "@/lib/presencaStatus";
+import { calcularTotalDiasFerias } from "@/lib/feriasUtils";
 
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
