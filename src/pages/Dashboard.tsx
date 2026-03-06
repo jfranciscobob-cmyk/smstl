@@ -659,7 +659,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
                   const ds = servidoresComPresenca.filter(s => isServidorNaDiretoria(s.id, dir.id));
                   const dp = ds.filter(s => s.status_presenca === "presente").length;
                   const dFerias = ds.filter(s => s.status_presenca === "ferias").length;
-                  const dAfastados = ds.filter(s => s.status_presenca === "afastado").length;
+                  const dAfastados = ds.filter(s => isAfastadoLikeStatus(s.status_presenca)).length;
                   const du = filteredUnidades.filter(u => u.diretoria_id === dir.id);
                   const df = ds.reduce((sum, s) => sum + (s.salario || 0), 0);
                   const cob = ds.length > 0 ? Math.round((dp / ds.length) * 100) : 0;
