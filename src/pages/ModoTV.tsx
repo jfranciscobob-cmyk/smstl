@@ -1230,6 +1230,18 @@ export default function ModoTV() {
       .on("postgres_changes", { event: "*", schema: "public", table: "servidores" }, () => {
         loadData();
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "diretorias" }, () => {
+        loadData();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "unidades" }, () => {
+        loadData();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "coordenadores_unidades" }, () => {
+        loadData();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "servidores_unidades" }, () => {
+        loadData();
+      })
       .on("postgres_changes", { event: "*", schema: "public", table: "escalas_semanais" }, () => {
         loadData();
       })
