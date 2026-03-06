@@ -174,7 +174,7 @@ function MonitorContent() {
   const today = new Date();
   const todayDateKey = format(today, "yyyy-MM-dd");
 
-  const toDateKey = (value: string | null | undefined): string | null => {
+  const toDateKey = useCallback((value: string | null | undefined): string | null => {
     if (!value) return null;
     const direct = value.match(/^(\d{4}-\d{2}-\d{2})/);
     if (direct?.[1]) return direct[1];
@@ -191,14 +191,14 @@ function MonitorContent() {
     const fallback = new Date(value);
     if (Number.isNaN(fallback.getTime())) return null;
     return format(fallback, "yyyy-MM-dd");
-  };
+  }, []);
 
-  const isTodayWithinRange = (startRaw: string | null | undefined, endRaw: string | null | undefined) => {
+  const isTodayWithinRange = useCallback((startRaw: string | null | undefined, endRaw: string | null | undefined) => {
     const start = toDateKey(startRaw);
     const end = toDateKey(endRaw);
     if (!start || !end) return false;
     return todayDateKey >= start && todayDateKey <= end;
-  };
+  }, [todayDateKey, toDateKey]);
 
   const servidorUnidadeIdsByServidor = useMemo(() => {
     const map = new Map<string, Set<string>>();
