@@ -485,7 +485,7 @@ function SlideRankingDiretorias({ servidores, diretorias }: { servidores: Servid
       const ds = servidores.filter(s => s.diretoria_id === dir.id);
       const presentes = ds.filter(s => s.status_presenca === "presente").length;
       const ferias = ds.filter(s => s.status_presenca === "ferias").length;
-      const afastados = ds.filter(s => s.status_presenca === "afastado").length;
+      const afastados = ds.filter(s => isAfastadoLikeStatus(s.status_presenca)).length;
       const ausentes = ds.length - presentes - ferias - afastados;
       return {
         nome: dir.nome.length > 25 ? dir.nome.substring(0, 23) + "…" : dir.nome,
