@@ -1233,6 +1233,15 @@ export default function ModoTV() {
       .on("postgres_changes", { event: "*", schema: "public", table: "escalas_semanais" }, () => {
         loadData();
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "atestados" }, () => {
+        loadData();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "afastamentos" }, () => {
+        loadData();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "faltas_abonadas" }, () => {
+        loadData();
+      })
       .on("postgres_changes", { event: "*", schema: "public", table: "avisos" }, () => {
         loadData();
       })
