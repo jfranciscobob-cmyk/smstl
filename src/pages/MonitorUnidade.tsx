@@ -254,7 +254,7 @@ function MonitorContent() {
 
     if (activeFilter === "presentes") result = result.filter(s => s.status_presenca === "presente");
     else if (activeFilter === "ferias") result = result.filter(s => s.status_presenca === "ferias");
-    else if (activeFilter === "afastados") result = result.filter(s => s.status_presenca === "afastado");
+    else if (activeFilter === "afastados") result = result.filter(s => isAfastadoLikeStatus(s.status_presenca));
     else if (activeFilter === "ausentes") result = result.filter(s => s.status_presenca === "ausente");
     else if (activeFilter === "folga") result = result.filter(s => s.status_presenca === "folga");
     else if (activeFilter === "concursados") result = result.filter(s => (s.vinculo || "").includes("CONCURSADO"));
