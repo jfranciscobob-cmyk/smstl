@@ -1176,11 +1176,23 @@ export default function ModoTV() {
       if (data.length < PAGE) break;
       offset += PAGE;
     }
-    const [{ data: dirs }, { data: unis }, { data: cuData }, { data: escalasData }, { data: avisosData }] = await Promise.all([
+    const [
+      { data: dirs },
+      { data: unis },
+      { data: cuData },
+      { data: escalasData },
+      { data: atestadosData },
+      { data: afastamentosData },
+      { data: faltasData },
+      { data: avisosData },
+    ] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenadores_unidades").select("servidor_id, unidade_id"),
       supabase.from("escalas_semanais").select("servidor_id, dia_semana, entrada1, saida1, entrada2, saida2"),
+      supabase.from("atestados").select("*"),
+      supabase.from("afastamentos").select("*"),
+      supabase.from("faltas_abonadas").select("servidor_id, data"),
       supabase.from("avisos").select("id, titulo, mensagem, destinatario_tipo, destinatario_diretoria_id").eq("ativo", true).order("created_at", { ascending: false }),
     ]);
     setServidoresRaw(allServ as ServidorDB[]);
@@ -1188,6 +1200,9 @@ export default function ModoTV() {
     setUnidades((unis ?? []) as UnidadeDB[]);
     setCoordenadoresUnidades((cuData ?? []) as { servidor_id: string; unidade_id: string }[]);
     setEscalasSemanais((escalasData ?? []) as EscalaSemanalRow[]);
+    setAtestados((atestadosData ?? []) as AtestadoDB[]);
+    setAfastamentos((afastamentosData ?? []) as AfastamentoDB[]);
+    setFaltasAbonadas((faltasData ?? []) as Pick<FaltaAbonadaDB, "servidor_id" | "data">[]);
     
     // Filter avisos relevant to this TV (by diretoria param or "todos")
     const relevantAvisos = ((avisosData ?? []) as TVAviso[]).filter(a => {
