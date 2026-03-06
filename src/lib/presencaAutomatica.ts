@@ -1,14 +1,18 @@
 /**
  * Computes effective presence status for servidores with fixed schedules.
  *
- * Rules:
- * - If status is 'ferias', 'afastado', or 'atestado' → keep as-is (priority statuses)
- * - If tipo_escala !== 'fixa' → keep manual status_presenca (plantão etc.)
+ * Rules (priority order):
+ * - Active férias period on servidor record -> 'ferias'
+ * - Active afastamento -> 'afastado'
+ * - Active atestado -> 'atestado'
+ * - Falta abonada today -> 'ausente'
+ * - Manual priority statuses ('ferias', 'afastado', 'atestado') remain as-is
+ * - If tipo_escala !== 'fixa' -> keep manual status_presenca
  * - If tipo_escala === 'fixa':
- *   - No escala_semanal entry for today → 'folga' (rest day)
- *   - Has entry but no times → 'ausente'
- *   - Current time within scheduled hours → 'presente'
- *   - Current time outside scheduled hours → 'ausente'
+ *   - No escala_semanal entry for today -> 'folga'
+ *   - Has entry but no times -> 'folga'
+ *   - Current time within scheduled hours -> 'presente'
+ *   - Current time outside scheduled hours -> 'ausente'
  */
 
 export interface EscalaSemanalRow {
@@ -24,10 +28,79 @@ export interface ServidorForPresenca {
   id: string;
   tipo_escala: string;
   status_presenca: string;
+  ferias_periodo1_inicio?: string | null;
+  ferias_periodo1_fim?: string | null;
+  ferias_periodo2_inicio?: string | null;
+  ferias_periodo2_fim?: string | null;
 }
 
-// Statuses that take absolute priority (set by admin/gestor)
+export interface AtestadoForPresenca {
+  servidor_id: string;
+  data_inicio: string;
+  data_fim: string;
+}
+
+export interface AfastamentoForPresenca {
+  servidor_id: string;
+  data_inicio: string;
+  data_fim: string | null;
+}
+
+export interface FaltaAbonadaForPresenca {
+  servidor_id: string;
+  data: string;
+}
+
+export interface PresencaContext {
+  timezone?: string;
+  atestados?: AtestadoForPresenca[];
+  afastamentos?: AfastamentoForPresenca[];
+  faltasAbonadas?: FaltaAbonadaForPresenca[];
+}
+
+// Statuses that take absolute priority when set manually
 const PRIORITY_STATUSES = ["ferias", "afastado", "atestado"];
+const DEFAULT_TIMEZONE = "America/Campo_Grande";
+
+function normalizeDate(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const matched = value.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (matched?.[1]) return matched[1];
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toISOString().slice(0, 10);
+}
+
+function getDateKeyInTimezone(now: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+
+  const year = parts.find((p) => p.type === "year")?.value ?? "1970";
+  const month = parts.find((p) => p.type === "month")?.value ?? "01";
+  const day = parts.find((p) => p.type === "day")?.value ?? "01";
+  return `${year}-${month}-${day}`;
+}
+
+function isDateWithinRange(todayKey: string, startRaw: string | null | undefined, endRaw: string | null | undefined, allowOpenEnd = false): boolean {
+  const start = normalizeDate(startRaw);
+  if (!start) return false;
+
+  const end = normalizeDate(endRaw);
+  if (!end && !allowOpenEnd) {
+    return todayKey === start;
+  }
+
+  if (allowOpenEnd && !end) {
+    return todayKey >= start;
+  }
+
+  const finalEnd = end ?? start;
+  return todayKey >= start && todayKey <= finalEnd;
+}
 
 /**
  * Parse "HH:MM" to minutes since midnight
@@ -68,10 +141,41 @@ export function getEffectiveStatus(
   servidor: ServidorForPresenca,
   escalas: EscalaSemanalRow[],
   now: Date = new Date(),
+  context: PresencaContext = {},
 ): string {
-  // Use Três Lagoas/MS timezone (America/Campo_Grande) for all calculations
-  const tzOptions = { timeZone: "America/Campo_Grande" } as const;
-  // Priority statuses always win
+  const timezone = context.timezone ?? DEFAULT_TIMEZONE;
+  const tzOptions = { timeZone: timezone } as const;
+  const todayKey = getDateKeyInTimezone(now, timezone);
+
+  // 1) Active férias period on servidor
+  const feriasAtivas =
+    isDateWithinRange(todayKey, servidor.ferias_periodo1_inicio, servidor.ferias_periodo1_fim) ||
+    isDateWithinRange(todayKey, servidor.ferias_periodo2_inicio, servidor.ferias_periodo2_fim);
+  if (feriasAtivas) return "ferias";
+
+  // 2) Active afastamento record
+  const afastamentoAtivo = (context.afastamentos ?? []).some(
+    (a) =>
+      a.servidor_id === servidor.id &&
+      isDateWithinRange(todayKey, a.data_inicio, a.data_fim, true),
+  );
+  if (afastamentoAtivo) return "afastado";
+
+  // 3) Active atestado record
+  const atestadoAtivo = (context.atestados ?? []).some(
+    (a) =>
+      a.servidor_id === servidor.id &&
+      isDateWithinRange(todayKey, a.data_inicio, a.data_fim),
+  );
+  if (atestadoAtivo) return "atestado";
+
+  // 4) Falta abonada for today
+  const faltaHoje = (context.faltasAbonadas ?? []).some(
+    (f) => f.servidor_id === servidor.id && normalizeDate(f.data) === todayKey,
+  );
+  if (faltaHoje) return "ausente";
+
+  // 5) Manual priority statuses always win
   if (PRIORITY_STATUSES.includes(servidor.status_presenca)) {
     return servidor.status_presenca;
   }
@@ -84,33 +188,33 @@ export function getEffectiveStatus(
   // Fixed schedule: check if servidor has ANY escalas configured at all
   const servidorEscalas = escalas.filter((e) => e.servidor_id === servidor.id);
 
-  // If no escalas configured at all → keep manual status (schedule not set up yet)
+  // If no escalas configured at all -> keep manual status (schedule not set up yet)
   if (servidorEscalas.length === 0) {
     return servidor.status_presenca;
   }
 
-  // Find today's escala using local TZ (Três Lagoas/MS)
+  // Find today's escala using local TZ
   const weekdayLong = new Intl.DateTimeFormat("en-US", { ...tzOptions, weekday: "long" }).format(now);
   const dayMap: Record<string, number> = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
   const localDayOfWeek = dayMap[weekdayLong] ?? now.getDay();
 
   const todayEscalas = servidorEscalas.filter((e) => e.dia_semana === localDayOfWeek);
 
-  // Has escalas configured but none for today → day off
+  // Has escalas configured but none for today -> day off
   if (todayEscalas.length === 0) {
     return "folga";
   }
 
   const escala = todayEscalas[0];
 
-  // Has entry but no times configured → treat as no schedule
+  // Has entry but no times configured -> treat as day off
   if (!escala.entrada1 && !escala.entrada2) {
     return "folga";
   }
 
   // Get current time in local TZ
-  const localHour = parseInt(new Intl.DateTimeFormat("en-US", { ...tzOptions, hour: "numeric", hour12: false }).format(now));
-  const localMinute = parseInt(new Intl.DateTimeFormat("en-US", { ...tzOptions, minute: "numeric" }).format(now));
+  const localHour = parseInt(new Intl.DateTimeFormat("en-US", { ...tzOptions, hour: "numeric", hour12: false }).format(now), 10);
+  const localMinute = parseInt(new Intl.DateTimeFormat("en-US", { ...tzOptions, minute: "numeric" }).format(now), 10);
   const nowMinutes = localHour * 60 + localMinute;
 
   // Check if within any shift period
@@ -122,15 +226,16 @@ export function getEffectiveStatus(
 
 /**
  * Apply effective status to an array of servidores.
- * Returns a new array with status_presenca overridden for fixed-schedule servidores.
+ * Returns a new array with status_presenca overridden when rules match.
  */
 export function applyAutoPresenca<T extends ServidorForPresenca>(
   servidores: T[],
   escalas: EscalaSemanalRow[],
   now: Date = new Date(),
+  context: PresencaContext = {},
 ): T[] {
   return servidores.map((s) => ({
     ...s,
-    status_presenca: getEffectiveStatus(s, escalas, now),
+    status_presenca: getEffectiveStatus(s, escalas, now, context),
   }));
 }
