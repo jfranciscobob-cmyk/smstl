@@ -492,17 +492,24 @@ function MonitorContent() {
     for (let i = 0; i < entries.length; i += 10) {
       const batch = entries.slice(i, i + 10);
       const results = await Promise.all(
-        batch.map(([id, f]) =>
-          supabase.from("servidores").update({
+        batch.map(([id, f]) => {
+          const totalDiasAuto = calcularTotalDiasFerias({
+            periodo1Inicio: f.p1_inicio,
+            periodo1Fim: f.p1_fim,
+            periodo2Inicio: f.p2_inicio,
+            periodo2Fim: f.p2_fim,
+          });
+
+          return supabase.from("servidores").update({
             ferias_status_gerencial: f.status || null,
             ferias_periodo1_inicio: f.p1_inicio || null,
             ferias_periodo1_fim: f.p1_fim || null,
             ferias_periodo2_inicio: f.p2_inicio || null,
             ferias_periodo2_fim: f.p2_fim || null,
-            ferias_total_dias: f.total_dias ? parseInt(f.total_dias) : null,
-            ferias_vencidas: f.vencidas ? parseInt(f.vencidas) : null,
-          }).eq("id", id)
-        )
+            ferias_total_dias: totalDiasAuto ?? (f.total_dias ? parseInt(f.total_dias, 10) : null),
+            ferias_vencidas: f.vencidas ? parseInt(f.vencidas, 10) : null,
+          }).eq("id", id);
+        })
       );
       for (const r of results) { if (!r.error) count++; }
     }
