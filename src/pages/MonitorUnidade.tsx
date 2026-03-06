@@ -906,7 +906,7 @@ function MonitorContent() {
               <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Diretorias</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {allowedDiretorias.map(dir => {
-                  const dirServs = allowedServidores.filter(s => s.diretoria_id === dir.id);
+                  const dirServs = allowedServidores.filter(s => isServidorNaDiretoria(s, dir.id));
                   const dirPresentes = dirServs.filter(s => s.status_presenca === "presente").length;
                   const dirFolha = dirServs.reduce((sum, s) => sum + (s.salario || 0), 0);
                   const dirUnidades = unidades.filter(u => u.diretoria_id === dir.id);
