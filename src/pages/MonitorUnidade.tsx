@@ -131,7 +131,27 @@ function MonitorContent() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    loadData();
+
+    const channel = supabase
+      .channel("monitor-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "servidores" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "diretorias" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "unidades" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "funcoes" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "atestados" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "faltas_abonadas" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "afastamentos" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "coordenadores_unidades" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "servidores_unidades" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "escalas_semanais" }, loadData)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadData]);
 
   // Auto-navigate coordenador to their assigned unit
   const [coordUnidades, setCoordUnidades] = useState<string[]>([]);
