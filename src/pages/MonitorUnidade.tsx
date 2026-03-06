@@ -172,6 +172,33 @@ function MonitorContent() {
   const canEditEscalasFerias = hasFullAccess || isCoordenador;
 
   const today = new Date();
+  const todayDateKey = format(today, "yyyy-MM-dd");
+
+  const toDateKey = useCallback((value: string | null | undefined): string | null => {
+    if (!value) return null;
+    const direct = value.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (direct?.[1]) return direct[1];
+
+    try {
+      const parsed = parseISO(value);
+      if (!Number.isNaN(parsed.getTime())) {
+        return format(parsed, "yyyy-MM-dd");
+      }
+    } catch {
+      // ignore parse errors
+    }
+
+    const fallback = new Date(value);
+    if (Number.isNaN(fallback.getTime())) return null;
+    return format(fallback, "yyyy-MM-dd");
+  }, []);
+
+  const isTodayWithinRange = useCallback((startRaw: string | null | undefined, endRaw: string | null | undefined) => {
+    const start = toDateKey(startRaw);
+    const end = toDateKey(endRaw);
+    if (!start || !end) return false;
+    return todayDateKey >= start && todayDateKey <= end;
+  }, [todayDateKey, toDateKey]);
 
   const servidorUnidadeIdsByServidor = useMemo(() => {
     const map = new Map<string, Set<string>>();
@@ -296,12 +323,12 @@ function MonitorContent() {
   }, [filteredServidores]);
 
   const activeAtestados = useMemo(() => {
-    const srvIds = new Set(filteredServidores.map(s => s.id));
-    return atestados.filter(a => {
+    const srvIds = new Set(filteredServidores.map((s) => s.id));
+    return atestados.filter((a) => {
       if (!srvIds.has(a.servidor_id)) return false;
-      try { return isWithinInterval(today, { start: parseISO(a.data_inicio), end: parseISO(a.data_fim) }); } catch { return false; }
+      return isTodayWithinRange(a.data_inicio, a.data_fim);
     });
-  }, [atestados, filteredServidores]);
+  }, [atestados, filteredServidores, isTodayWithinRange]);
 
   const endingSoonAtestados = useMemo(() => {
     const limit = addDays(today, 7);
@@ -396,20 +423,20 @@ function MonitorContent() {
     ? filteredServidores.filter(s => s.nome.toLowerCase().includes(afastamentoSearch.toLowerCase())).slice(0, 10)
     : filteredServidores.slice(0, 10);
 
-  // Active afastamentos
   const activeAfastamentos = useMemo(() => {
-    const srvIds = new Set(filteredServidores.map(s => s.id));
-    return afastamentos.filter(a => {
+    const srvIds = new Set(filteredServidores.map((s) => s.id));
+    return afastamentos.filter((a) => {
       if (!srvIds.has(a.servidor_id)) return false;
-      try {
-        const inicio = parseISO(a.data_inicio);
-        if (a.data_fim) {
-          return isWithinInterval(today, { start: inicio, end: parseISO(a.data_fim) });
-        }
-        return !isAfter(inicio, today); // sem data fim = ainda ativo
-      } catch { return false; }
+      const inicio = toDateKey(a.data_inicio);
+      if (!inicio) return false;
+
+      if (a.data_fim) {
+        return isTodayWithinRange(a.data_inicio, a.data_fim);
+      }
+
+      return todayDateKey >= inicio;
     });
-  }, [afastamentos, filteredServidores]);
+  }, [afastamentos, filteredServidores, toDateKey, isTodayWithinRange, todayDateKey]);
 
   const addAfastamento = async () => {
     if (!afastamentoForm.servidor_id || !afastamentoForm.data_inicio || !afastamentoForm.motivo) {
