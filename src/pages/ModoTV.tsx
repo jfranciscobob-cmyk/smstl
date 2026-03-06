@@ -809,7 +809,7 @@ function SlideDiretoriaServidores({
   statusIcon: React.ReactNode;
   statusColor: string;
 }) {
-  const dirServs = servidores.filter(s => s.diretoria_id === diretoria.id && s.status_presenca === status);
+  const dirServs = servidores.filter(s => s.diretoria_id === diretoria.id && (status === "afastado" ? isAfastadoLikeStatus(s.status_presenca) : s.status_presenca === status));
 
   return (
     <div className="h-full flex flex-col p-8">
