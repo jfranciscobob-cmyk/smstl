@@ -14,6 +14,8 @@ import { format, parseISO, isWithinInterval, addDays, isBefore, isAfter, differe
 import { cn } from "@/lib/utils";
 import { EscalaSemanalEditor } from "@/components/EscalaSemanalEditor";
 import { TransferServidorModal } from "@/components/TransferServidorModal";
+import { isAfastadoLikeStatus } from "@/lib/presencaStatus";
+import { calcularTotalDiasFerias } from "@/lib/feriasUtils";
 
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -129,7 +131,27 @@ function MonitorContent() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    loadData();
+
+    const channel = supabase
+      .channel("monitor-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "servidores" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "diretorias" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "unidades" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "funcoes" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "atestados" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "faltas_abonadas" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "afastamentos" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "coordenadores_unidades" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "servidores_unidades" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "escalas_semanais" }, loadData)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadData]);
 
   // Auto-navigate coordenador to their assigned unit
   const [coordUnidades, setCoordUnidades] = useState<string[]>([]);
@@ -232,7 +254,7 @@ function MonitorContent() {
 
     if (activeFilter === "presentes") result = result.filter(s => s.status_presenca === "presente");
     else if (activeFilter === "ferias") result = result.filter(s => s.status_presenca === "ferias");
-    else if (activeFilter === "afastados") result = result.filter(s => s.status_presenca === "afastado");
+    else if (activeFilter === "afastados") result = result.filter(s => isAfastadoLikeStatus(s.status_presenca));
     else if (activeFilter === "ausentes") result = result.filter(s => s.status_presenca === "ausente");
     else if (activeFilter === "folga") result = result.filter(s => s.status_presenca === "folga");
     else if (activeFilter === "concursados") result = result.filter(s => (s.vinculo || "").includes("CONCURSADO"));
@@ -295,7 +317,7 @@ function MonitorContent() {
   // Stats
   const presentes = filteredServidores.filter(s => s.status_presenca === "presente").length;
   const emFerias = filteredServidores.filter(s => s.status_presenca === "ferias").length;
-  const afastados = filteredServidores.filter(s => s.status_presenca === "afastado").length;
+  const afastados = filteredServidores.filter(s => isAfastadoLikeStatus(s.status_presenca)).length;
   const totalHoras = filteredServidores.reduce((sum, s) => sum + (s.escala_total_horas || 0), 0);
   const totalFolha = filteredServidores.reduce((sum, s) => sum + (s.salario || 0), 0);
 
@@ -303,10 +325,19 @@ function MonitorContent() {
     if (!atestadoForm.servidor_id || !atestadoForm.data_inicio || !atestadoForm.data_fim) {
       toast({ title: "Preencha todos os campos obrigatórios", variant: "destructive" }); return;
     }
+
+    if (atestadoForm.data_fim < atestadoForm.data_inicio) {
+      toast({ title: "Período inválido", description: "A data final do atestado não pode ser menor que a data inicial.", variant: "destructive" });
+      return;
+    }
+
+    const diasCalculados = differenceInDays(parseISO(atestadoForm.data_fim), parseISO(atestadoForm.data_inicio)) + 1;
+
     const { error } = await supabase.from("atestados").insert({
       servidor_id: atestadoForm.servidor_id, tipo: atestadoForm.tipo,
       data_inicio: atestadoForm.data_inicio, data_fim: atestadoForm.data_fim,
-      dias: atestadoForm.dias, observacao: atestadoForm.observacao || null,
+      dias: diasCalculados > 0 ? diasCalculados : atestadoForm.dias,
+      observacao: atestadoForm.observacao || null,
     });
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Atestado registrado!" });
@@ -461,17 +492,24 @@ function MonitorContent() {
     for (let i = 0; i < entries.length; i += 10) {
       const batch = entries.slice(i, i + 10);
       const results = await Promise.all(
-        batch.map(([id, f]) =>
-          supabase.from("servidores").update({
+        batch.map(([id, f]) => {
+          const totalDiasAuto = calcularTotalDiasFerias({
+            periodo1Inicio: f.p1_inicio,
+            periodo1Fim: f.p1_fim,
+            periodo2Inicio: f.p2_inicio,
+            periodo2Fim: f.p2_fim,
+          });
+
+          return supabase.from("servidores").update({
             ferias_status_gerencial: f.status || null,
             ferias_periodo1_inicio: f.p1_inicio || null,
             ferias_periodo1_fim: f.p1_fim || null,
             ferias_periodo2_inicio: f.p2_inicio || null,
             ferias_periodo2_fim: f.p2_fim || null,
-            ferias_total_dias: f.total_dias ? parseInt(f.total_dias) : null,
-            ferias_vencidas: f.vencidas ? parseInt(f.vencidas) : null,
-          }).eq("id", id)
-        )
+            ferias_total_dias: totalDiasAuto ?? (f.total_dias ? parseInt(f.total_dias, 10) : null),
+            ferias_vencidas: f.vencidas ? parseInt(f.vencidas, 10) : null,
+          }).eq("id", id);
+        })
       );
       for (const r of results) { if (!r.error) count++; }
     }
@@ -810,7 +848,7 @@ function MonitorContent() {
               </div>
               <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
                 <div className="flex items-center gap-2 text-xs text-destructive mb-1"><AlertTriangle className="h-3.5 w-3.5" /> Afastados</div>
-                <p className="text-2xl font-bold text-destructive">{allowedServidores.filter(s => s.status_presenca === "afastado").length}</p>
+                <p className="text-2xl font-bold text-destructive">{allowedServidores.filter(s => isAfastadoLikeStatus(s.status_presenca)).length}</p>
               </div>
               <div className="rounded-xl border border-info/30 bg-info/5 p-4">
                 <div className="flex items-center gap-2 text-xs text-info mb-1"><FileText className="h-3.5 w-3.5" /> Atestados</div>

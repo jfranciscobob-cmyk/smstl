@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { isAfastadoLikeStatus } from "@/lib/presencaStatus";
 
 export interface ServidorDB {
   id: string;
@@ -221,7 +222,7 @@ export function computeStats(servidores: ServidorDB[]) {
   const total = servidores.length;
   const presentes = servidores.filter((s) => s.status_presenca === "presente").length;
   const ferias = servidores.filter((s) => s.status_presenca === "ferias").length;
-  const afastados = servidores.filter((s) => s.status_presenca === "afastado").length;
+  const afastados = servidores.filter((s) => isAfastadoLikeStatus(s.status_presenca)).length;
   const ausentes = servidores.filter((s) => s.status_presenca === "ausente").length;
   const folga = servidores.filter((s) => s.status_presenca === "folga").length;
   const funcoesCriticas = servidores.filter((s) => s.funcao_critica).length;

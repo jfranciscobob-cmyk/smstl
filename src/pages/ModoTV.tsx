@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useCallback, useRef, type RefObject } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB } from "@/hooks/useServidores";
+import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB, type AtestadoDB, type AfastamentoDB, type FaltaAbonadaDB } from "@/hooks/useServidores";
 import { applyAutoPresenca, type EscalaSemanalRow } from "@/lib/presencaAutomatica";
+import { isAfastadoLikeStatus } from "@/lib/presencaStatus";
 import {
   PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend,
   RadialBarChart, RadialBar,
@@ -484,7 +485,7 @@ function SlideRankingDiretorias({ servidores, diretorias }: { servidores: Servid
       const ds = servidores.filter(s => s.diretoria_id === dir.id);
       const presentes = ds.filter(s => s.status_presenca === "presente").length;
       const ferias = ds.filter(s => s.status_presenca === "ferias").length;
-      const afastados = ds.filter(s => s.status_presenca === "afastado").length;
+      const afastados = ds.filter(s => isAfastadoLikeStatus(s.status_presenca)).length;
       const ausentes = ds.length - presentes - ferias - afastados;
       return {
         nome: dir.nome.length > 25 ? dir.nome.substring(0, 23) + "…" : dir.nome,
@@ -703,7 +704,7 @@ function SlideDiretoriaDetalhe({
     const us = dirServs.filter(s => s.unidade_id === uni.id);
     const presentes = us.filter(s => s.status_presenca === "presente").length;
     const pct = us.length > 0 ? Math.round((presentes / us.length) * 100) : 0;
-    return { id: uni.id, nome: uni.nome, sigla: uni.sigla, total: us.length, presentes, ferias: us.filter(s => s.status_presenca === "ferias").length, afastados: us.filter(s => s.status_presenca === "afastado").length, pct };
+    return { id: uni.id, nome: uni.nome, sigla: uni.sigla, total: us.length, presentes, ferias: us.filter(s => s.status_presenca === "ferias").length, afastados: us.filter(s => isAfastadoLikeStatus(s.status_presenca)).length, pct };
   }).filter(u => u.total > 0).sort((a, b) => b.total - a.total);
 
   const semUnidade = dirServs.filter(s => !s.unidade_id || !dirUnidades.find(u => u.id === s.unidade_id));
@@ -808,7 +809,7 @@ function SlideDiretoriaServidores({
   statusIcon: React.ReactNode;
   statusColor: string;
 }) {
-  const dirServs = servidores.filter(s => s.diretoria_id === diretoria.id && s.status_presenca === status);
+  const dirServs = servidores.filter(s => s.diretoria_id === diretoria.id && (status === "afastado" ? isAfastadoLikeStatus(s.status_presenca) : s.status_presenca === status));
 
   return (
     <div className="h-full flex flex-col p-8">
@@ -1146,6 +1147,9 @@ export default function ModoTV() {
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
   const [coordenadoresUnidades, setCoordenadoresUnidades] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
   const [escalasSemanais, setEscalasSemanais] = useState<EscalaSemanalRow[]>([]);
+  const [atestados, setAtestados] = useState<AtestadoDB[]>([]);
+  const [afastamentos, setAfastamentos] = useState<AfastamentoDB[]>([]);
+  const [faltasAbonadas, setFaltasAbonadas] = useState<Pick<FaltaAbonadaDB, "servidor_id" | "data">[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideDirection, setSlideDirection] = useState<"left" | "right">("left");
@@ -1172,11 +1176,23 @@ export default function ModoTV() {
       if (data.length < PAGE) break;
       offset += PAGE;
     }
-    const [{ data: dirs }, { data: unis }, { data: cuData }, { data: escalasData }, { data: avisosData }] = await Promise.all([
+    const [
+      { data: dirs },
+      { data: unis },
+      { data: cuData },
+      { data: escalasData },
+      { data: atestadosData },
+      { data: afastamentosData },
+      { data: faltasData },
+      { data: avisosData },
+    ] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("coordenadores_unidades").select("servidor_id, unidade_id"),
       supabase.from("escalas_semanais").select("servidor_id, dia_semana, entrada1, saida1, entrada2, saida2"),
+      supabase.from("atestados").select("*"),
+      supabase.from("afastamentos").select("*"),
+      supabase.from("faltas_abonadas").select("servidor_id, data"),
       supabase.from("avisos").select("id, titulo, mensagem, destinatario_tipo, destinatario_diretoria_id").eq("ativo", true).order("created_at", { ascending: false }),
     ]);
     setServidoresRaw(allServ as ServidorDB[]);
@@ -1184,6 +1200,9 @@ export default function ModoTV() {
     setUnidades((unis ?? []) as UnidadeDB[]);
     setCoordenadoresUnidades((cuData ?? []) as { servidor_id: string; unidade_id: string }[]);
     setEscalasSemanais((escalasData ?? []) as EscalaSemanalRow[]);
+    setAtestados((atestadosData ?? []) as AtestadoDB[]);
+    setAfastamentos((afastamentosData ?? []) as AfastamentoDB[]);
+    setFaltasAbonadas((faltasData ?? []) as Pick<FaltaAbonadaDB, "servidor_id" | "data">[]);
     
     // Filter avisos relevant to this TV (by diretoria param or "todos")
     const relevantAvisos = ((avisosData ?? []) as TVAviso[]).filter(a => {
@@ -1214,6 +1233,15 @@ export default function ModoTV() {
       .on("postgres_changes", { event: "*", schema: "public", table: "escalas_semanais" }, () => {
         loadData();
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "atestados" }, () => {
+        loadData();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "afastamentos" }, () => {
+        loadData();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "faltas_abonadas" }, () => {
+        loadData();
+      })
       .on("postgres_changes", { event: "*", schema: "public", table: "avisos" }, () => {
         loadData();
       })
@@ -1229,11 +1257,11 @@ export default function ModoTV() {
   // Find specific diretoria if param provided
   const targetDiretoria = diretoriaParam ? diretorias.find(d => d.id === diretoriaParam) : null;
 
-  // Apply auto-presence based on escalas_semanais (recalculates every tick)
+  // Apply auto-presence based on escalas + férias/atestados/afastamentos/faltas (recalculates every tick)
   const servidores = useMemo(
-    () => applyAutoPresenca(servidoresRaw, escalasSemanais, new Date()),
+    () => applyAutoPresenca(servidoresRaw, escalasSemanais, new Date(), { atestados, afastamentos, faltasAbonadas }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [servidoresRaw, escalasSemanais, presencaTick],
+    [servidoresRaw, escalasSemanais, atestados, afastamentos, faltasAbonadas, presencaTick],
   );
 
   const slides = useMemo(() => {
@@ -1261,7 +1289,7 @@ export default function ModoTV() {
       }
 
       // Slide 5: Servidores afastados
-      if (dirServs.filter(sv => sv.status_presenca === "afastado").length > 0) {
+      if (dirServs.filter(sv => isAfastadoLikeStatus(sv.status_presenca)).length > 0) {
         s.push(<SlideDiretoriaServidores key="dir-afastados" diretoria={dir} servidores={servidores} status="afastado" statusLabel="Afastados" statusIcon={<AlertTriangle className="h-7 w-7 text-white" />} statusColor="bg-red-500/20 text-red-400" />);
       }
 

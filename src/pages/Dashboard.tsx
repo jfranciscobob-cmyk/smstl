@@ -5,8 +5,9 @@ import { ImportCSVButton } from "@/components/ImportCSVButton";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { EditServidorModal } from "@/components/EditServidorModal";
 import { CreateServidorModal } from "@/components/CreateServidorModal";
-import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB, type CoordenacaoDB } from "@/hooks/useServidores";
+import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB, type CoordenacaoDB, type AtestadoDB, type AfastamentoDB } from "@/hooks/useServidores";
 import { applyAutoPresenca, type EscalaSemanalRow } from "@/lib/presencaAutomatica";
+import { isAfastadoLikeStatus } from "@/lib/presencaStatus";
 import { Link } from "react-router-dom";
 import {
   Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Search,
@@ -209,6 +210,8 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
   const [coordUnidades, setCoordUnidades] = useState<{ id: string; servidor_id: string; unidade_id: string }[]>([]);
   const [servidoresUnidades, setServidoresUnidades] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
   const [faltasAbonadas, setFaltasAbonadas] = useState<{ servidor_id: string; data: string }[]>([]);
+  const [atestados, setAtestados] = useState<AtestadoDB[]>([]);
+  const [afastamentos, setAfastamentos] = useState<AfastamentoDB[]>([]);
   const [escalasSemanais, setEscalasSemanais] = useState<EscalaSemanalRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -240,19 +243,44 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
     };
 
     try {
-      const [allServidores, diretoriasRes, unidadesRes, coordenacoesRes, coordUnidadesRes, faltasRes, srvUnidadesRes, escalasRes] = await Promise.all([
+      const [
+        allServidores,
+        diretoriasRes,
+        unidadesRes,
+        coordenacoesRes,
+        coordUnidadesRes,
+        faltasRes,
+        atestadosRes,
+        afastamentosRes,
+        srvUnidadesRes,
+        escalasRes,
+      ] = await Promise.all([
         fetchAllServidores(),
         supabase.from("diretorias").select("*").order("nome"),
         supabase.from("unidades").select("*").order("nome"),
         supabase.from("coordenacoes").select("*").order("nome"),
         supabase.from("coordenadores_unidades").select("*"),
         supabase.from("faltas_abonadas").select("servidor_id, data"),
+        supabase.from("atestados").select("*"),
+        supabase.from("afastamentos").select("*"),
         supabase.from("servidores_unidades").select("servidor_id, unidade_id"),
         supabase.from("escalas_semanais").select("servidor_id, dia_semana, entrada1, saida1, entrada2, saida2"),
       ]);
 
-      if (diretoriasRes.error || unidadesRes.error || coordenacoesRes.error) {
-        throw new Error(diretoriasRes.error?.message || unidadesRes.error?.message || coordenacoesRes.error?.message || "Erro");
+      const firstError = [
+        diretoriasRes.error,
+        unidadesRes.error,
+        coordenacoesRes.error,
+        coordUnidadesRes.error,
+        faltasRes.error,
+        atestadosRes.error,
+        afastamentosRes.error,
+        srvUnidadesRes.error,
+        escalasRes.error,
+      ].find(Boolean);
+
+      if (firstError) {
+        throw new Error(firstError.message);
       }
 
       setServidores(allServidores);
@@ -262,6 +290,8 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
       setCoordUnidades(coordUnidadesRes.data ?? []);
       setServidoresUnidades((srvUnidadesRes.data ?? []) as { servidor_id: string; unidade_id: string }[]);
       setFaltasAbonadas((faltasRes.data ?? []) as { servidor_id: string; data: string }[]);
+      setAtestados((atestadosRes.data ?? []) as AtestadoDB[]);
+      setAfastamentos((afastamentosRes.data ?? []) as AfastamentoDB[]);
       setEscalasSemanais((escalasRes.data ?? []) as EscalaSemanalRow[]);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : "Erro ao carregar dados");
@@ -280,6 +310,8 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
       .on("postgres_changes", { event: "*", schema: "public", table: "coordenacoes" }, loadData)
       .on("postgres_changes", { event: "*", schema: "public", table: "servidores_unidades" }, loadData)
       .on("postgres_changes", { event: "*", schema: "public", table: "faltas_abonadas" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "atestados" }, loadData)
+      .on("postgres_changes", { event: "*", schema: "public", table: "afastamentos" }, loadData)
       .on("postgres_changes", { event: "*", schema: "public", table: "escalas_semanais" }, loadData)
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -344,8 +376,8 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
 
   // Apply auto-presence based on escalas_semanais + faltas abonadas do dia
   const servidoresComPresenca = useMemo(
-    () => applyAutoPresenca(filteredServidores, escalasSemanais, new Date(), { faltasAbonadas }),
-    [filteredServidores, escalasSemanais, faltasAbonadas],
+    () => applyAutoPresenca(filteredServidores, escalasSemanais, new Date(), { atestados, afastamentos, faltasAbonadas }),
+    [filteredServidores, escalasSemanais, atestados, afastamentos, faltasAbonadas],
   );
 
   const filteredDiretorias = useMemo(() => {
@@ -628,7 +660,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
                   const ds = servidoresComPresenca.filter(s => isServidorNaDiretoria(s.id, dir.id));
                   const dp = ds.filter(s => s.status_presenca === "presente").length;
                   const dFerias = ds.filter(s => s.status_presenca === "ferias").length;
-                  const dAfastados = ds.filter(s => s.status_presenca === "afastado").length;
+                  const dAfastados = ds.filter(s => isAfastadoLikeStatus(s.status_presenca)).length;
                   const du = filteredUnidades.filter(u => u.diretoria_id === dir.id);
                   const df = ds.reduce((sum, s) => sum + (s.salario || 0), 0);
                   const cob = ds.length > 0 ? Math.round((dp / ds.length) * 100) : 0;
