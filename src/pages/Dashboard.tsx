@@ -215,6 +215,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
   const [escalasSemanais, setEscalasSemanais] = useState<EscalaSemanalRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [editingServidor, setEditingServidor] = useState<ServidorDB | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const loadData = useCallback(async () => {
