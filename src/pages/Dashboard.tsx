@@ -311,10 +311,41 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
     return servidores;
   }, [servidores, unidades, isAdmin, isDiretor, isCoordenador, userDirIds, userUniIds, servidoresUnidades]);
 
-  // Apply auto-presence based on escalas_semanais for fixed schedules
+  const servidorDiretoriaIdsByServidor = useMemo(() => {
+    const unidadeToDiretoria = new Map(unidades.map((u) => [u.id, u.diretoria_id]));
+    const map = new Map<string, Set<string>>();
+
+    filteredServidores.forEach((s) => {
+      const ids = new Set<string>();
+      if (s.diretoria_id) ids.add(s.diretoria_id);
+      if (s.unidade_id) {
+        const dirId = unidadeToDiretoria.get(s.unidade_id);
+        if (dirId) ids.add(dirId);
+      }
+      map.set(s.id, ids);
+    });
+
+    servidoresUnidades.forEach(({ servidor_id, unidade_id }) => {
+      const dirId = unidadeToDiretoria.get(unidade_id);
+      if (!dirId) return;
+      const ids = map.get(servidor_id) ?? new Set<string>();
+      ids.add(dirId);
+      map.set(servidor_id, ids);
+    });
+
+    return map;
+  }, [filteredServidores, servidoresUnidades, unidades]);
+
+  const isServidorNaDiretoria = useCallback(
+    (servidorId: string, diretoriaId: string) =>
+      servidorDiretoriaIdsByServidor.get(servidorId)?.has(diretoriaId) ?? false,
+    [servidorDiretoriaIdsByServidor],
+  );
+
+  // Apply auto-presence based on escalas_semanais + faltas abonadas do dia
   const servidoresComPresenca = useMemo(
-    () => applyAutoPresenca(filteredServidores, escalasSemanais),
-    [filteredServidores, escalasSemanais],
+    () => applyAutoPresenca(filteredServidores, escalasSemanais, new Date(), { faltasAbonadas }),
+    [filteredServidores, escalasSemanais, faltasAbonadas],
   );
 
   const filteredDiretorias = useMemo(() => {
@@ -374,7 +405,7 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
   }, [filteredServidores]);
 
   const coberturaGeral = stats.total > 0 ? Math.round((stats.presentes / stats.total) * 100) : 0;
-  const alocados = filteredServidores.filter(s => s.diretoria_id).length;
+  const alocados = filteredServidores.filter(s => (servidorDiretoriaIdsByServidor.get(s.id)?.size ?? 0) > 0).length;
   const pctAlocados = stats.total > 0 ? Math.round((alocados / stats.total) * 100) : 0;
 
   // Faltas abonadas risk per servidor
