@@ -1289,7 +1289,7 @@ export default function ModoTV() {
       }
 
       // Slide 5: Servidores afastados
-      if (dirServs.filter(sv => sv.status_presenca === "afastado").length > 0) {
+      if (dirServs.filter(sv => isAfastadoLikeStatus(sv.status_presenca)).length > 0) {
         s.push(<SlideDiretoriaServidores key="dir-afastados" diretoria={dir} servidores={servidores} status="afastado" statusLabel="Afastados" statusIcon={<AlertTriangle className="h-7 w-7 text-white" />} statusColor="bg-red-500/20 text-red-400" />);
       }
 
