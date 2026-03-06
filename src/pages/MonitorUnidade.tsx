@@ -317,7 +317,7 @@ function MonitorContent() {
   // Stats
   const presentes = filteredServidores.filter(s => s.status_presenca === "presente").length;
   const emFerias = filteredServidores.filter(s => s.status_presenca === "ferias").length;
-  const afastados = filteredServidores.filter(s => s.status_presenca === "afastado").length;
+  const afastados = filteredServidores.filter(s => isAfastadoLikeStatus(s.status_presenca)).length;
   const totalHoras = filteredServidores.reduce((sum, s) => sum + (s.escala_total_horas || 0), 0);
   const totalFolha = filteredServidores.reduce((sum, s) => sum + (s.salario || 0), 0);
 
