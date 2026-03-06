@@ -423,20 +423,20 @@ function MonitorContent() {
     ? filteredServidores.filter(s => s.nome.toLowerCase().includes(afastamentoSearch.toLowerCase())).slice(0, 10)
     : filteredServidores.slice(0, 10);
 
-  // Active afastamentos
   const activeAfastamentos = useMemo(() => {
-    const srvIds = new Set(filteredServidores.map(s => s.id));
-    return afastamentos.filter(a => {
+    const srvIds = new Set(filteredServidores.map((s) => s.id));
+    return afastamentos.filter((a) => {
       if (!srvIds.has(a.servidor_id)) return false;
-      try {
-        const inicio = parseISO(a.data_inicio);
-        if (a.data_fim) {
-          return isWithinInterval(today, { start: inicio, end: parseISO(a.data_fim) });
-        }
-        return !isAfter(inicio, today); // sem data fim = ainda ativo
-      } catch { return false; }
+      const inicio = toDateKey(a.data_inicio);
+      if (!inicio) return false;
+
+      if (a.data_fim) {
+        return isTodayWithinRange(a.data_inicio, a.data_fim);
+      }
+
+      return todayDateKey >= inicio;
     });
-  }, [afastamentos, filteredServidores]);
+  }, [afastamentos, filteredServidores, toDateKey, isTodayWithinRange, todayDateKey]);
 
   const addAfastamento = async () => {
     if (!afastamentoForm.servidor_id || !afastamentoForm.data_inicio || !afastamentoForm.motivo) {
