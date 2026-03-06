@@ -375,8 +375,8 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
 
   // Apply auto-presence based on escalas_semanais + faltas abonadas do dia
   const servidoresComPresenca = useMemo(
-    () => applyAutoPresenca(filteredServidores, escalasSemanais, new Date(), { faltasAbonadas }),
-    [filteredServidores, escalasSemanais, faltasAbonadas],
+    () => applyAutoPresenca(filteredServidores, escalasSemanais, new Date(), { atestados, afastamentos, faltasAbonadas }),
+    [filteredServidores, escalasSemanais, atestados, afastamentos, faltasAbonadas],
   );
 
   const filteredDiretorias = useMemo(() => {
