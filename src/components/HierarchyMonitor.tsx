@@ -6,6 +6,7 @@ import {
   AlertTriangle, CheckCircle, Palmtree, Star, MapPin, Briefcase
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isAfastadoLikeStatus } from "@/lib/presencaStatus";
 
 interface HierarchyMonitorProps {
   servidores: ServidorDB[];

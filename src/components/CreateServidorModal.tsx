@@ -7,6 +7,7 @@ import {
 import { Save, Loader2, UserPlus, AlertTriangle } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { calcularTotalDiasFerias } from "@/lib/feriasUtils";
 
 interface CreateServidorModalProps {
   open: boolean;

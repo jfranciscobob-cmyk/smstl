@@ -7,6 +7,7 @@ import {
 import { X, Save, Loader2, AlertTriangle, Link2 } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { calcularTotalDiasFerias } from "@/lib/feriasUtils";
 
 interface EditServidorModalProps {
   servidor: ServidorDB | null;
