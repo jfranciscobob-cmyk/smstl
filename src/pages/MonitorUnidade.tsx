@@ -325,10 +325,19 @@ function MonitorContent() {
     if (!atestadoForm.servidor_id || !atestadoForm.data_inicio || !atestadoForm.data_fim) {
       toast({ title: "Preencha todos os campos obrigatórios", variant: "destructive" }); return;
     }
+
+    if (atestadoForm.data_fim < atestadoForm.data_inicio) {
+      toast({ title: "Período inválido", description: "A data final do atestado não pode ser menor que a data inicial.", variant: "destructive" });
+      return;
+    }
+
+    const diasCalculados = differenceInDays(parseISO(atestadoForm.data_fim), parseISO(atestadoForm.data_inicio)) + 1;
+
     const { error } = await supabase.from("atestados").insert({
       servidor_id: atestadoForm.servidor_id, tipo: atestadoForm.tipo,
       data_inicio: atestadoForm.data_inicio, data_fim: atestadoForm.data_fim,
-      dias: atestadoForm.dias, observacao: atestadoForm.observacao || null,
+      dias: diasCalculados > 0 ? diasCalculados : atestadoForm.dias,
+      observacao: atestadoForm.observacao || null,
     });
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Atestado registrado!" });
