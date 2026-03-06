@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useCallback, useRef, type RefObject } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB } from "@/hooks/useServidores";
+import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB, type AtestadoDB, type AfastamentoDB, type FaltaAbonadaDB } from "@/hooks/useServidores";
 import { applyAutoPresenca, type EscalaSemanalRow } from "@/lib/presencaAutomatica";
+import { isAfastadoLikeStatus } from "@/lib/presencaStatus";
 import {
   PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend,
   RadialBarChart, RadialBar,
