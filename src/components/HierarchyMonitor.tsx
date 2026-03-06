@@ -73,7 +73,7 @@ function getStats(servidores: ServidorDB[]) {
   const total = servidores.length;
   const presentes = servidores.filter(s => s.status_presenca === "presente").length;
   const ferias = servidores.filter(s => s.status_presenca === "ferias").length;
-  const afastados = servidores.filter(s => s.status_presenca === "afastado").length;
+  const afastados = servidores.filter(s => isAfastadoLikeStatus(s.status_presenca)).length;
   const ausentes = servidores.filter(s => s.status_presenca === "ausente").length;
   const funcoesCriticas = servidores.filter(s => s.funcao_critica && s.status_presenca !== "presente").length;
   return { total, presentes, ferias, afastados, ausentes, funcoesCriticas };

@@ -131,6 +131,13 @@ export function EditServidorModal({
     if (!servidor) return;
     setSaving(true);
 
+    const feriasTotalDias = calcularTotalDiasFerias({
+      periodo1Inicio: form.ferias_periodo1_inicio,
+      periodo1Fim: form.ferias_periodo1_fim,
+      periodo2Inicio: form.ferias_periodo2_inicio,
+      periodo2Fim: form.ferias_periodo2_fim,
+    });
+
     const updateData = {
       nome: form.nome,
       cargo: form.cargo,
@@ -148,14 +155,14 @@ export function EditServidorModal({
       escala_fim1: form.escala_fim1 || null,
       escala_inicio2: form.escala_inicio2 || null,
       escala_fim2: form.escala_fim2 || null,
-      escala_total_horas: form.escala_total_horas ? parseInt(form.escala_total_horas) : null,
+      escala_total_horas: form.escala_total_horas ? parseInt(form.escala_total_horas, 10) : null,
       ferias_status_gerencial: form.ferias_status_gerencial || null,
       ferias_periodo1_inicio: form.ferias_periodo1_inicio || null,
       ferias_periodo1_fim: form.ferias_periodo1_fim || null,
       ferias_periodo2_inicio: form.ferias_periodo2_inicio || null,
       ferias_periodo2_fim: form.ferias_periodo2_fim || null,
-      ferias_total_dias: form.ferias_total_dias ? parseInt(form.ferias_total_dias) : null,
-      ferias_vencidas: form.ferias_vencidas ? parseInt(form.ferias_vencidas) : null,
+      ferias_total_dias: feriasTotalDias ?? (form.ferias_total_dias ? parseInt(form.ferias_total_dias, 10) : null),
+      ferias_vencidas: form.ferias_vencidas ? parseInt(form.ferias_vencidas, 10) : null,
       observacao: form.observacao || null,
       is_diretor: form.is_diretor,
       is_coordenador: form.is_coordenador,
