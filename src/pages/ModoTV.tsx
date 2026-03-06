@@ -1257,11 +1257,11 @@ export default function ModoTV() {
   // Find specific diretoria if param provided
   const targetDiretoria = diretoriaParam ? diretorias.find(d => d.id === diretoriaParam) : null;
 
-  // Apply auto-presence based on escalas_semanais (recalculates every tick)
+  // Apply auto-presence based on escalas + férias/atestados/afastamentos/faltas (recalculates every tick)
   const servidores = useMemo(
-    () => applyAutoPresenca(servidoresRaw, escalasSemanais, new Date()),
+    () => applyAutoPresenca(servidoresRaw, escalasSemanais, new Date(), { atestados, afastamentos, faltasAbonadas }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [servidoresRaw, escalasSemanais, presencaTick],
+    [servidoresRaw, escalasSemanais, atestados, afastamentos, faltasAbonadas, presencaTick],
   );
 
   const slides = useMemo(() => {
