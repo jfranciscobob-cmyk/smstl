@@ -1147,6 +1147,9 @@ export default function ModoTV() {
   const [unidades, setUnidades] = useState<UnidadeDB[]>([]);
   const [coordenadoresUnidades, setCoordenadoresUnidades] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
   const [escalasSemanais, setEscalasSemanais] = useState<EscalaSemanalRow[]>([]);
+  const [atestados, setAtestados] = useState<AtestadoDB[]>([]);
+  const [afastamentos, setAfastamentos] = useState<AfastamentoDB[]>([]);
+  const [faltasAbonadas, setFaltasAbonadas] = useState<Pick<FaltaAbonadaDB, "servidor_id" | "data">[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideDirection, setSlideDirection] = useState<"left" | "right">("left");
