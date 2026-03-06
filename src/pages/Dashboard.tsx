@@ -242,19 +242,44 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
     };
 
     try {
-      const [allServidores, diretoriasRes, unidadesRes, coordenacoesRes, coordUnidadesRes, faltasRes, srvUnidadesRes, escalasRes] = await Promise.all([
+      const [
+        allServidores,
+        diretoriasRes,
+        unidadesRes,
+        coordenacoesRes,
+        coordUnidadesRes,
+        faltasRes,
+        atestadosRes,
+        afastamentosRes,
+        srvUnidadesRes,
+        escalasRes,
+      ] = await Promise.all([
         fetchAllServidores(),
         supabase.from("diretorias").select("*").order("nome"),
         supabase.from("unidades").select("*").order("nome"),
         supabase.from("coordenacoes").select("*").order("nome"),
         supabase.from("coordenadores_unidades").select("*"),
         supabase.from("faltas_abonadas").select("servidor_id, data"),
+        supabase.from("atestados").select("*"),
+        supabase.from("afastamentos").select("*"),
         supabase.from("servidores_unidades").select("servidor_id, unidade_id"),
         supabase.from("escalas_semanais").select("servidor_id, dia_semana, entrada1, saida1, entrada2, saida2"),
       ]);
 
-      if (diretoriasRes.error || unidadesRes.error || coordenacoesRes.error) {
-        throw new Error(diretoriasRes.error?.message || unidadesRes.error?.message || coordenacoesRes.error?.message || "Erro");
+      const firstError = [
+        diretoriasRes.error,
+        unidadesRes.error,
+        coordenacoesRes.error,
+        coordUnidadesRes.error,
+        faltasRes.error,
+        atestadosRes.error,
+        afastamentosRes.error,
+        srvUnidadesRes.error,
+        escalasRes.error,
+      ].find(Boolean);
+
+      if (firstError) {
+        throw new Error(firstError.message);
       }
 
       setServidores(allServidores);
@@ -264,6 +289,8 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
       setCoordUnidades(coordUnidadesRes.data ?? []);
       setServidoresUnidades((srvUnidadesRes.data ?? []) as { servidor_id: string; unidade_id: string }[]);
       setFaltasAbonadas((faltasRes.data ?? []) as { servidor_id: string; data: string }[]);
+      setAtestados((atestadosRes.data ?? []) as AtestadoDB[]);
+      setAfastamentos((afastamentosRes.data ?? []) as AfastamentoDB[]);
       setEscalasSemanais((escalasRes.data ?? []) as EscalaSemanalRow[]);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : "Erro ao carregar dados");
