@@ -37,6 +37,7 @@ function MonitorContent() {
   const [afastamentos, setAfastamentos] = useState<AfastamentoDB[]>([]);
   const [loading, setLoading] = useState(true);
   const [coordUniData, setCoordUniData] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
+  const [servidoresUnidades, setServidoresUnidades] = useState<{ servidor_id: string; unidade_id: string }[]>([]);
   const [escalasSemanais, setEscalasSemanais] = useState<EscalaSemanalRow[]>([]);
 
   // Atestado form
@@ -104,7 +105,7 @@ function MonitorContent() {
       if (data.length < PAGE) break;
       offset += PAGE;
     }
-    const [d, u, f, a, fa, af, cu, es] = await Promise.all([
+    const [d, u, f, a, fa, af, cu, su, es] = await Promise.all([
       supabase.from("diretorias").select("*").order("nome"),
       supabase.from("unidades").select("*").order("nome"),
       supabase.from("funcoes").select("*").order("nome"),
@@ -112,6 +113,7 @@ function MonitorContent() {
       supabase.from("faltas_abonadas").select("*").order("data", { ascending: false }),
       supabase.from("afastamentos").select("*").order("data_inicio", { ascending: false }),
       supabase.from("coordenadores_unidades").select("*"),
+      supabase.from("servidores_unidades").select("servidor_id, unidade_id"),
       supabase.from("escalas_semanais").select("servidor_id, dia_semana, entrada1, saida1, entrada2, saida2"),
     ]);
     setServidores(allSrv as ServidorDB[]);
@@ -122,6 +124,7 @@ function MonitorContent() {
     setFaltasAbonadas((fa.data ?? []) as FaltaAbonadaDB[]);
     setAfastamentos((af.data ?? []) as AfastamentoDB[]);
     setCoordUniData((cu.data ?? []) as { servidor_id: string; unidade_id: string }[]);
+    setServidoresUnidades((su.data ?? []) as { servidor_id: string; unidade_id: string }[]);
     setEscalasSemanais((es.data ?? []) as EscalaSemanalRow[]);
     setLoading(false);
   }, []);
@@ -147,6 +150,38 @@ function MonitorContent() {
   const canEditEscalasFerias = hasFullAccess || isCoordenador;
 
   const today = new Date();
+
+  const servidorUnidadeIdsByServidor = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    servidores.forEach((s) => {
+      const ids = new Set<string>();
+      if (s.unidade_id) ids.add(s.unidade_id);
+      map.set(s.id, ids);
+    });
+    servidoresUnidades.forEach(({ servidor_id, unidade_id }) => {
+      const ids = map.get(servidor_id) ?? new Set<string>();
+      ids.add(unidade_id);
+      map.set(servidor_id, ids);
+    });
+    return map;
+  }, [servidores, servidoresUnidades]);
+
+  const unidadeToDiretoria = useMemo(() => new Map(unidades.map((u) => [u.id, u.diretoria_id])), [unidades]);
+
+  const isServidorNaUnidade = useCallback(
+    (servidorId: string, unidadeId: string) => servidorUnidadeIdsByServidor.get(servidorId)?.has(unidadeId) ?? false,
+    [servidorUnidadeIdsByServidor],
+  );
+
+  const isServidorNaDiretoria = useCallback((servidor: ServidorDB, diretoriaId: string) => {
+    if (servidor.diretoria_id === diretoriaId) return true;
+    const unidadeIds = servidorUnidadeIdsByServidor.get(servidor.id);
+    if (!unidadeIds) return false;
+    for (const unidadeId of unidadeIds) {
+      if (unidadeToDiretoria.get(unidadeId) === diretoriaId) return true;
+    }
+    return false;
+  }, [servidorUnidadeIdsByServidor, unidadeToDiretoria]);
 
   // ── Role-based access filtering ──
   const allowedDiretorias = useMemo(() => {
@@ -175,25 +210,25 @@ function MonitorContent() {
   const allowedServidoresRaw = useMemo(() => {
     if (isAdmin) return servidores;
     if (isDiretor && userDiretoriaIds.length > 0) {
-      return servidores.filter(s => s.diretoria_id && userDiretoriaIds.includes(s.diretoria_id));
+      return servidores.filter(s => userDiretoriaIds.some((dirId) => isServidorNaDiretoria(s, dirId)));
     }
     if (isCoordenador && userUnidadeIds.length > 0) {
-      return servidores.filter(s => s.unidade_id && userUnidadeIds.includes(s.unidade_id));
+      return servidores.filter(s => userUnidadeIds.some((uniId) => isServidorNaUnidade(s.id, uniId)));
     }
     return servidores;
-  }, [servidores, isAdmin, isDiretor, isCoordenador, userDiretoriaIds, userUnidadeIds]);
+  }, [servidores, isAdmin, isDiretor, isCoordenador, userDiretoriaIds, userUnidadeIds, isServidorNaDiretoria, isServidorNaUnidade]);
 
-  // Apply auto-presence based on escalas_semanais for fixed schedules
+  // Apply auto-presence based on escalas + férias/atestados/afastamentos/faltas
   const allowedServidores = useMemo(
-    () => applyAutoPresenca(allowedServidoresRaw, escalasSemanais),
-    [allowedServidoresRaw, escalasSemanais],
+    () => applyAutoPresenca(allowedServidoresRaw, escalasSemanais, new Date(), { atestados, afastamentos, faltasAbonadas }),
+    [allowedServidoresRaw, escalasSemanais, atestados, afastamentos, faltasAbonadas],
   );
 
   // Filter servidores based on view
   const filteredServidores = useMemo(() => {
     let result = allowedServidores;
-    if (selectedUnidadeId) result = result.filter(s => s.unidade_id === selectedUnidadeId);
-    else if (selectedDiretoriaId) result = result.filter(s => s.diretoria_id === selectedDiretoriaId);
+    if (selectedUnidadeId) result = result.filter(s => isServidorNaUnidade(s.id, selectedUnidadeId));
+    else if (selectedDiretoriaId) result = result.filter(s => isServidorNaDiretoria(s, selectedDiretoriaId));
 
     if (activeFilter === "presentes") result = result.filter(s => s.status_presenca === "presente");
     else if (activeFilter === "ferias") result = result.filter(s => s.status_presenca === "ferias");
@@ -205,7 +240,7 @@ function MonitorContent() {
     else if (activeFilter === "duplo_vinculo") result = result.filter(s => s.duplo_vinculo);
 
     return result;
-  }, [allowedServidores, selectedUnidadeId, selectedDiretoriaId, activeFilter]);
+  }, [allowedServidores, selectedUnidadeId, selectedDiretoriaId, activeFilter, isServidorNaUnidade, isServidorNaDiretoria]);
 
   // Time helpers
   const currentHour = today.getHours();
@@ -631,7 +666,7 @@ function MonitorContent() {
 
   // Unit summary card (used in hierarchy view)
   const UnitSummaryCard = ({ uni }: { uni: UnidadeDB }) => {
-    const uniServs = allowedServidores.filter(s => s.unidade_id === uni.id);
+    const uniServs = allowedServidores.filter(s => isServidorNaUnidade(s.id, uni.id));
     const uniPresentes = uniServs.filter(s => s.status_presenca === "presente").length;
     const uniFolha = uniServs.reduce((sum, s) => sum + (s.salario || 0), 0);
     const pct = uniServs.length > 0 ? Math.round((uniPresentes / uniServs.length) * 100) : 0;
@@ -871,7 +906,7 @@ function MonitorContent() {
               <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Diretorias</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {allowedDiretorias.map(dir => {
-                  const dirServs = allowedServidores.filter(s => s.diretoria_id === dir.id);
+                  const dirServs = allowedServidores.filter(s => isServidorNaDiretoria(s, dir.id));
                   const dirPresentes = dirServs.filter(s => s.status_presenca === "presente").length;
                   const dirFolha = dirServs.reduce((sum, s) => sum + (s.salario || 0), 0);
                   const dirUnidades = unidades.filter(u => u.diretoria_id === dir.id);
