@@ -108,37 +108,6 @@ function isDateWithinRange(todayKey: string, startRaw: string | null | undefined
   return todayKey >= start && todayKey <= finalEnd;
 }
 
-/**
- * Parse "HH:MM" to minutes since midnight
- */
-function parseTime(time: string | null): number | null {
-  if (!time) return null;
-  const parts = time.split(":");
-  if (parts.length < 2) return null;
-  const h = parseInt(parts[0], 10);
-  const m = parseInt(parts[1], 10);
-  if (isNaN(h) || isNaN(m)) return null;
-  return h * 60 + m;
-}
-
-/**
- * Check if current time (in minutes) falls within a shift period
- */
-function isWithinShift(
-  nowMinutes: number,
-  entrada: string | null,
-  saida: string | null,
-): boolean {
-  const start = parseTime(entrada);
-  const end = parseTime(saida);
-  if (start === null || end === null) return false;
-
-  // Handle overnight shifts (e.g., 22:00 - 06:00)
-  if (end < start) {
-    return nowMinutes >= start || nowMinutes <= end;
-  }
-  return nowMinutes >= start && nowMinutes <= end;
-}
 
 /**
  * Given a servidor and their weekly escalas, compute the effective status.
