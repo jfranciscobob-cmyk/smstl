@@ -1,3 +1,5 @@
+import { getCurrentDayAndMinutes, hasLegacyEscalaConfigured, isWithinShiftWindow } from "@/lib/escalaUtils";
+
 /**
  * Computes effective presence status for servidores with fixed schedules.
  *
