@@ -1416,8 +1416,7 @@ function MonitorContent() {
                         <p className="text-[10px] text-muted-foreground">{s.cargo}</p>
                       </div>
                       <span className="text-xs font-mono text-success">
-                        {s.escala_inicio1}-{s.escala_fim1}
-                        {s.escala_inicio2 && ` / ${s.escala_inicio2}-${s.escala_fim2}`}
+                        {getShiftLabel(s)}
                       </span>
                     </div>
                   ))}
