@@ -17,13 +17,14 @@ interface EscalaSemanalDB {
 }
 
 // dia_semana follows JS getDay(): 0=Sunday, 1=Monday, ..., 6=Saturday
-// Display order: Monday first, Sunday last
-const DIAS_DISPLAY = [
+const DIAS_SEMANA = [
   { label: "Seg", dbDay: 1 },
   { label: "Ter", dbDay: 2 },
   { label: "Qua", dbDay: 3 },
   { label: "Qui", dbDay: 4 },
   { label: "Sex", dbDay: 5 },
+];
+const DIAS_FIM_DE_SEMANA = [
   { label: "Sáb", dbDay: 6 },
   { label: "Dom", dbDay: 0 },
 ];
