@@ -12,6 +12,15 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO, isWithinInterval, addDays, isBefore, isAfter, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
+import {
+  calculateDailyHoursFromTimes,
+  getCurrentDayAndMinutes,
+  getServidorDailyHours,
+  getServidorWorkingDaysLabel,
+  getTodayShiftLabel,
+  hasAnyEscalaConfigured,
+  isServidorOnShiftNow,
+} from "@/lib/escalaUtils";
 import { EscalaSemanalEditor } from "@/components/EscalaSemanalEditor";
 import { TransferServidorModal } from "@/components/TransferServidorModal";
 import { isAfastadoLikeStatus } from "@/lib/presencaStatus";
@@ -291,56 +300,34 @@ function MonitorContent() {
     return result;
   }, [allowedServidores, selectedUnidadeId, selectedDiretoriaId, activeFilter, isServidorNaUnidade, isServidorNaDiretoria]);
 
-  // Time helpers
-  const currentHour = today.getHours();
-  const currentMinute = today.getMinutes();
-  const currentTimeMinutes = currentHour * 60 + currentMinute;
-  const parseTime = (t: string | null): number | null => {
-    if (!t) return null;
-    const parts = t.split(":");
-    if (parts.length < 2) return null;
-    return parseInt(parts[0]) * 60 + parseInt(parts[1]);
-  };
-  const todayDayOfWeek = today.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  // Time helpers (timezone aligned with auto-presence)
+  const { dayOfWeek: todayDayOfWeek, nowMinutes: currentTimeMinutes } = getCurrentDayAndMinutes("America/Campo_Grande", today);
 
-  const getTodayEscala = (servidorId: string): EscalaSemanalRow | null => {
-    return escalasSemanais.find(e => e.servidor_id === servidorId && e.dia_semana === todayDayOfWeek) ?? null;
-  };
+  const isOnShift = (s: ServidorDB) =>
+    isServidorOnShiftNow({
+      servidor: s,
+      escalas: escalasSemanais,
+      dayOfWeek: todayDayOfWeek,
+      nowMinutes: currentTimeMinutes,
+    });
 
-  const isOnShift = (s: ServidorDB) => {
-    const escala = getTodayEscala(s.id);
-    if (escala) {
-      const start1 = parseTime(escala.entrada1);
-      const end1 = parseTime(escala.saida1);
-      const start2 = parseTime(escala.entrada2);
-      const end2 = parseTime(escala.saida2);
-      if (start1 !== null && end1 !== null && currentTimeMinutes >= start1 && currentTimeMinutes <= end1) return true;
-      if (start2 !== null && end2 !== null && currentTimeMinutes >= start2 && currentTimeMinutes <= end2) return true;
-      return false;
-    }
-    // Fallback to static fields only if no escalas_semanais configured at all
-    const hasAnyEscala = escalasSemanais.some(e => e.servidor_id === s.id);
-    if (hasAnyEscala) return false; // Has escalas but none for today = not on shift
-    const start1 = parseTime(s.escala_inicio1);
-    const end1 = parseTime(s.escala_fim1);
-    const start2 = parseTime(s.escala_inicio2);
-    const end2 = parseTime(s.escala_fim2);
-    if (start1 !== null && end1 !== null && currentTimeMinutes >= start1 && currentTimeMinutes <= end1) return true;
-    if (start2 !== null && end2 !== null && currentTimeMinutes >= start2 && currentTimeMinutes <= end2) return true;
-    return false;
+  const getShiftLabel = (s: ServidorDB): string =>
+    getTodayShiftLabel({
+      servidor: s,
+      escalas: escalasSemanais,
+      dayOfWeek: todayDayOfWeek,
+    });
+
+  const formatHours = (hours: number): string => {
+    if (hours <= 0) return "—";
+    return Number.isInteger(hours) ? `${hours}h` : `${hours.toFixed(1)}h`;
   };
 
-  const getShiftLabel = (s: ServidorDB): string => {
-    const escala = getTodayEscala(s.id);
-    if (escala) {
-      const t1 = escala.entrada1 && escala.saida1 ? `${escala.entrada1}-${escala.saida1}` : "";
-      const t2 = escala.entrada2 && escala.saida2 ? `${escala.entrada2}-${escala.saida2}` : "";
-      return [t1, t2].filter(Boolean).join(" / ") || "Sem horário";
-    }
-    const t1 = s.escala_inicio1 && s.escala_fim1 ? `${s.escala_inicio1}-${s.escala_fim1}` : "";
-    const t2 = s.escala_inicio2 && s.escala_fim2 ? `${s.escala_inicio2}-${s.escala_fim2}` : "";
-    return [t1, t2].filter(Boolean).join(" / ") || "Sem escala";
-  };
+  const getCargaHorariaDiaria = (s: ServidorDB): number =>
+    getServidorDailyHours({ servidor: s, escalas: escalasSemanais, dayOfWeek: todayDayOfWeek });
+
+  const getDiasTrabalhados = (s: ServidorDB): string =>
+    getServidorWorkingDaysLabel({ servidor: s, escalas: escalasSemanais });
 
   const onShift = filteredServidores.filter(s => s.status_presenca === "presente" && isOnShift(s));
   const offShift = filteredServidores.filter(s => s.status_presenca === "presente" && !isOnShift(s));
@@ -498,11 +485,45 @@ function MonitorContent() {
     loadData();
   };
 
+  const updateBulkEscalaTime = useCallback((servidorId: string, key: "inicio1" | "fim1" | "inicio2" | "fim2", value: string) => {
+    setBulkEscalas(prev => {
+      const current = prev[servidorId] ?? { inicio1: "", fim1: "", inicio2: "", fim2: "", total: "" };
+      const updated = { ...current, [key]: value };
+      const totalDia = calculateDailyHoursFromTimes({
+        entrada1: updated.inicio1,
+        saida1: updated.fim1,
+        entrada2: updated.inicio2,
+        saida2: updated.fim2,
+      });
+
+      return {
+        ...prev,
+        [servidorId]: {
+          ...updated,
+          total: totalDia > 0 ? String(totalDia) : "",
+        },
+      };
+    });
+  }, []);
+
   // Bulk escala save
   const initBulkEscalas = () => {
     const initial: Record<string, any> = {};
     filteredServidores.forEach(s => {
-      initial[s.id] = { inicio1: s.escala_inicio1 || "", fim1: s.escala_fim1 || "", inicio2: s.escala_inicio2 || "", fim2: s.escala_fim2 || "", total: s.escala_total_horas?.toString() || "" };
+      const totalDia = calculateDailyHoursFromTimes({
+        entrada1: s.escala_inicio1,
+        saida1: s.escala_fim1,
+        entrada2: s.escala_inicio2,
+        saida2: s.escala_fim2,
+      });
+
+      initial[s.id] = {
+        inicio1: s.escala_inicio1 || "",
+        fim1: s.escala_fim1 || "",
+        inicio2: s.escala_inicio2 || "",
+        fim2: s.escala_fim2 || "",
+        total: totalDia > 0 ? String(totalDia) : (s.escala_total_horas?.toString() || ""),
+      };
     });
     setBulkEscalas(initial);
     setShowBulkEscala(true);
@@ -515,7 +536,7 @@ function MonitorContent() {
       const { error } = await supabase.from("servidores").update({
         escala_inicio1: esc.inicio1 || null, escala_fim1: esc.fim1 || null,
         escala_inicio2: esc.inicio2 || null, escala_fim2: esc.fim2 || null,
-        escala_total_horas: esc.total ? parseInt(esc.total) : null,
+        escala_total_horas: esc.total ? parseFloat(esc.total) : null,
       }).eq("id", id);
       if (!error) count++;
     }
@@ -622,12 +643,10 @@ function MonitorContent() {
 
 
   // Servidores sem escala ou férias
-  const hasEscalaCompleta = useCallback((s: ServidorDB) => {
-    const hasCargaHoraria = (s.escala_total_horas ?? 0) > 0;
-    const hasTurno1 = Boolean(s.escala_inicio1 && s.escala_fim1);
-    const hasTurno2 = Boolean(s.escala_inicio2 && s.escala_fim2);
-    return hasCargaHoraria && (hasTurno1 || hasTurno2);
-  }, []);
+  const hasEscalaCompleta = useCallback(
+    (s: ServidorDB) => hasAnyEscalaConfigured(s, escalasSemanais),
+    [escalasSemanais],
+  );
 
   const semEscala = useMemo(() => filteredServidores.filter(s => !hasEscalaCompleta(s)), [filteredServidores, hasEscalaCompleta]);
   const semFerias = useMemo(() => filteredServidores.filter(s => !s.ferias_ano_referencia && !s.ferias_periodo1_inicio), [filteredServidores]);
@@ -807,6 +826,7 @@ function MonitorContent() {
   // Current breadcrumb
   const currentDiretoria = diretorias.find(d => d.id === selectedDiretoriaId);
   const currentUnidade = unidades.find(u => u.id === selectedUnidadeId);
+  const escalaTableColSpan = 11 + (hasFinancialAccess ? 1 : 0) + (canTransfer ? 1 : 0);
 
   return (
     <div className="min-h-screen bg-background">
@@ -1385,9 +1405,15 @@ function MonitorContent() {
                         <input type="checkbox" checked={allocSelectedIds.has(s.id)}
                           onChange={() => setAllocSelectedIds(prev => { const n = new Set(prev); n.has(s.id) ? n.delete(s.id) : n.add(s.id); return n; })}
                           className="h-3.5 w-3.5 rounded border-input" />
-                        <span className="text-xs text-foreground">{s.nome}</span>
-                        <span className="text-[10px] text-muted-foreground ml-auto">{s.cargo}</span>
-                        {s.unidade_id && <span className="text-[9px] bg-muted px-1 rounded text-muted-foreground">{unidades.find(u => u.id === s.unidade_id)?.sigla || "Outra"}</span>}
+                        <div className="min-w-0">
+                          <span className="text-xs text-foreground block truncate">{s.nome}</span>
+                          <span className="text-[10px] text-muted-foreground truncate block">{s.cargo}</span>
+                        </div>
+                        <div className="ml-auto flex items-center gap-1.5 flex-wrap justify-end">
+                          <span className="text-[9px] bg-muted px-1 rounded text-muted-foreground">{getDiasTrabalhados(s)}</span>
+                          <span className="text-[9px] bg-muted px-1 rounded text-muted-foreground">{formatHours(getCargaHorariaDiaria(s))}</span>
+                          {s.unidade_id && <span className="text-[9px] bg-muted px-1 rounded text-muted-foreground">{unidades.find(u => u.id === s.unidade_id)?.sigla || "Outra"}</span>}
+                        </div>
                       </label>
                     ))}
                     {allocAvailableServidores.length === 0 && <p className="text-xs text-muted-foreground p-3 italic">Nenhum servidor encontrado.</p>}
@@ -1862,6 +1888,7 @@ function MonitorContent() {
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Turno 2</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Total</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Escala</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Dias</th>
                       {hasFinancialAccess && <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Salário</th>}
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">F.Abon.</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Status</th>
@@ -1872,6 +1899,8 @@ function MonitorContent() {
                   <tbody>
                     {filteredServidores.map(s => {
                       const faltaInfo = getFaltasNoAno(s.id, s.data_admissao);
+                      const cargaDiaria = getCargaHorariaDiaria(s);
+                      const diasTrabalhados = getDiasTrabalhados(s);
                       return (
                         <React.Fragment key={s.id}>
                           <tr className="border-b border-border/30 hover:bg-muted/20">
@@ -1882,17 +1911,17 @@ function MonitorContent() {
                               <>
                                 <td className="py-1">
                                   <div className="flex gap-1">
-                                    <input type="time" value={bulkEscalas[s.id].inicio1} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], inicio1: e.target.value } }))}
+                                    <input type="time" value={bulkEscalas[s.id].inicio1} onChange={e => updateBulkEscalaTime(s.id, "inicio1", e.target.value)}
                                       className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
-                                    <input type="time" value={bulkEscalas[s.id].fim1} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], fim1: e.target.value } }))}
+                                    <input type="time" value={bulkEscalas[s.id].fim1} onChange={e => updateBulkEscalaTime(s.id, "fim1", e.target.value)}
                                       className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
                                   </div>
                                 </td>
                                 <td className="py-1">
                                   <div className="flex gap-1">
-                                    <input type="time" value={bulkEscalas[s.id].inicio2} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], inicio2: e.target.value } }))}
+                                    <input type="time" value={bulkEscalas[s.id].inicio2} onChange={e => updateBulkEscalaTime(s.id, "inicio2", e.target.value)}
                                       className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
-                                    <input type="time" value={bulkEscalas[s.id].fim2} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], fim2: e.target.value } }))}
+                                    <input type="time" value={bulkEscalas[s.id].fim2} onChange={e => updateBulkEscalaTime(s.id, "fim2", e.target.value)}
                                       className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
                                   </div>
                                 </td>
@@ -1905,7 +1934,7 @@ function MonitorContent() {
                               <>
                                 <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio1 ? `${s.escala_inicio1}-${s.escala_fim1}` : "—"}</td>
                                 <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio2 ? `${s.escala_inicio2}-${s.escala_fim2}` : "—"}</td>
-                                <td className="py-2 font-mono font-bold text-foreground">{s.escala_total_horas ? `${s.escala_total_horas}h` : "—"}</td>
+                                <td className="py-2 font-mono font-bold text-foreground">{formatHours(cargaDiaria)}</td>
                               </>
                             )}
                             <td className="py-2">
@@ -1914,6 +1943,9 @@ function MonitorContent() {
                               )}>
                                 {s.tipo_escala === "plantao_12x36" ? "12×36" : s.tipo_escala === "plantao_24x72" ? "24×72" : s.tipo_escala === "plantao_12x60" ? "12×60" : s.tipo_escala === "variavel" ? "Var." : "Fixa"}
                               </span>
+                            </td>
+                            <td className="py-2">
+                              <span className="text-[10px] font-medium text-muted-foreground">{diasTrabalhados}</span>
                             </td>
                             {hasFinancialAccess && <td className="py-2 font-mono text-primary whitespace-nowrap">{s.salario > 0 ? formatCurrency(s.salario) : "—"}</td>}
                             <td className="py-2">
@@ -1949,7 +1981,7 @@ function MonitorContent() {
                           </tr>
                           {expandedSemanalId === s.id && (
                             <tr>
-                              <td colSpan={10} className="p-2 bg-muted/10">
+                              <td colSpan={escalaTableColSpan} className="p-2 bg-muted/10">
                                 <EscalaSemanalEditor
                                   servidorId={s.id}
                                   servidorNome={s.nome}
