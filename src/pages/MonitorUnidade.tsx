@@ -1899,6 +1899,8 @@ function MonitorContent() {
                   <tbody>
                     {filteredServidores.map(s => {
                       const faltaInfo = getFaltasNoAno(s.id, s.data_admissao);
+                      const cargaDiaria = getCargaHorariaDiaria(s);
+                      const diasTrabalhados = getDiasTrabalhados(s);
                       return (
                         <React.Fragment key={s.id}>
                           <tr className="border-b border-border/30 hover:bg-muted/20">
