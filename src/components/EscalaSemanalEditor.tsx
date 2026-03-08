@@ -17,13 +17,14 @@ interface EscalaSemanalDB {
 }
 
 // dia_semana follows JS getDay(): 0=Sunday, 1=Monday, ..., 6=Saturday
-// Display order: Monday first, Sunday last
-const DIAS_DISPLAY = [
+const DIAS_SEMANA = [
   { label: "Seg", dbDay: 1 },
   { label: "Ter", dbDay: 2 },
   { label: "Qua", dbDay: 3 },
   { label: "Qui", dbDay: 4 },
   { label: "Sex", dbDay: 5 },
+];
+const DIAS_FIM_DE_SEMANA = [
   { label: "Sáb", dbDay: 6 },
   { label: "Dom", dbDay: 0 },
 ];
@@ -31,6 +32,7 @@ const DIAS_DISPLAY = [
 interface Props {
   servidorId: string;
   servidorNome: string;
+  tipoEscala?: string;
   defaultEscala?: { inicio1: string; fim1: string; inicio2: string; fim2: string; total: number | null };
   onTotalChange?: (totalSemanal: number) => void;
 }
@@ -50,8 +52,10 @@ function calcHoursFromTimes(entrada1: string, saida1: string, entrada2: string, 
   return Math.round(total * 100) / 100;
 }
 
-export function EscalaSemanalEditor({ servidorId, servidorNome, defaultEscala, onTotalChange }: Props) {
+export function EscalaSemanalEditor({ servidorId, servidorNome, tipoEscala, defaultEscala, onTotalChange }: Props) {
   const { toast } = useToast();
+  const isPlantao = tipoEscala === "plantao" || tipoEscala === "plantão";
+  const DIAS_DISPLAY = isPlantao ? [...DIAS_SEMANA, ...DIAS_FIM_DE_SEMANA] : DIAS_SEMANA;
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [escalas, setEscalas] = useState<Record<number, { entrada1: string; saida1: string; entrada2: string; saida2: string; total: string; obs: string }>>({});
