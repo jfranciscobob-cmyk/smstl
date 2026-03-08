@@ -1923,6 +1923,7 @@ function MonitorContent() {
                                 <EscalaSemanalEditor
                                   servidorId={s.id}
                                   servidorNome={s.nome}
+                                  tipoEscala={s.tipo_escala}
                                   defaultEscala={{ inicio1: s.escala_inicio1 || "", fim1: s.escala_fim1 || "", inicio2: s.escala_inicio2 || "", fim2: s.escala_fim2 || "", total: s.escala_total_horas }}
                                 />
                               </td>
