@@ -16,7 +16,17 @@ interface EscalaSemanalDB {
   observacao: string | null;
 }
 
-const DIAS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+// dia_semana follows JS getDay(): 0=Sunday, 1=Monday, ..., 6=Saturday
+// Display order: Monday first, Sunday last
+const DIAS_DISPLAY = [
+  { label: "Seg", dbDay: 1 },
+  { label: "Ter", dbDay: 2 },
+  { label: "Qua", dbDay: 3 },
+  { label: "Qui", dbDay: 4 },
+  { label: "Sex", dbDay: 5 },
+  { label: "Sáb", dbDay: 6 },
+  { label: "Dom", dbDay: 0 },
+];
 
 interface Props {
   servidorId: string;
