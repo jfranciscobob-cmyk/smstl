@@ -1934,7 +1934,7 @@ function MonitorContent() {
                               <>
                                 <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio1 ? `${s.escala_inicio1}-${s.escala_fim1}` : "—"}</td>
                                 <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio2 ? `${s.escala_inicio2}-${s.escala_fim2}` : "—"}</td>
-                                <td className="py-2 font-mono font-bold text-foreground">{s.escala_total_horas ? `${s.escala_total_horas}h` : "—"}</td>
+                                <td className="py-2 font-mono font-bold text-foreground">{formatHours(cargaDiaria)}</td>
                               </>
                             )}
                             <td className="py-2">
