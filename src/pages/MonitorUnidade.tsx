@@ -1981,7 +1981,7 @@ function MonitorContent() {
                           </tr>
                           {expandedSemanalId === s.id && (
                             <tr>
-                              <td colSpan={10} className="p-2 bg-muted/10">
+                              <td colSpan={escalaTableColSpan} className="p-2 bg-muted/10">
                                 <EscalaSemanalEditor
                                   servidorId={s.id}
                                   servidorNome={s.nome}
