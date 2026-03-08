@@ -32,6 +32,7 @@ const DIAS_FIM_DE_SEMANA = [
 interface Props {
   servidorId: string;
   servidorNome: string;
+  tipoEscala?: string;
   defaultEscala?: { inicio1: string; fim1: string; inicio2: string; fim2: string; total: number | null };
   onTotalChange?: (totalSemanal: number) => void;
 }
