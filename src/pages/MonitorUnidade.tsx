@@ -1911,7 +1911,7 @@ function MonitorContent() {
                                   <div className="flex gap-1">
                                     <input type="time" value={bulkEscalas[s.id].inicio2} onChange={e => updateBulkEscalaTime(s.id, "inicio2", e.target.value)}
                                       className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
-                                    <input type="time" value={bulkEscalas[s.id].fim2} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], fim2: e.target.value } }))}
+                                    <input type="time" value={bulkEscalas[s.id].fim2} onChange={e => updateBulkEscalaTime(s.id, "fim2", e.target.value)}
                                       className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
                                   </div>
                                 </td>
