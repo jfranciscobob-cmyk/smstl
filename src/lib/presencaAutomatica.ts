@@ -119,8 +119,8 @@ export function getEffectiveStatus(
   context: PresencaContext = {},
 ): string {
   const timezone = context.timezone ?? DEFAULT_TIMEZONE;
-  const tzOptions = { timeZone: timezone } as const;
   const todayKey = getDateKeyInTimezone(now, timezone);
+  const { dayOfWeek: localDayOfWeek, nowMinutes } = getCurrentDayAndMinutes(timezone, now);
 
   // 1) Active férias period on servidor
   const feriasAtivas =
@@ -163,15 +163,30 @@ export function getEffectiveStatus(
   // Fixed schedule: check if servidor has ANY escalas configured at all
   const servidorEscalas = escalas.filter((e) => e.servidor_id === servidor.id);
 
-  // If no escalas configured at all -> keep manual status (schedule not set up yet)
+  // Legacy fallback for fixed schedule without escalas_semanais rows
   if (servidorEscalas.length === 0) {
-    return servidor.status_presenca;
-  }
+    if (!hasLegacyEscalaConfigured(servidor)) {
+      return servidor.status_presenca;
+    }
 
-  // Find today's escala using local TZ
-  const weekdayLong = new Intl.DateTimeFormat("en-US", { ...tzOptions, weekday: "long" }).format(now);
-  const dayMap: Record<string, number> = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
-  const localDayOfWeek = dayMap[weekdayLong] ?? now.getDay();
+    // Legacy fixed schedules default to weekdays only
+    if (localDayOfWeek === 0 || localDayOfWeek === 6) {
+      return "folga";
+    }
+
+    const inLegacyShift1 = isWithinShiftWindow(
+      nowMinutes,
+      servidor.escala_inicio1,
+      servidor.escala_fim1,
+    );
+    const inLegacyShift2 = isWithinShiftWindow(
+      nowMinutes,
+      servidor.escala_inicio2,
+      servidor.escala_fim2,
+    );
+
+    return inLegacyShift1 || inLegacyShift2 ? "presente" : "ausente";
+  }
 
   const todayEscalas = servidorEscalas.filter((e) => e.dia_semana === localDayOfWeek);
 
@@ -187,14 +202,9 @@ export function getEffectiveStatus(
     return "folga";
   }
 
-  // Get current time in local TZ
-  const localHour = parseInt(new Intl.DateTimeFormat("en-US", { ...tzOptions, hour: "numeric", hour12: false }).format(now), 10);
-  const localMinute = parseInt(new Intl.DateTimeFormat("en-US", { ...tzOptions, minute: "numeric" }).format(now), 10);
-  const nowMinutes = localHour * 60 + localMinute;
-
   // Check if within any shift period
-  const inShift1 = isWithinShift(nowMinutes, escala.entrada1, escala.saida1);
-  const inShift2 = isWithinShift(nowMinutes, escala.entrada2, escala.saida2);
+  const inShift1 = isWithinShiftWindow(nowMinutes, escala.entrada1, escala.saida1);
+  const inShift2 = isWithinShiftWindow(nowMinutes, escala.entrada2, escala.saida2);
 
   return inShift1 || inShift2 ? "presente" : "ausente";
 }
