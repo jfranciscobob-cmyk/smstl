@@ -1901,7 +1901,7 @@ function MonitorContent() {
                               <>
                                 <td className="py-1">
                                   <div className="flex gap-1">
-                                    <input type="time" value={bulkEscalas[s.id].inicio1} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], inicio1: e.target.value } }))}
+                                    <input type="time" value={bulkEscalas[s.id].inicio1} onChange={e => updateBulkEscalaTime(s.id, "inicio1", e.target.value)}
                                       className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
                                     <input type="time" value={bulkEscalas[s.id].fim1} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], fim1: e.target.value } }))}
                                       className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
