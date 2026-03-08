@@ -203,27 +203,27 @@ export function EscalaSemanalEditor({ servidorId, servidorNome, defaultEscala, o
               <th className="pb-1 w-8"></th>
             </tr>
           </thead>
-          <tbody>
-            {DIAS.map((nome, i) => {
-              const esc = escalas[i];
+           <tbody>
+            {DIAS_DISPLAY.map(({ label, dbDay }) => {
+              const esc = escalas[dbDay];
               if (!esc) return null;
-              const isWeekend = i >= 5;
+              const isWeekend = dbDay === 0 || dbDay === 6;
               const dayHours = parseFloat(esc.total) || 0;
               return (
-                <tr key={i} className={cn("border-b border-border/20", isWeekend && "bg-muted/30")}>
-                  <td className="py-1 font-bold text-foreground">{nome}</td>
-                  <td className="py-1"><input type="time" className={inputClass} value={esc.entrada1} onChange={e => setDay(i, "entrada1", e.target.value)} /></td>
-                  <td className="py-1"><input type="time" className={inputClass} value={esc.saida1} onChange={e => setDay(i, "saida1", e.target.value)} /></td>
-                  <td className="py-1"><input type="time" className={inputClass} value={esc.entrada2} onChange={e => setDay(i, "entrada2", e.target.value)} /></td>
-                  <td className="py-1"><input type="time" className={inputClass} value={esc.saida2} onChange={e => setDay(i, "saida2", e.target.value)} /></td>
+                <tr key={dbDay} className={cn("border-b border-border/20", isWeekend && "bg-muted/30")}>
+                  <td className="py-1 font-bold text-foreground">{label}</td>
+                  <td className="py-1"><input type="time" className={inputClass} value={esc.entrada1} onChange={e => setDay(dbDay, "entrada1", e.target.value)} /></td>
+                  <td className="py-1"><input type="time" className={inputClass} value={esc.saida1} onChange={e => setDay(dbDay, "saida1", e.target.value)} /></td>
+                  <td className="py-1"><input type="time" className={inputClass} value={esc.entrada2} onChange={e => setDay(dbDay, "entrada2", e.target.value)} /></td>
+                  <td className="py-1"><input type="time" className={inputClass} value={esc.saida2} onChange={e => setDay(dbDay, "saida2", e.target.value)} /></td>
                   <td className="py-1">
                     <span className={cn("inline-block w-10 text-center font-bold", dayHours > 0 ? "text-primary" : "text-muted-foreground")}>
                       {dayHours > 0 ? `${dayHours}h` : "—"}
                     </span>
                   </td>
-                  <td className="py-1"><input className={cn(inputClass, "w-20 text-left")} value={esc.obs} onChange={e => setDay(i, "obs", e.target.value)} placeholder="Obs" /></td>
+                  <td className="py-1"><input className={cn(inputClass, "w-20 text-left")} value={esc.obs} onChange={e => setDay(dbDay, "obs", e.target.value)} placeholder="Obs" /></td>
                   <td className="py-1">
-                    <button onClick={() => copyToAll(i)} title={`Copiar ${nome} para todos`} className="text-[9px] text-primary hover:text-primary/80 font-medium">
+                    <button onClick={() => copyToAll(dbDay)} title={`Copiar ${label} para todos`} className="text-[9px] text-primary hover:text-primary/80 font-medium">
                       ⟹
                     </button>
                   </td>
