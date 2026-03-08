@@ -1437,7 +1437,7 @@ function MonitorContent() {
                         <p className="text-[10px] text-muted-foreground">{s.cargo}</p>
                       </div>
                       <span className="text-xs font-mono text-muted-foreground">
-                        {s.escala_inicio1 ? `${s.escala_inicio1}-${s.escala_fim1}` : "Sem escala"}
+                        {getShiftLabel(s)}
                       </span>
                     </div>
                   ))}
