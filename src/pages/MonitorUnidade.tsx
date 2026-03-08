@@ -300,56 +300,34 @@ function MonitorContent() {
     return result;
   }, [allowedServidores, selectedUnidadeId, selectedDiretoriaId, activeFilter, isServidorNaUnidade, isServidorNaDiretoria]);
 
-  // Time helpers
-  const currentHour = today.getHours();
-  const currentMinute = today.getMinutes();
-  const currentTimeMinutes = currentHour * 60 + currentMinute;
-  const parseTime = (t: string | null): number | null => {
-    if (!t) return null;
-    const parts = t.split(":");
-    if (parts.length < 2) return null;
-    return parseInt(parts[0]) * 60 + parseInt(parts[1]);
-  };
-  const todayDayOfWeek = today.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  // Time helpers (timezone aligned with auto-presence)
+  const { dayOfWeek: todayDayOfWeek, nowMinutes: currentTimeMinutes } = getCurrentDayAndMinutes("America/Campo_Grande", today);
 
-  const getTodayEscala = (servidorId: string): EscalaSemanalRow | null => {
-    return escalasSemanais.find(e => e.servidor_id === servidorId && e.dia_semana === todayDayOfWeek) ?? null;
-  };
+  const isOnShift = (s: ServidorDB) =>
+    isServidorOnShiftNow({
+      servidor: s,
+      escalas: escalasSemanais,
+      dayOfWeek: todayDayOfWeek,
+      nowMinutes: currentTimeMinutes,
+    });
 
-  const isOnShift = (s: ServidorDB) => {
-    const escala = getTodayEscala(s.id);
-    if (escala) {
-      const start1 = parseTime(escala.entrada1);
-      const end1 = parseTime(escala.saida1);
-      const start2 = parseTime(escala.entrada2);
-      const end2 = parseTime(escala.saida2);
-      if (start1 !== null && end1 !== null && currentTimeMinutes >= start1 && currentTimeMinutes <= end1) return true;
-      if (start2 !== null && end2 !== null && currentTimeMinutes >= start2 && currentTimeMinutes <= end2) return true;
-      return false;
-    }
-    // Fallback to static fields only if no escalas_semanais configured at all
-    const hasAnyEscala = escalasSemanais.some(e => e.servidor_id === s.id);
-    if (hasAnyEscala) return false; // Has escalas but none for today = not on shift
-    const start1 = parseTime(s.escala_inicio1);
-    const end1 = parseTime(s.escala_fim1);
-    const start2 = parseTime(s.escala_inicio2);
-    const end2 = parseTime(s.escala_fim2);
-    if (start1 !== null && end1 !== null && currentTimeMinutes >= start1 && currentTimeMinutes <= end1) return true;
-    if (start2 !== null && end2 !== null && currentTimeMinutes >= start2 && currentTimeMinutes <= end2) return true;
-    return false;
+  const getShiftLabel = (s: ServidorDB): string =>
+    getTodayShiftLabel({
+      servidor: s,
+      escalas: escalasSemanais,
+      dayOfWeek: todayDayOfWeek,
+    });
+
+  const formatHours = (hours: number): string => {
+    if (hours <= 0) return "—";
+    return Number.isInteger(hours) ? `${hours}h` : `${hours.toFixed(1)}h`;
   };
 
-  const getShiftLabel = (s: ServidorDB): string => {
-    const escala = getTodayEscala(s.id);
-    if (escala) {
-      const t1 = escala.entrada1 && escala.saida1 ? `${escala.entrada1}-${escala.saida1}` : "";
-      const t2 = escala.entrada2 && escala.saida2 ? `${escala.entrada2}-${escala.saida2}` : "";
-      return [t1, t2].filter(Boolean).join(" / ") || "Sem horário";
-    }
-    const t1 = s.escala_inicio1 && s.escala_fim1 ? `${s.escala_inicio1}-${s.escala_fim1}` : "";
-    const t2 = s.escala_inicio2 && s.escala_fim2 ? `${s.escala_inicio2}-${s.escala_fim2}` : "";
-    return [t1, t2].filter(Boolean).join(" / ") || "Sem escala";
-  };
+  const getCargaHorariaDiaria = (s: ServidorDB): number =>
+    getServidorDailyHours({ servidor: s, escalas: escalasSemanais, dayOfWeek: todayDayOfWeek });
+
+  const getDiasTrabalhados = (s: ServidorDB): string =>
+    getServidorWorkingDaysLabel({ servidor: s, escalas: escalasSemanais });
 
   const onShift = filteredServidores.filter(s => s.status_presenca === "presente" && isOnShift(s));
   const offShift = filteredServidores.filter(s => s.status_presenca === "presente" && !isOnShift(s));
