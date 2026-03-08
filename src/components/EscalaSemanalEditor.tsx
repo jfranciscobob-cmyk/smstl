@@ -133,14 +133,14 @@ export function EscalaSemanalEditor({ servidorId, servidorNome, defaultEscala, o
   const handleSave = async () => {
     setSaving(true);
     let errors = 0;
-    for (let dia = 0; dia < 7; dia++) {
-      const esc = escalas[dia];
+    for (const d of DIAS_DISPLAY) {
+      const esc = escalas[d.dbDay];
       if (!esc) continue;
       const { error } = await supabase
         .from("escalas_semanais")
         .upsert({
           servidor_id: servidorId,
-          dia_semana: dia,
+          dia_semana: d.dbDay,
           entrada1: esc.entrada1 || null,
           saida1: esc.saida1 || null,
           entrada2: esc.entrada2 || null,
