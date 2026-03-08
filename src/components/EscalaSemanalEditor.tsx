@@ -16,7 +16,17 @@ interface EscalaSemanalDB {
   observacao: string | null;
 }
 
-const DIAS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+// dia_semana follows JS getDay(): 0=Sunday, 1=Monday, ..., 6=Saturday
+// Display order: Monday first, Sunday last
+const DIAS_DISPLAY = [
+  { label: "Seg", dbDay: 1 },
+  { label: "Ter", dbDay: 2 },
+  { label: "Qua", dbDay: 3 },
+  { label: "Qui", dbDay: 4 },
+  { label: "Sex", dbDay: 5 },
+  { label: "Sáb", dbDay: 6 },
+  { label: "Dom", dbDay: 0 },
+];
 
 interface Props {
   servidorId: string;
@@ -48,8 +58,8 @@ export function EscalaSemanalEditor({ servidorId, servidorNome, defaultEscala, o
 
   useEffect(() => {
     const init: Record<number, any> = {};
-    for (let i = 0; i < 7; i++) {
-      init[i] = {
+    for (const d of DIAS_DISPLAY) {
+      init[d.dbDay] = {
         entrada1: defaultEscala?.inicio1 || "",
         saida1: defaultEscala?.fim1 || "",
         entrada2: defaultEscala?.inicio2 || "",
@@ -108,28 +118,29 @@ export function EscalaSemanalEditor({ servidorId, servidorNome, defaultEscala, o
     });
   }, []);
 
-  const copyToAll = (fromDia: number) => {
-    const source = escalas[fromDia];
+  const copyToAll = (fromDbDay: number) => {
+    const source = escalas[fromDbDay];
     if (!source) return;
     const updated = { ...escalas };
-    for (let i = 0; i < 7; i++) {
-      updated[i] = { ...source };
+    for (const d of DIAS_DISPLAY) {
+      updated[d.dbDay] = { ...source };
     }
     setEscalas(updated);
-    toast({ title: `Escala de ${DIAS[fromDia]} copiada para todos os dias` });
+    const label = DIAS_DISPLAY.find(d => d.dbDay === fromDbDay)?.label ?? "";
+    toast({ title: `Escala de ${label} copiada para todos os dias` });
   };
 
   const handleSave = async () => {
     setSaving(true);
     let errors = 0;
-    for (let dia = 0; dia < 7; dia++) {
-      const esc = escalas[dia];
+    for (const d of DIAS_DISPLAY) {
+      const esc = escalas[d.dbDay];
       if (!esc) continue;
       const { error } = await supabase
         .from("escalas_semanais")
         .upsert({
           servidor_id: servidorId,
-          dia_semana: dia,
+          dia_semana: d.dbDay,
           entrada1: esc.entrada1 || null,
           saida1: esc.saida1 || null,
           entrada2: esc.entrada2 || null,
@@ -192,27 +203,27 @@ export function EscalaSemanalEditor({ servidorId, servidorNome, defaultEscala, o
               <th className="pb-1 w-8"></th>
             </tr>
           </thead>
-          <tbody>
-            {DIAS.map((nome, i) => {
-              const esc = escalas[i];
+           <tbody>
+            {DIAS_DISPLAY.map(({ label, dbDay }) => {
+              const esc = escalas[dbDay];
               if (!esc) return null;
-              const isWeekend = i >= 5;
+              const isWeekend = dbDay === 0 || dbDay === 6;
               const dayHours = parseFloat(esc.total) || 0;
               return (
-                <tr key={i} className={cn("border-b border-border/20", isWeekend && "bg-muted/30")}>
-                  <td className="py-1 font-bold text-foreground">{nome}</td>
-                  <td className="py-1"><input type="time" className={inputClass} value={esc.entrada1} onChange={e => setDay(i, "entrada1", e.target.value)} /></td>
-                  <td className="py-1"><input type="time" className={inputClass} value={esc.saida1} onChange={e => setDay(i, "saida1", e.target.value)} /></td>
-                  <td className="py-1"><input type="time" className={inputClass} value={esc.entrada2} onChange={e => setDay(i, "entrada2", e.target.value)} /></td>
-                  <td className="py-1"><input type="time" className={inputClass} value={esc.saida2} onChange={e => setDay(i, "saida2", e.target.value)} /></td>
+                <tr key={dbDay} className={cn("border-b border-border/20", isWeekend && "bg-muted/30")}>
+                  <td className="py-1 font-bold text-foreground">{label}</td>
+                  <td className="py-1"><input type="time" className={inputClass} value={esc.entrada1} onChange={e => setDay(dbDay, "entrada1", e.target.value)} /></td>
+                  <td className="py-1"><input type="time" className={inputClass} value={esc.saida1} onChange={e => setDay(dbDay, "saida1", e.target.value)} /></td>
+                  <td className="py-1"><input type="time" className={inputClass} value={esc.entrada2} onChange={e => setDay(dbDay, "entrada2", e.target.value)} /></td>
+                  <td className="py-1"><input type="time" className={inputClass} value={esc.saida2} onChange={e => setDay(dbDay, "saida2", e.target.value)} /></td>
                   <td className="py-1">
                     <span className={cn("inline-block w-10 text-center font-bold", dayHours > 0 ? "text-primary" : "text-muted-foreground")}>
                       {dayHours > 0 ? `${dayHours}h` : "—"}
                     </span>
                   </td>
-                  <td className="py-1"><input className={cn(inputClass, "w-20 text-left")} value={esc.obs} onChange={e => setDay(i, "obs", e.target.value)} placeholder="Obs" /></td>
+                  <td className="py-1"><input className={cn(inputClass, "w-20 text-left")} value={esc.obs} onChange={e => setDay(dbDay, "obs", e.target.value)} placeholder="Obs" /></td>
                   <td className="py-1">
-                    <button onClick={() => copyToAll(i)} title={`Copiar ${nome} para todos`} className="text-[9px] text-primary hover:text-primary/80 font-medium">
+                    <button onClick={() => copyToAll(dbDay)} title={`Copiar ${label} para todos`} className="text-[9px] text-primary hover:text-primary/80 font-medium">
                       ⟹
                     </button>
                   </td>
