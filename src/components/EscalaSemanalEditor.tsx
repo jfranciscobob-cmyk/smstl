@@ -52,8 +52,10 @@ function calcHoursFromTimes(entrada1: string, saida1: string, entrada2: string, 
   return Math.round(total * 100) / 100;
 }
 
-export function EscalaSemanalEditor({ servidorId, servidorNome, defaultEscala, onTotalChange }: Props) {
+export function EscalaSemanalEditor({ servidorId, servidorNome, tipoEscala, defaultEscala, onTotalChange }: Props) {
   const { toast } = useToast();
+  const isPlantao = tipoEscala === "plantao" || tipoEscala === "plantão";
+  const DIAS_DISPLAY = isPlantao ? [...DIAS_SEMANA, ...DIAS_FIM_DE_SEMANA] : DIAS_SEMANA;
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [escalas, setEscalas] = useState<Record<number, { entrada1: string; saida1: string; entrada2: string; saida2: string; total: string; obs: string }>>({});
