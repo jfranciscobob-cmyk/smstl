@@ -12,6 +12,15 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { format, parseISO, isWithinInterval, addDays, isBefore, isAfter, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
+import {
+  calculateDailyHoursFromTimes,
+  getCurrentDayAndMinutes,
+  getServidorDailyHours,
+  getServidorWorkingDaysLabel,
+  getTodayShiftLabel,
+  hasAnyEscalaConfigured,
+  isServidorOnShiftNow,
+} from "@/lib/escalaUtils";
 import { EscalaSemanalEditor } from "@/components/EscalaSemanalEditor";
 import { TransferServidorModal } from "@/components/TransferServidorModal";
 import { isAfastadoLikeStatus } from "@/lib/presencaStatus";
