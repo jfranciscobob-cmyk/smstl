@@ -485,11 +485,45 @@ function MonitorContent() {
     loadData();
   };
 
+  const updateBulkEscalaTime = useCallback((servidorId: string, key: "inicio1" | "fim1" | "inicio2" | "fim2", value: string) => {
+    setBulkEscalas(prev => {
+      const current = prev[servidorId] ?? { inicio1: "", fim1: "", inicio2: "", fim2: "", total: "" };
+      const updated = { ...current, [key]: value };
+      const totalDia = calculateDailyHoursFromTimes({
+        entrada1: updated.inicio1,
+        saida1: updated.fim1,
+        entrada2: updated.inicio2,
+        saida2: updated.fim2,
+      });
+
+      return {
+        ...prev,
+        [servidorId]: {
+          ...updated,
+          total: totalDia > 0 ? String(totalDia) : "",
+        },
+      };
+    });
+  }, []);
+
   // Bulk escala save
   const initBulkEscalas = () => {
     const initial: Record<string, any> = {};
     filteredServidores.forEach(s => {
-      initial[s.id] = { inicio1: s.escala_inicio1 || "", fim1: s.escala_fim1 || "", inicio2: s.escala_inicio2 || "", fim2: s.escala_fim2 || "", total: s.escala_total_horas?.toString() || "" };
+      const totalDia = calculateDailyHoursFromTimes({
+        entrada1: s.escala_inicio1,
+        saida1: s.escala_fim1,
+        entrada2: s.escala_inicio2,
+        saida2: s.escala_fim2,
+      });
+
+      initial[s.id] = {
+        inicio1: s.escala_inicio1 || "",
+        fim1: s.escala_fim1 || "",
+        inicio2: s.escala_inicio2 || "",
+        fim2: s.escala_fim2 || "",
+        total: totalDia > 0 ? String(totalDia) : (s.escala_total_horas?.toString() || ""),
+      };
     });
     setBulkEscalas(initial);
     setShowBulkEscala(true);
@@ -502,7 +536,7 @@ function MonitorContent() {
       const { error } = await supabase.from("servidores").update({
         escala_inicio1: esc.inicio1 || null, escala_fim1: esc.fim1 || null,
         escala_inicio2: esc.inicio2 || null, escala_fim2: esc.fim2 || null,
-        escala_total_horas: esc.total ? parseInt(esc.total) : null,
+        escala_total_horas: esc.total ? parseFloat(esc.total) : null,
       }).eq("id", id);
       if (!error) count++;
     }
