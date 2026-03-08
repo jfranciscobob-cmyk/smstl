@@ -118,15 +118,16 @@ export function EscalaSemanalEditor({ servidorId, servidorNome, defaultEscala, o
     });
   }, []);
 
-  const copyToAll = (fromDia: number) => {
-    const source = escalas[fromDia];
+  const copyToAll = (fromDbDay: number) => {
+    const source = escalas[fromDbDay];
     if (!source) return;
     const updated = { ...escalas };
-    for (let i = 0; i < 7; i++) {
-      updated[i] = { ...source };
+    for (const d of DIAS_DISPLAY) {
+      updated[d.dbDay] = { ...source };
     }
     setEscalas(updated);
-    toast({ title: `Escala de ${DIAS[fromDia]} copiada para todos os dias` });
+    const label = DIAS_DISPLAY.find(d => d.dbDay === fromDbDay)?.label ?? "";
+    toast({ title: `Escala de ${label} copiada para todos os dias` });
   };
 
   const handleSave = async () => {
