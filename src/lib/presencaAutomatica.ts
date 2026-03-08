@@ -30,6 +30,10 @@ export interface ServidorForPresenca {
   id: string;
   tipo_escala: string;
   status_presenca: string;
+  escala_inicio1?: string | null;
+  escala_fim1?: string | null;
+  escala_inicio2?: string | null;
+  escala_fim2?: string | null;
   ferias_periodo1_inicio?: string | null;
   ferias_periodo1_fim?: string | null;
   ferias_periodo2_inicio?: string | null;
