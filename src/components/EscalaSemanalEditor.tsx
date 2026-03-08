@@ -58,8 +58,8 @@ export function EscalaSemanalEditor({ servidorId, servidorNome, defaultEscala, o
 
   useEffect(() => {
     const init: Record<number, any> = {};
-    for (let i = 0; i < 7; i++) {
-      init[i] = {
+    for (const d of DIAS_DISPLAY) {
+      init[d.dbDay] = {
         entrada1: defaultEscala?.inicio1 || "",
         saida1: defaultEscala?.fim1 || "",
         entrada2: defaultEscala?.inicio2 || "",
