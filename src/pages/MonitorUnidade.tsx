@@ -1404,9 +1404,15 @@ function MonitorContent() {
                         <input type="checkbox" checked={allocSelectedIds.has(s.id)}
                           onChange={() => setAllocSelectedIds(prev => { const n = new Set(prev); n.has(s.id) ? n.delete(s.id) : n.add(s.id); return n; })}
                           className="h-3.5 w-3.5 rounded border-input" />
-                        <span className="text-xs text-foreground">{s.nome}</span>
-                        <span className="text-[10px] text-muted-foreground ml-auto">{s.cargo}</span>
-                        {s.unidade_id && <span className="text-[9px] bg-muted px-1 rounded text-muted-foreground">{unidades.find(u => u.id === s.unidade_id)?.sigla || "Outra"}</span>}
+                        <div className="min-w-0">
+                          <span className="text-xs text-foreground block truncate">{s.nome}</span>
+                          <span className="text-[10px] text-muted-foreground truncate block">{s.cargo}</span>
+                        </div>
+                        <div className="ml-auto flex items-center gap-1.5 flex-wrap justify-end">
+                          <span className="text-[9px] bg-muted px-1 rounded text-muted-foreground">{getDiasTrabalhados(s)}</span>
+                          <span className="text-[9px] bg-muted px-1 rounded text-muted-foreground">{formatHours(getCargaHorariaDiaria(s))}</span>
+                          {s.unidade_id && <span className="text-[9px] bg-muted px-1 rounded text-muted-foreground">{unidades.find(u => u.id === s.unidade_id)?.sigla || "Outra"}</span>}
+                        </div>
                       </label>
                     ))}
                     {allocAvailableServidores.length === 0 && <p className="text-xs text-muted-foreground p-3 italic">Nenhum servidor encontrado.</p>}
