@@ -1944,6 +1944,9 @@ function MonitorContent() {
                                 {s.tipo_escala === "plantao_12x36" ? "12×36" : s.tipo_escala === "plantao_24x72" ? "24×72" : s.tipo_escala === "plantao_12x60" ? "12×60" : s.tipo_escala === "variavel" ? "Var." : "Fixa"}
                               </span>
                             </td>
+                            <td className="py-2">
+                              <span className="text-[10px] font-medium text-muted-foreground">{diasTrabalhados}</span>
+                            </td>
                             {hasFinancialAccess && <td className="py-2 font-mono text-primary whitespace-nowrap">{s.salario > 0 ? formatCurrency(s.salario) : "—"}</td>}
                             <td className="py-2">
                               <span className={cn("text-xs font-mono font-bold", faltaInfo.usadas >= 5 ? "text-destructive" : faltaInfo.usadas >= 3 ? "text-warning" : "text-muted-foreground")}>{faltaInfo.usadas}/5</span>
