@@ -52,6 +52,8 @@ const initialForm = {
   tipo_escala: "fixa",
   is_diretor: false,
   is_coordenador: false,
+  data_nascimento: "",
+  email: "",
 };
 
 export function CreateServidorModal({
