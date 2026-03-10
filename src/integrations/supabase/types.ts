@@ -597,6 +597,7 @@ export type Database = {
           created_at: string
           data_admissao: string | null
           data_encerramento_contrato: string | null
+          data_nascimento: string | null
           diretoria_id: string | null
           duplo_vinculo: boolean
           email: string | null
@@ -642,6 +643,7 @@ export type Database = {
           created_at?: string
           data_admissao?: string | null
           data_encerramento_contrato?: string | null
+          data_nascimento?: string | null
           diretoria_id?: string | null
           duplo_vinculo?: boolean
           email?: string | null
@@ -687,6 +689,7 @@ export type Database = {
           created_at?: string
           data_admissao?: string | null
           data_encerramento_contrato?: string | null
+          data_nascimento?: string | null
           diretoria_id?: string | null
           duplo_vinculo?: boolean
           email?: string | null
