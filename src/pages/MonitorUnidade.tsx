@@ -329,6 +329,8 @@ function MonitorContent() {
   const getDiasTrabalhados = (s: ServidorDB): string =>
     getServidorWorkingDaysLabel({ servidor: s, escalas: escalasSemanais });
 
+  // Servidores presentes: split by on-shift vs off-shift
+  // Only consider "on shift" if they actually have a schedule for today
   const onShift = filteredServidores.filter(s => s.status_presenca === "presente" && isOnShift(s));
   const offShift = filteredServidores.filter(s => s.status_presenca === "presente" && !isOnShift(s));
 
@@ -363,7 +365,10 @@ function MonitorContent() {
   const presentes = filteredServidores.filter(s => s.status_presenca === "presente").length;
   const emFerias = filteredServidores.filter(s => s.status_presenca === "ferias").length;
   const afastados = filteredServidores.filter(s => isAfastadoLikeStatus(s.status_presenca)).length;
-  const totalHoras = filteredServidores.reduce((sum, s) => sum + (s.escala_total_horas || 0), 0);
+  const totalHoras = filteredServidores.reduce((sum, s) => {
+    const diaria = getCargaHorariaDiaria(s);
+    return sum + (diaria > 0 ? diaria : (s.escala_total_horas || 0));
+  }, 0);
   const totalFolha = filteredServidores.reduce((sum, s) => sum + (s.salario || 0), 0);
 
   const addAtestado = async () => {
@@ -826,7 +831,7 @@ function MonitorContent() {
   // Current breadcrumb
   const currentDiretoria = diretorias.find(d => d.id === selectedDiretoriaId);
   const currentUnidade = unidades.find(u => u.id === selectedUnidadeId);
-  const escalaTableColSpan = 11 + (hasFinancialAccess ? 1 : 0) + (canTransfer ? 1 : 0);
+  const escalaTableColSpan = 10 + (hasFinancialAccess ? 1 : 0) + (canTransfer ? 1 : 0);
 
   return (
     <div className="min-h-screen bg-background">
@@ -1884,11 +1889,10 @@ function MonitorContent() {
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Servidor</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Cargo</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Admissão</th>
-                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Turno 1</th>
-                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Turno 2</th>
-                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Total</th>
-                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Escala</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Horário Hoje</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Carga Dia</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Dias</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Escala</th>
                       {hasFinancialAccess && <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Salário</th>}
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">F.Abon.</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Status</th>
@@ -1909,32 +1913,43 @@ function MonitorContent() {
                             <td className="py-2 text-muted-foreground font-mono">{s.data_admissao ? format(parseISO(s.data_admissao), "dd/MM/yyyy") : "—"}</td>
                             {showBulkEscala && bulkEscalas[s.id] ? (
                               <>
-                                <td className="py-1">
-                                  <div className="flex gap-1">
+                                <td className="py-1" colSpan={2}>
+                                  <div className="flex gap-1 flex-wrap">
                                     <input type="time" value={bulkEscalas[s.id].inicio1} onChange={e => updateBulkEscalaTime(s.id, "inicio1", e.target.value)}
                                       className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                    <span className="text-muted-foreground self-center text-[10px]">—</span>
                                     <input type="time" value={bulkEscalas[s.id].fim1} onChange={e => updateBulkEscalaTime(s.id, "fim1", e.target.value)}
                                       className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
-                                  </div>
-                                </td>
-                                <td className="py-1">
-                                  <div className="flex gap-1">
-                                    <input type="time" value={bulkEscalas[s.id].inicio2} onChange={e => updateBulkEscalaTime(s.id, "inicio2", e.target.value)}
-                                      className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
-                                    <input type="time" value={bulkEscalas[s.id].fim2} onChange={e => updateBulkEscalaTime(s.id, "fim2", e.target.value)}
-                                      className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                    {(bulkEscalas[s.id].inicio2 || bulkEscalas[s.id].fim2) && (
+                                      <>
+                                        <span className="text-muted-foreground self-center text-[10px]">/</span>
+                                        <input type="time" value={bulkEscalas[s.id].inicio2} onChange={e => updateBulkEscalaTime(s.id, "inicio2", e.target.value)}
+                                          className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                        <span className="text-muted-foreground self-center text-[10px]">—</span>
+                                        <input type="time" value={bulkEscalas[s.id].fim2} onChange={e => updateBulkEscalaTime(s.id, "fim2", e.target.value)}
+                                          className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                      </>
+                                    )}
                                   </div>
                                 </td>
                                 <td className="py-1">
                                   <input type="number" value={bulkEscalas[s.id].total} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], total: e.target.value } }))}
                                     className="w-12 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground text-center focus:ring-1 focus:ring-ring focus:outline-none" placeholder="h" />
                                 </td>
+                                <td className="py-1 text-[10px] text-muted-foreground">{diasTrabalhados}</td>
                               </>
                             ) : (
                               <>
-                                <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio1 ? `${s.escala_inicio1}-${s.escala_fim1}` : "—"}</td>
-                                <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio2 ? `${s.escala_inicio2}-${s.escala_fim2}` : "—"}</td>
+                                <td className="py-2 font-mono text-muted-foreground">
+                                  {(() => {
+                                    const label = getShiftLabel(s);
+                                    return label || "—";
+                                  })()}
+                                </td>
                                 <td className="py-2 font-mono font-bold text-foreground">{formatHours(cargaDiaria)}</td>
+                                <td className="py-2">
+                                  <span className="text-[10px] font-medium text-muted-foreground">{diasTrabalhados}</span>
+                                </td>
                               </>
                             )}
                             <td className="py-2">
@@ -1943,9 +1958,6 @@ function MonitorContent() {
                               )}>
                                 {s.tipo_escala === "plantao_12x36" ? "12×36" : s.tipo_escala === "plantao_24x72" ? "24×72" : s.tipo_escala === "plantao_12x60" ? "12×60" : s.tipo_escala === "variavel" ? "Var." : "Fixa"}
                               </span>
-                            </td>
-                            <td className="py-2">
-                              <span className="text-[10px] font-medium text-muted-foreground">{diasTrabalhados}</span>
                             </td>
                             {hasFinancialAccess && <td className="py-2 font-mono text-primary whitespace-nowrap">{s.salario > 0 ? formatCurrency(s.salario) : "—"}</td>}
                             <td className="py-2">

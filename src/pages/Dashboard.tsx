@@ -8,6 +8,7 @@ import { CreateServidorModal } from "@/components/CreateServidorModal";
 import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB, type CoordenacaoDB, type AtestadoDB, type AfastamentoDB } from "@/hooks/useServidores";
 import { applyAutoPresenca, type EscalaSemanalRow } from "@/lib/presencaAutomatica";
 import { isAfastadoLikeStatus } from "@/lib/presencaStatus";
+import { hasAnyEscalaConfigured } from "@/lib/escalaUtils";
 import { Link } from "react-router-dom";
 import {
   Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Search,
@@ -469,8 +470,8 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
 
   // ── Servidores sem escala ou férias atualizadas ──
   const semEscala = useMemo(() =>
-    servidoresComPresenca.filter(s => s.tipo_escala === 'fixa' && !s.escala_inicio1 && !s.escala_total_horas),
-    [servidoresComPresenca]
+    servidoresComPresenca.filter(s => !hasAnyEscalaConfigured(s, escalasSemanais)),
+    [servidoresComPresenca, escalasSemanais]
   );
   const semFerias = useMemo(() =>
     servidoresComPresenca.filter(s => !s.ferias_ano_referencia && !s.ferias_periodo1_inicio),
