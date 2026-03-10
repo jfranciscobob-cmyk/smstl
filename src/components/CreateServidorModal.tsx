@@ -129,6 +129,8 @@ export function CreateServidorModal({
       data_admissao: form.data_admissao || null,
       data_encerramento_contrato: form.data_encerramento_contrato || null,
       tipo_escala: form.tipo_escala,
+      data_nascimento: form.data_nascimento || null,
+      email: form.email || null,
     });
 
     setSaving(false);
