@@ -603,26 +603,87 @@ function MonitorContent() {
     loadData();
   };
 
-  // Bulk allocation: alocar servidores a diretoria + unidade
+  // Bulk allocation: alocar servidores considerando vínculos múltiplos
   const bulkAllocate = async () => {
     if (allocSelectedIds.size === 0) {
       toast({ title: "Selecione pelo menos um servidor", variant: "destructive" }); return;
     }
+
     setSavingAlloc(true);
     const ids = Array.from(allocSelectedIds);
-    const updateData: any = { diretoria_id: selectedDiretoriaId || null };
-    if (allocTargetUnidade) updateData.unidade_id = allocTargetUnidade;
-    if (selectedUnidadeId) {
-      updateData.unidade_id = selectedUnidadeId;
-      updateData.diretoria_id = selectedDiretoriaId;
-    }
-    // Batch update in chunks of 50
+    const targetDiretoriaId = selectedDiretoriaId || null;
+    const targetUnidadeId = selectedUnidadeId || allocTargetUnidade || null;
+
     let count = 0;
-    for (let i = 0; i < ids.length; i += 50) {
-      const batch = ids.slice(i, i + 50);
-      const { error } = await supabase.from("servidores").update(updateData).in("id", batch);
-      if (!error) count += batch.length;
+
+    // Diretoria-only allocation
+    if (!targetUnidadeId) {
+      for (let i = 0; i < ids.length; i += 50) {
+        const batch = ids.slice(i, i + 50);
+        const { error } = await supabase
+          .from("servidores")
+          .update({ diretoria_id: targetDiretoriaId })
+          .in("id", batch);
+        if (!error) count += batch.length;
+      }
+    } else {
+      const selected = servidores.filter((s) => ids.includes(s.id));
+      const hasExtraUnidade = (servidorId: string) =>
+        servidoresUnidades.some((su) => su.servidor_id === servidorId);
+
+      const semVinculo = selected
+        .filter((s) => !s.unidade_id && !hasExtraUnidade(s.id))
+        .map((s) => s.id);
+
+      const jaNaUnidade = new Set(
+        selected
+          .filter(
+            (s) =>
+              s.unidade_id === targetUnidadeId ||
+              servidoresUnidades.some(
+                (su) => su.servidor_id === s.id && su.unidade_id === targetUnidadeId,
+              ),
+          )
+          .map((s) => s.id),
+      );
+
+      const manterEmAmbas = selected
+        .filter((s) => !jaNaUnidade.has(s.id) && (Boolean(s.unidade_id) || hasExtraUnidade(s.id)))
+        .map((s) => s.id);
+
+      if (semVinculo.length > 0) {
+        const { error } = await supabase
+          .from("servidores")
+          .update({
+            diretoria_id: targetDiretoriaId,
+            unidade_id: targetUnidadeId,
+          })
+          .in("id", semVinculo);
+
+        if (!error) count += semVinculo.length;
+      }
+
+      if (manterEmAmbas.length > 0) {
+        const { data: existentes, error: consultaErro } = await supabase
+          .from("servidores_unidades")
+          .select("servidor_id")
+          .eq("unidade_id", targetUnidadeId)
+          .in("servidor_id", manterEmAmbas);
+
+        if (!consultaErro) {
+          const existentesSet = new Set((existentes ?? []).map((row) => row.servidor_id));
+          const payload = manterEmAmbas
+            .filter((servidorId) => !existentesSet.has(servidorId))
+            .map((servidor_id) => ({ servidor_id, unidade_id: targetUnidadeId }));
+
+          if (payload.length > 0) {
+            const { error } = await supabase.from("servidores_unidades").insert(payload);
+            if (!error) count += payload.length;
+          }
+        }
+      }
     }
+
     setSavingAlloc(false);
     toast({ title: `${count} servidor(es) alocado(s)!` });
     setShowBulkAlloc(false);
@@ -632,19 +693,22 @@ function MonitorContent() {
     loadData();
   };
 
-  // Servidores available for allocation (not yet in this diretoria/unidade)
+  // Servidores disponíveis para alocação (considerando vínculos em tabela de junção)
   const allocAvailableServidores = useMemo(() => {
     let pool = servidores;
+
     if (selectedUnidadeId) {
-      pool = servidores.filter(s => s.unidade_id !== selectedUnidadeId);
+      pool = servidores.filter((s) => !isServidorNaUnidade(s.id, selectedUnidadeId));
     } else if (selectedDiretoriaId) {
-      pool = servidores.filter(s => s.diretoria_id !== selectedDiretoriaId);
+      pool = servidores.filter((s) => !isServidorNaDiretoria(s, selectedDiretoriaId));
     }
+
     if (allocSearch.length >= 2) {
-      pool = pool.filter(s => s.nome.toLowerCase().includes(allocSearch.toLowerCase()));
+      pool = pool.filter((s) => s.nome.toLowerCase().includes(allocSearch.toLowerCase()));
     }
+
     return pool.slice(0, 50);
-  }, [servidores, selectedDiretoriaId, selectedUnidadeId, allocSearch]);
+  }, [servidores, selectedDiretoriaId, selectedUnidadeId, allocSearch, isServidorNaDiretoria, isServidorNaUnidade]);
 
 
   // Servidores sem escala ou férias
