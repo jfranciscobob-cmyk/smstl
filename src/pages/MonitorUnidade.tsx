@@ -329,6 +329,8 @@ function MonitorContent() {
   const getDiasTrabalhados = (s: ServidorDB): string =>
     getServidorWorkingDaysLabel({ servidor: s, escalas: escalasSemanais });
 
+  // Servidores presentes: split by on-shift vs off-shift
+  // Only consider "on shift" if they actually have a schedule for today
   const onShift = filteredServidores.filter(s => s.status_presenca === "presente" && isOnShift(s));
   const offShift = filteredServidores.filter(s => s.status_presenca === "presente" && !isOnShift(s));
 
