@@ -441,8 +441,8 @@ function MonitorContent() {
   };
 
   const filteredFaltaServidores = faltaSearch.length >= 2
-    ? filteredServidores.filter(s => s.nome.toLowerCase().includes(faltaSearch.toLowerCase())).slice(0, 10)
-    : filteredServidores.slice(0, 10);
+    ? allServidoresInScope.filter(s => s.nome.toLowerCase().includes(faltaSearch.toLowerCase())).slice(0, 10)
+    : allServidoresInScope.slice(0, 10);
 
   const filteredAtestadoServidores = atestadoSearch.length >= 2
     ? filteredServidores.filter(s => s.nome.toLowerCase().includes(atestadoSearch.toLowerCase())).slice(0, 10)
