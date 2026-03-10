@@ -1789,7 +1789,7 @@ function MonitorContent() {
                 </div>
               )}
               <div className="space-y-1 max-h-64 overflow-y-auto">
-                {filteredServidores.map(s => {
+                {allServidoresInScope.map(s => {
                   const info = getFaltasNoAno(s.id, s.data_admissao);
                   if (info.usadas === 0 && !s.data_admissao) return null;
                   return (
