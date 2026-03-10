@@ -667,10 +667,14 @@ function MonitorContent() {
           }).eq("id", id);
         })
       );
-      for (const r of results) { if (!r.error) count++; }
+      const errors: string[] = [];
+      for (const r of results) { if (!r.error) count++; else errors.push(r.error.message); }
+      if (errors.length > 0) {
+        toast({ title: "Erros ao salvar férias", description: errors.slice(0, 3).join("; "), variant: "destructive" });
+      }
     }
     setSavingBulkFerias(false);
-    toast({ title: `Férias de ${count} servidores atualizadas!` });
+    if (count > 0) toast({ title: `Férias de ${count} servidores atualizadas!` });
     setShowBulkFerias(false);
     loadData();
   };
