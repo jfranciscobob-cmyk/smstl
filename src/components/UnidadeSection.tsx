@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { UnidadeDB, CoordenacaoDB, ServidorDB } from "@/hooks/useServidores";
 import { ServidorRow } from "./ServidorRow";
 import { ChevronDown, ChevronRight, Users } from "lucide-react";
@@ -15,6 +15,28 @@ export function UnidadeSection({ unidade, coordenacoes, servidores, onEditServid
   const [expanded, setExpanded] = useState(true);
   const totalServidores = servidores.length;
   const presentes = servidores.filter((s) => s.status_presenca === "presente").length;
+
+  const servidoresPorCoordenacao = useMemo(() => {
+    const map = new Map<string, ServidorDB[]>();
+    servidores.forEach((servidor) => {
+      if (!servidor.coordenacao_id) return;
+      const list = map.get(servidor.coordenacao_id) ?? [];
+      list.push(servidor);
+      map.set(servidor.coordenacao_id, list);
+    });
+    return map;
+  }, [servidores]);
+
+  const coordenacaoIdsDaUnidade = useMemo(() => new Set(coordenacoes.map((coord) => coord.id)), [coordenacoes]);
+
+  const servidoresSemCoordenacaoDaUnidade = useMemo(
+    () =>
+      servidores.filter(
+        (servidor) =>
+          !servidor.coordenacao_id || !coordenacaoIdsDaUnidade.has(servidor.coordenacao_id),
+      ),
+    [servidores, coordenacaoIdsDaUnidade],
+  );
 
   return (
     <div className="glass-card rounded-xl overflow-hidden animate-fade-in">
@@ -38,7 +60,7 @@ export function UnidadeSection({ unidade, coordenacoes, servidores, onEditServid
 
       <div className={cn("transition-all duration-300", expanded ? "max-h-[5000px] opacity-100" : "max-h-0 opacity-0 overflow-hidden")}>
         {coordenacoes.map((coord) => {
-          const coordServidores = servidores.filter((s) => s.coordenacao_id === coord.id);
+          const coordServidores = servidoresPorCoordenacao.get(coord.id) ?? [];
           if (coordServidores.length === 0) return null;
           return (
             <div key={coord.id} className="border-t border-border/50">
@@ -56,16 +78,16 @@ export function UnidadeSection({ unidade, coordenacoes, servidores, onEditServid
             </div>
           );
         })}
-        {servidores.filter((s) => !s.coordenacao_id).length > 0 && (
+        {servidoresSemCoordenacaoDaUnidade.length > 0 && (
           <div className="border-t border-border/50">
             <div className="bg-muted/30 px-5 py-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Sem Coordenação
-                <span className="ml-2 font-normal">({servidores.filter((s) => !s.coordenacao_id).length})</span>
+                Sem Coordenação nesta unidade
+                <span className="ml-2 font-normal">({servidoresSemCoordenacaoDaUnidade.length})</span>
               </h4>
             </div>
             <div className="divide-y divide-border/30 px-1">
-              {servidores.filter((s) => !s.coordenacao_id).map((servidor) => (
+              {servidoresSemCoordenacaoDaUnidade.map((servidor) => (
                 <ServidorRow key={servidor.id} servidor={servidor} onEdit={onEditServidor} />
               ))}
             </div>
