@@ -8,6 +8,7 @@ import { CreateServidorModal } from "@/components/CreateServidorModal";
 import { computeStats, type ServidorDB, type DiretoriaDB, type UnidadeDB, type CoordenacaoDB, type AtestadoDB, type AfastamentoDB } from "@/hooks/useServidores";
 import { applyAutoPresenca, type EscalaSemanalRow } from "@/lib/presencaAutomatica";
 import { isAfastadoLikeStatus } from "@/lib/presencaStatus";
+import { hasAnyEscalaConfigured } from "@/lib/escalaUtils";
 import { Link } from "react-router-dom";
 import {
   Users, CheckCircle, Palmtree, AlertTriangle, Shield, Building2, Search,
