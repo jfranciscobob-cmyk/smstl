@@ -282,11 +282,17 @@ function MonitorContent() {
     [allowedServidoresRaw, escalasSemanais, atestados, afastamentos, faltasAbonadas],
   );
 
-  // Filter servidores based on view
-  const filteredServidores = useMemo(() => {
+  // All servidores in selected scope (no status filter) — used by management panels
+  const allServidoresInScope = useMemo(() => {
     let result = allowedServidores;
     if (selectedUnidadeId) result = result.filter(s => isServidorNaUnidade(s.id, selectedUnidadeId));
     else if (selectedDiretoriaId) result = result.filter(s => isServidorNaDiretoria(s, selectedDiretoriaId));
+    return result;
+  }, [allowedServidores, selectedUnidadeId, selectedDiretoriaId, isServidorNaUnidade, isServidorNaDiretoria]);
+
+  // Filter servidores based on view (with status filter)
+  const filteredServidores = useMemo(() => {
+    let result = allServidoresInScope;
 
     if (activeFilter === "presentes") result = result.filter(s => s.status_presenca === "presente");
     else if (activeFilter === "ferias") result = result.filter(s => s.status_presenca === "ferias");
@@ -298,7 +304,7 @@ function MonitorContent() {
     else if (activeFilter === "duplo_vinculo") result = result.filter(s => s.duplo_vinculo);
 
     return result;
-  }, [allowedServidores, selectedUnidadeId, selectedDiretoriaId, activeFilter, isServidorNaUnidade, isServidorNaDiretoria]);
+  }, [allServidoresInScope, activeFilter]);
 
   // Time helpers (timezone aligned with auto-presence)
   const { dayOfWeek: todayDayOfWeek, nowMinutes: currentTimeMinutes } = getCurrentDayAndMinutes("America/Campo_Grande", today);
@@ -435,8 +441,8 @@ function MonitorContent() {
   };
 
   const filteredFaltaServidores = faltaSearch.length >= 2
-    ? filteredServidores.filter(s => s.nome.toLowerCase().includes(faltaSearch.toLowerCase())).slice(0, 10)
-    : filteredServidores.slice(0, 10);
+    ? allServidoresInScope.filter(s => s.nome.toLowerCase().includes(faltaSearch.toLowerCase())).slice(0, 10)
+    : allServidoresInScope.slice(0, 10);
 
   const filteredAtestadoServidores = atestadoSearch.length >= 2
     ? filteredServidores.filter(s => s.nome.toLowerCase().includes(atestadoSearch.toLowerCase())).slice(0, 10)
@@ -733,7 +739,7 @@ function MonitorContent() {
 
   // ── Faltas abonadas ativas no ciclo atual ──
   const activeFaltasAbonadas = useMemo(() => {
-    const srvIds = new Set(filteredServidores.map(s => s.id));
+    const srvIds = new Set(allServidoresInScope.map(s => s.id));
     const now = new Date();
     return faltasAbonadas.filter(f => {
       if (!srvIds.has(f.servidor_id)) return false;
@@ -749,7 +755,7 @@ function MonitorContent() {
       }
       try { const fd = parseISO(f.data); return !isBefore(fd, cycleStart) && !isAfter(fd, now); } catch { return false; }
     });
-  }, [faltasAbonadas, filteredServidores, servidores]);
+  }, [faltasAbonadas, allServidoresInScope, servidores]);
 
   // ── Conflitos: férias cruzando com atestado ou falta abonada ──
   const conflictsData = useMemo(() => {
@@ -1783,7 +1789,7 @@ function MonitorContent() {
                 </div>
               )}
               <div className="space-y-1 max-h-64 overflow-y-auto">
-                {filteredServidores.map(s => {
+                {allServidoresInScope.map(s => {
                   const info = getFaltasNoAno(s.id, s.data_admissao);
                   if (info.usadas === 0 && !s.data_admissao) return null;
                   return (
