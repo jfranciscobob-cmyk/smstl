@@ -468,10 +468,10 @@ function DashboardContent({ signOut, userEmail, hasFinancialAccess, isAdmin, isD
   // Servidores em férias agrupados por diretoria - computados nos cards abaixo
 
   // ── Servidores sem escala ou férias atualizadas ──
-  const semEscala = useMemo(() =>
-    servidoresComPresenca.filter(s => s.tipo_escala === 'fixa' && !s.escala_inicio1 && !s.escala_total_horas),
-    [servidoresComPresenca]
-  );
+  const semEscala = useMemo(() => {
+    const { hasAnyEscalaConfigured } = require("@/lib/escalaUtils");
+    return servidoresComPresenca.filter(s => !hasAnyEscalaConfigured(s, escalasSemanais));
+  }, [servidoresComPresenca, escalasSemanais]);
   const semFerias = useMemo(() =>
     servidoresComPresenca.filter(s => !s.ferias_ano_referencia && !s.ferias_periodo1_inicio),
     [servidoresComPresenca]
