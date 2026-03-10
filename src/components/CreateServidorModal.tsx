@@ -52,6 +52,8 @@ const initialForm = {
   tipo_escala: "fixa",
   is_diretor: false,
   is_coordenador: false,
+  data_nascimento: "",
+  email: "",
 };
 
 export function CreateServidorModal({
@@ -127,6 +129,8 @@ export function CreateServidorModal({
       data_admissao: form.data_admissao || null,
       data_encerramento_contrato: form.data_encerramento_contrato || null,
       tipo_escala: form.tipo_escala,
+      data_nascimento: form.data_nascimento || null,
+      email: form.email || null,
     });
 
     setSaving(false);
@@ -185,6 +189,14 @@ export function CreateServidorModal({
                   <option value="AGENTE POLITICO">Agente Político</option>
                   <option value="ESTAGIARIO">Estagiário</option>
                 </select>
+              </div>
+              <div>
+                <label className={labelClass}>Data de Nascimento</label>
+                <input type="date" className={inputClass} value={form.data_nascimento} onChange={e => set("data_nascimento", e.target.value)} />
+              </div>
+              <div>
+                <label className={labelClass}>E-mail</label>
+                <input type="email" className={inputClass} value={form.email} onChange={e => set("email", e.target.value)} placeholder="email@exemplo.com" />
               </div>
               {(form.vinculo === "CONTRATO TEMPORARIO" || form.vinculo === "ESTAGIARIO") && (
                 <>

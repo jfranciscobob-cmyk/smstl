@@ -67,6 +67,8 @@ export function EditServidorModal({
     is_coordenador_medico: false,
     vinculo2: "",
     duplo_vinculo: false,
+    data_nascimento: "",
+    email: "",
   });
 
   const loadExtraUnidades = useCallback(async (servId: string) => {
@@ -115,6 +117,8 @@ export function EditServidorModal({
         is_coordenador_medico: (servidor as any).is_coordenador_medico || false,
         vinculo2: (servidor as any).vinculo2 || "",
         duplo_vinculo: (servidor as any).duplo_vinculo || false,
+        data_nascimento: (servidor as any).data_nascimento || "",
+        email: (servidor as any).email || "",
       });
       loadExtraUnidades(servidor.id);
     }
@@ -172,6 +176,8 @@ export function EditServidorModal({
       data_admissao: form.data_admissao || null,
       data_encerramento_contrato: form.data_encerramento_contrato || null,
       tipo_escala: form.tipo_escala,
+      data_nascimento: form.data_nascimento || null,
+      email: form.email || null,
     };
 
     const { error } = await supabase
@@ -288,6 +294,14 @@ export function EditServidorModal({
                   </select>
                 </div>
               )}
+              <div>
+                <label className={labelClass}>Data de Nascimento</label>
+                <input type="date" className={inputClass} value={form.data_nascimento} onChange={(e) => set("data_nascimento", e.target.value)} />
+              </div>
+              <div>
+                <label className={labelClass}>E-mail</label>
+                <input type="email" className={inputClass} value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="email@exemplo.com" />
+              </div>
               <div>
                 <label className={labelClass}>Data de Admissão {form.vinculo === "ESTAGIARIO" ? "*" : ""}</label>
                 <input type="date" className={inputClass} value={form.data_admissao} onChange={(e) => set("data_admissao", e.target.value)} />
