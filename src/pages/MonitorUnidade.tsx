@@ -739,7 +739,7 @@ function MonitorContent() {
 
   // ── Faltas abonadas ativas no ciclo atual ──
   const activeFaltasAbonadas = useMemo(() => {
-    const srvIds = new Set(filteredServidores.map(s => s.id));
+    const srvIds = new Set(allServidoresInScope.map(s => s.id));
     const now = new Date();
     return faltasAbonadas.filter(f => {
       if (!srvIds.has(f.servidor_id)) return false;
@@ -755,7 +755,7 @@ function MonitorContent() {
       }
       try { const fd = parseISO(f.data); return !isBefore(fd, cycleStart) && !isAfter(fd, now); } catch { return false; }
     });
-  }, [faltasAbonadas, filteredServidores, servidores]);
+  }, [faltasAbonadas, allServidoresInScope, servidores]);
 
   // ── Conflitos: férias cruzando com atestado ou falta abonada ──
   const conflictsData = useMemo(() => {
