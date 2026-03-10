@@ -117,6 +117,8 @@ export function EditServidorModal({
         is_coordenador_medico: (servidor as any).is_coordenador_medico || false,
         vinculo2: (servidor as any).vinculo2 || "",
         duplo_vinculo: (servidor as any).duplo_vinculo || false,
+        data_nascimento: (servidor as any).data_nascimento || "",
+        email: (servidor as any).email || "",
       });
       loadExtraUnidades(servidor.id);
     }
