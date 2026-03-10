@@ -626,7 +626,7 @@ function MonitorContent() {
   // Bulk férias functions
   const initBulkFerias = () => {
     const initial: Record<string, any> = {};
-    filteredServidores.forEach(s => {
+    allServidoresInScope.forEach(s => {
       initial[s.id] = {
         status: s.ferias_status_gerencial || "",
         p1_inicio: s.ferias_periodo1_inicio || "",
@@ -667,10 +667,14 @@ function MonitorContent() {
           }).eq("id", id);
         })
       );
-      for (const r of results) { if (!r.error) count++; }
+      const errors: string[] = [];
+      for (const r of results) { if (!r.error) count++; else errors.push(r.error.message); }
+      if (errors.length > 0) {
+        toast({ title: "Erros ao salvar férias", description: errors.slice(0, 3).join("; "), variant: "destructive" });
+      }
     }
     setSavingBulkFerias(false);
-    toast({ title: `Férias de ${count} servidores atualizadas!` });
+    if (count > 0) toast({ title: `Férias de ${count} servidores atualizadas!` });
     setShowBulkFerias(false);
     loadData();
   };
@@ -1662,7 +1666,7 @@ function MonitorContent() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredServidores.map(s => {
+                     {allServidoresInScope.map(s => {
                       const f = showBulkFerias ? bulkFerias[s.id] : null;
                       const iClass = "h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none";
                       return (
