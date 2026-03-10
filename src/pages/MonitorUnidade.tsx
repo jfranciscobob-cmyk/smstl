@@ -626,7 +626,7 @@ function MonitorContent() {
   // Bulk férias functions
   const initBulkFerias = () => {
     const initial: Record<string, any> = {};
-    filteredServidores.forEach(s => {
+    allServidoresInScope.forEach(s => {
       initial[s.id] = {
         status: s.ferias_status_gerencial || "",
         p1_inicio: s.ferias_periodo1_inicio || "",
