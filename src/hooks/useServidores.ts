@@ -44,6 +44,8 @@ export interface ServidorDB {
   tipo_escala: string;
   vinculo2: string | null;
   duplo_vinculo: boolean;
+  data_nascimento: string | null;
+  email: string | null;
 }
 
 export interface AgrupamentoDB {

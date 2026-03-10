@@ -295,6 +295,14 @@ export function EditServidorModal({
                 </div>
               )}
               <div>
+                <label className={labelClass}>Data de Nascimento</label>
+                <input type="date" className={inputClass} value={form.data_nascimento} onChange={(e) => set("data_nascimento", e.target.value)} />
+              </div>
+              <div>
+                <label className={labelClass}>E-mail</label>
+                <input type="email" className={inputClass} value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="email@exemplo.com" />
+              </div>
+              <div>
                 <label className={labelClass}>Data de Admissão {form.vinculo === "ESTAGIARIO" ? "*" : ""}</label>
                 <input type="date" className={inputClass} value={form.data_admissao} onChange={(e) => set("data_admissao", e.target.value)} />
               </div>
