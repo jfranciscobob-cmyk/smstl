@@ -96,7 +96,7 @@ function AniversariantesCard({ servidores }: { servidores: ServidorDB[] }) {
   );
 }
 
-
+function MonitorContent() {
   const { hasFinancialAccess, user, isAdmin, isDiretor, isCoordenador, servidorId, hasFullAccess, diretoriaIds: userDiretoriaIds, unidadeIds: userUnidadeIds } = useAuthSession();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
