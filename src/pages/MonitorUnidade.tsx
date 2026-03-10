@@ -1889,11 +1889,10 @@ function MonitorContent() {
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Servidor</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Cargo</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Admissão</th>
-                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Turno 1</th>
-                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Turno 2</th>
-                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Total</th>
-                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Escala</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Horário Hoje</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Carga Dia</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Dias</th>
+                      <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Escala</th>
                       {hasFinancialAccess && <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Salário</th>}
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">F.Abon.</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Status</th>
