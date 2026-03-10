@@ -592,7 +592,7 @@ function MonitorContent() {
           });
 
           return supabase.from("servidores").update({
-            ferias_status_gerencial: f.status || null,
+            ferias_status_gerencial: f.status || ((f.p1_inicio || f.p2_inicio) ? "PROGRAMADAS" : null),
             ferias_periodo1_inicio: f.p1_inicio || null,
             ferias_periodo1_fim: f.p1_fim || null,
             ferias_periodo2_inicio: f.p2_inicio || null,
