@@ -30,8 +30,73 @@ import { calcularTotalDiasFerias } from "@/lib/feriasUtils";
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
+function AniversariantesCard({ servidores }: { servidores: ServidorDB[] }) {
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentDay = now.getDate();
+  const aniversariantes = useMemo(() =>
+    servidores
+      .filter(s => {
+        if (!(s as any).data_nascimento) return false;
+        try { const d = parseISO((s as any).data_nascimento); return d.getMonth() === currentMonth; }
+        catch { return false; }
+      })
+      .map(s => {
+        const d = parseISO((s as any).data_nascimento);
+        return { ...s, diaNascimento: d.getDate(), idade: now.getFullYear() - d.getFullYear() };
+      })
+      .sort((a, b) => a.diaNascimento - b.diaNascimento),
+    [servidores, currentMonth]
+  );
+  const aniversariantesHoje = aniversariantes.filter(a => a.diaNascimento === currentDay);
+  const aniversariantesSemana = aniversariantes.filter(a => { const diff = a.diaNascimento - currentDay; return diff > 0 && diff <= 7; });
 
-function MonitorContent() {
+  return (
+    <div className="rounded-xl border border-pink-500/30 bg-card p-5">
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-pink-600 dark:text-pink-400 flex items-center gap-2 mb-3">
+        <Cake className="h-3.5 w-3.5" /> Aniversariantes do Mês ({aniversariantes.length})
+      </h3>
+      {aniversariantesHoje.length > 0 && (
+        <div className="mb-3 rounded-lg bg-pink-500/10 border border-pink-500/20 p-3">
+          <p className="text-xs font-bold text-pink-600 dark:text-pink-400 mb-1.5">🎂 Hoje!</p>
+          {aniversariantesHoje.map(s => (
+            <div key={s.id} className="flex items-center justify-between py-1">
+              <span className="text-sm font-medium text-foreground">{s.nome}</span>
+              <span className="text-xs text-muted-foreground">{s.idade} anos</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {aniversariantesSemana.length > 0 && (
+        <div className="mb-3 rounded-lg bg-pink-500/5 border border-pink-500/10 p-3">
+          <p className="text-xs font-semibold text-pink-600 dark:text-pink-400 mb-1.5">📅 Próximos 7 dias</p>
+          {aniversariantesSemana.map(s => (
+            <div key={s.id} className="flex items-center justify-between py-1">
+              <span className="text-xs text-foreground">{s.nome}</span>
+              <span className="text-xs text-muted-foreground">Dia {s.diaNascimento} · {s.idade} anos</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="space-y-1 max-h-48 overflow-y-auto">
+        {aniversariantes.length === 0 && <p className="text-xs text-muted-foreground italic">Nenhum aniversariante cadastrado neste mês.</p>}
+        {aniversariantes.map(s => (
+          <div key={s.id} className={cn(
+            "flex items-center justify-between rounded-lg px-3 py-1.5",
+            s.diaNascimento === currentDay ? "bg-pink-500/10 font-semibold" : "bg-muted/20"
+          )}>
+            <span className="text-xs text-foreground">{s.nome}</span>
+            <span className="text-xs text-muted-foreground">
+              {String(s.diaNascimento).padStart(2, '0')}/{String(currentMonth + 1).padStart(2, '0')} · {s.idade} anos
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
   const { hasFinancialAccess, user, isAdmin, isDiretor, isCoordenador, servidorId, hasFullAccess, diretoriaIds: userDiretoriaIds, unidadeIds: userUnidadeIds } = useAuthSession();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -592,7 +657,7 @@ function MonitorContent() {
           });
 
           return supabase.from("servidores").update({
-            ferias_status_gerencial: f.status || null,
+            ferias_status_gerencial: f.status || ((f.p1_inicio || f.p2_inicio) ? "PROGRAMADAS" : null),
             ferias_periodo1_inicio: f.p1_inicio || null,
             ferias_periodo1_fim: f.p1_fim || null,
             ferias_periodo2_inicio: f.p2_inicio || null,
@@ -1903,76 +1968,7 @@ function MonitorContent() {
             )}
 
             {/* Aniversariantes do Mês */}
-            {(() => {
-              const now = new Date();
-              const currentMonth = now.getMonth();
-              const currentDay = now.getDate();
-              const aniversariantes = allServidoresInScope
-                .filter(s => {
-                  if (!(s as any).data_nascimento) return false;
-                  try {
-                    const d = parseISO((s as any).data_nascimento);
-                    return d.getMonth() === currentMonth;
-                  } catch { return false; }
-                })
-                .map(s => {
-                  const d = parseISO((s as any).data_nascimento);
-                  const dia = d.getDate();
-                  const idade = now.getFullYear() - d.getFullYear();
-                  return { ...s, diaNascimento: dia, idade };
-                })
-                .sort((a, b) => a.diaNascimento - b.diaNascimento);
-
-              const aniversariantesHoje = aniversariantes.filter(a => a.diaNascimento === currentDay);
-              const aniversariantesSemana = aniversariantes.filter(a => {
-                const diff = a.diaNascimento - currentDay;
-                return diff > 0 && diff <= 7;
-              });
-
-              return (
-                <div className="rounded-xl border border-pink-500/30 bg-card p-5">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-pink-600 dark:text-pink-400 flex items-center gap-2 mb-3">
-                    <Cake className="h-3.5 w-3.5" /> Aniversariantes do Mês ({aniversariantes.length})
-                  </h3>
-                  {aniversariantesHoje.length > 0 && (
-                    <div className="mb-3 rounded-lg bg-pink-500/10 border border-pink-500/20 p-3">
-                      <p className="text-xs font-bold text-pink-600 dark:text-pink-400 mb-1.5">🎂 Hoje!</p>
-                      {aniversariantesHoje.map(s => (
-                        <div key={s.id} className="flex items-center justify-between py-1">
-                          <span className="text-sm font-medium text-foreground">{s.nome}</span>
-                          <span className="text-xs text-muted-foreground">{s.idade} anos</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {aniversariantesSemana.length > 0 && (
-                    <div className="mb-3 rounded-lg bg-pink-500/5 border border-pink-500/10 p-3">
-                      <p className="text-xs font-semibold text-pink-600 dark:text-pink-400 mb-1.5">📅 Próximos 7 dias</p>
-                      {aniversariantesSemana.map(s => (
-                        <div key={s.id} className="flex items-center justify-between py-1">
-                          <span className="text-xs text-foreground">{s.nome}</span>
-                          <span className="text-xs text-muted-foreground">Dia {s.diaNascimento} · {s.idade} anos</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <div className="space-y-1 max-h-48 overflow-y-auto">
-                    {aniversariantes.length === 0 && <p className="text-xs text-muted-foreground italic">Nenhum aniversariante cadastrado neste mês.</p>}
-                    {aniversariantes.map(s => (
-                      <div key={s.id} className={cn(
-                        "flex items-center justify-between rounded-lg px-3 py-1.5",
-                        s.diaNascimento === currentDay ? "bg-pink-500/10 font-semibold" : "bg-muted/20"
-                      )}>
-                        <span className="text-xs text-foreground">{s.nome}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {String(s.diaNascimento).padStart(2, '0')}/{String(currentMonth + 1).padStart(2, '0')} · {s.idade} anos
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })()}
+            <AniversariantesCard servidores={allServidoresInScope} />
 
 
             {(() => {

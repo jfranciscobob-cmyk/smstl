@@ -160,7 +160,7 @@ export function EditServidorModal({
       escala_inicio2: form.escala_inicio2 || null,
       escala_fim2: form.escala_fim2 || null,
       escala_total_horas: form.escala_total_horas ? parseInt(form.escala_total_horas, 10) : null,
-      ferias_status_gerencial: form.ferias_status_gerencial || null,
+      ferias_status_gerencial: form.ferias_status_gerencial || ((form.ferias_periodo1_inicio || form.ferias_periodo2_inicio) ? "PROGRAMADAS" : null),
       ferias_periodo1_inicio: form.ferias_periodo1_inicio || null,
       ferias_periodo1_fim: form.ferias_periodo1_fim || null,
       ferias_periodo2_inicio: form.ferias_periodo2_inicio || null,
