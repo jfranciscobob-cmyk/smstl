@@ -67,6 +67,8 @@ export function EditServidorModal({
     is_coordenador_medico: false,
     vinculo2: "",
     duplo_vinculo: false,
+    data_nascimento: "",
+    email: "",
   });
 
   const loadExtraUnidades = useCallback(async (servId: string) => {
