@@ -1662,7 +1662,7 @@ function MonitorContent() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredServidores.map(s => {
+                     {allServidoresInScope.map(s => {
                       const f = showBulkFerias ? bulkFerias[s.id] : null;
                       const iClass = "h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none";
                       return (
