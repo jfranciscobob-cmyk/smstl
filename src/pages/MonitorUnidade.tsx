@@ -1913,32 +1913,43 @@ function MonitorContent() {
                             <td className="py-2 text-muted-foreground font-mono">{s.data_admissao ? format(parseISO(s.data_admissao), "dd/MM/yyyy") : "—"}</td>
                             {showBulkEscala && bulkEscalas[s.id] ? (
                               <>
-                                <td className="py-1">
-                                  <div className="flex gap-1">
+                                <td className="py-1" colSpan={2}>
+                                  <div className="flex gap-1 flex-wrap">
                                     <input type="time" value={bulkEscalas[s.id].inicio1} onChange={e => updateBulkEscalaTime(s.id, "inicio1", e.target.value)}
                                       className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                    <span className="text-muted-foreground self-center text-[10px]">—</span>
                                     <input type="time" value={bulkEscalas[s.id].fim1} onChange={e => updateBulkEscalaTime(s.id, "fim1", e.target.value)}
                                       className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
-                                  </div>
-                                </td>
-                                <td className="py-1">
-                                  <div className="flex gap-1">
-                                    <input type="time" value={bulkEscalas[s.id].inicio2} onChange={e => updateBulkEscalaTime(s.id, "inicio2", e.target.value)}
-                                      className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
-                                    <input type="time" value={bulkEscalas[s.id].fim2} onChange={e => updateBulkEscalaTime(s.id, "fim2", e.target.value)}
-                                      className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                    {(bulkEscalas[s.id].inicio2 || bulkEscalas[s.id].fim2) && (
+                                      <>
+                                        <span className="text-muted-foreground self-center text-[10px]">/</span>
+                                        <input type="time" value={bulkEscalas[s.id].inicio2} onChange={e => updateBulkEscalaTime(s.id, "inicio2", e.target.value)}
+                                          className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                        <span className="text-muted-foreground self-center text-[10px]">—</span>
+                                        <input type="time" value={bulkEscalas[s.id].fim2} onChange={e => updateBulkEscalaTime(s.id, "fim2", e.target.value)}
+                                          className="w-20 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground focus:ring-1 focus:ring-ring focus:outline-none" />
+                                      </>
+                                    )}
                                   </div>
                                 </td>
                                 <td className="py-1">
                                   <input type="number" value={bulkEscalas[s.id].total} onChange={e => setBulkEscalas(prev => ({ ...prev, [s.id]: { ...prev[s.id], total: e.target.value } }))}
                                     className="w-12 h-6 rounded border border-input bg-card px-1 text-[10px] text-foreground text-center focus:ring-1 focus:ring-ring focus:outline-none" placeholder="h" />
                                 </td>
+                                <td className="py-1 text-[10px] text-muted-foreground">{diasTrabalhados}</td>
                               </>
                             ) : (
                               <>
-                                <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio1 ? `${s.escala_inicio1}-${s.escala_fim1}` : "—"}</td>
-                                <td className="py-2 font-mono text-muted-foreground">{s.escala_inicio2 ? `${s.escala_inicio2}-${s.escala_fim2}` : "—"}</td>
+                                <td className="py-2 font-mono text-muted-foreground">
+                                  {(() => {
+                                    const label = getShiftLabel(s);
+                                    return label || "—";
+                                  })()}
+                                </td>
                                 <td className="py-2 font-mono font-bold text-foreground">{formatHours(cargaDiaria)}</td>
+                                <td className="py-2">
+                                  <span className="text-[10px] font-medium text-muted-foreground">{diasTrabalhados}</span>
+                                </td>
                               </>
                             )}
                             <td className="py-2">
@@ -1947,9 +1958,6 @@ function MonitorContent() {
                               )}>
                                 {s.tipo_escala === "plantao_12x36" ? "12×36" : s.tipo_escala === "plantao_24x72" ? "24×72" : s.tipo_escala === "plantao_12x60" ? "12×60" : s.tipo_escala === "variavel" ? "Var." : "Fixa"}
                               </span>
-                            </td>
-                            <td className="py-2">
-                              <span className="text-[10px] font-medium text-muted-foreground">{diasTrabalhados}</span>
                             </td>
                             {hasFinancialAccess && <td className="py-2 font-mono text-primary whitespace-nowrap">{s.salario > 0 ? formatCurrency(s.salario) : "—"}</td>}
                             <td className="py-2">
