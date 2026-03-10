@@ -282,11 +282,17 @@ function MonitorContent() {
     [allowedServidoresRaw, escalasSemanais, atestados, afastamentos, faltasAbonadas],
   );
 
-  // Filter servidores based on view
-  const filteredServidores = useMemo(() => {
+  // All servidores in selected scope (no status filter) — used by management panels
+  const allServidoresInScope = useMemo(() => {
     let result = allowedServidores;
     if (selectedUnidadeId) result = result.filter(s => isServidorNaUnidade(s.id, selectedUnidadeId));
     else if (selectedDiretoriaId) result = result.filter(s => isServidorNaDiretoria(s, selectedDiretoriaId));
+    return result;
+  }, [allowedServidores, selectedUnidadeId, selectedDiretoriaId, isServidorNaUnidade, isServidorNaDiretoria]);
+
+  // Filter servidores based on view (with status filter)
+  const filteredServidores = useMemo(() => {
+    let result = allServidoresInScope;
 
     if (activeFilter === "presentes") result = result.filter(s => s.status_presenca === "presente");
     else if (activeFilter === "ferias") result = result.filter(s => s.status_presenca === "ferias");
@@ -298,7 +304,7 @@ function MonitorContent() {
     else if (activeFilter === "duplo_vinculo") result = result.filter(s => s.duplo_vinculo);
 
     return result;
-  }, [allowedServidores, selectedUnidadeId, selectedDiretoriaId, activeFilter, isServidorNaUnidade, isServidorNaDiretoria]);
+  }, [allServidoresInScope, activeFilter]);
 
   // Time helpers (timezone aligned with auto-presence)
   const { dayOfWeek: todayDayOfWeek, nowMinutes: currentTimeMinutes } = getCurrentDayAndMinutes("America/Campo_Grande", today);
