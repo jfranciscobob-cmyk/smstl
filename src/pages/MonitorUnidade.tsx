@@ -2070,6 +2070,7 @@ function MonitorContent() {
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Status</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap w-10">Sem.</th>
                       {canTransfer && <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap w-8"></th>}
+                      {canRemoveFromPasta && <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap w-8"></th>}
                     </tr>
                   </thead>
                   <tbody>
