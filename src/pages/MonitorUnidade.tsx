@@ -4,6 +4,7 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import type { ServidorDB, DiretoriaDB, UnidadeDB, FuncaoDB, AtestadoDB, FaltaAbonadaDB, AfastamentoDB } from "@/hooks/useServidores";
 import { applyAutoPresenca, type EscalaSemanalRow } from "@/lib/presencaAutomatica";
 import { Link, useSearchParams } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   ArrowLeft, Loader2, Users, Clock, AlertTriangle, Palmtree, FileText,
   CheckCircle, Building2, ChevronDown, ChevronRight, Plus, X, Calendar,
@@ -165,6 +166,34 @@ function MonitorContent() {
 
   // Transfer modal
   const [transferServidor, setTransferServidor] = useState<ServidorDB | null>(null);
+
+  // Remove from pasta confirmation
+  const [removeConfirm, setRemoveConfirm] = useState<ServidorDB | null>(null);
+  const [removingFromPasta, setRemovingFromPasta] = useState(false);
+
+  const removeServidorFromPasta = async (servidor: ServidorDB) => {
+    if (!selectedUnidadeId) return;
+    setRemovingFromPasta(true);
+    try {
+      // Remove from servidores_unidades junction table
+      await supabase.from("servidores_unidades").delete()
+        .eq("servidor_id", servidor.id)
+        .eq("unidade_id", selectedUnidadeId);
+
+      // If the servidor's primary unidade_id matches, clear it
+      if (servidor.unidade_id === selectedUnidadeId) {
+        await supabase.from("servidores").update({ unidade_id: null }).eq("id", servidor.id);
+      }
+
+      toast({ title: "Servidor removido da pasta", description: `${servidor.nome} foi desvinculado(a) desta unidade.` });
+      loadData();
+    } catch (err: any) {
+      toast({ title: "Erro ao remover", description: err.message, variant: "destructive" });
+    } finally {
+      setRemovingFromPasta(false);
+      setRemoveConfirm(null);
+    }
+  };
 
   // Determine user's diretoria (use first from array for backwards compat)
   const userDiretoriaId = userDiretoriaIds[0] ?? null;
@@ -971,7 +1000,8 @@ function MonitorContent() {
   // Current breadcrumb
   const currentDiretoria = diretorias.find(d => d.id === selectedDiretoriaId);
   const currentUnidade = unidades.find(u => u.id === selectedUnidadeId);
-  const escalaTableColSpan = 10 + (hasFinancialAccess ? 1 : 0) + (canTransfer ? 1 : 0);
+  const canRemoveFromPasta = !!selectedUnidadeId && (isAdmin || isDiretor || hasFullAccess);
+  const escalaTableColSpan = 10 + (hasFinancialAccess ? 1 : 0) + (canTransfer ? 1 : 0) + (canRemoveFromPasta ? 1 : 0);
 
   return (
     <div className="min-h-screen bg-background">
@@ -2041,6 +2071,7 @@ function MonitorContent() {
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Status</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap w-10">Sem.</th>
                       {canTransfer && <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap w-8"></th>}
+                      {canRemoveFromPasta && <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap w-8"></th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -2133,6 +2164,17 @@ function MonitorContent() {
                                 </button>
                               </td>
                             )}
+                            {canRemoveFromPasta && (
+                              <td className="py-2">
+                                <button
+                                  onClick={() => setRemoveConfirm(s)}
+                                  className="text-[10px] text-muted-foreground hover:text-destructive transition-colors"
+                                  title="Remover desta pasta"
+                                >
+                                  <UserX className="h-3.5 w-3.5" />
+                                </button>
+                              </td>
+                            )}
                           </tr>
                           {expandedSemanalId === s.id && (
                             <tr>
@@ -2166,6 +2208,39 @@ function MonitorContent() {
         currentDiretoriaId={selectedDiretoriaId || userDiretoriaId || ""}
         userId={user?.id || ""}
       />
+
+      {/* Remove from pasta confirmation dialog */}
+      {removeConfirm && (
+        <Dialog open={!!removeConfirm} onOpenChange={() => setRemoveConfirm(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-destructive">
+                <UserX className="h-5 w-5" /> Remover servidor da pasta
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">
+              Tem certeza que deseja remover <strong>{removeConfirm.nome}</strong> desta unidade?
+              O servidor não será excluído do sistema, apenas desvinculado desta pasta.
+            </p>
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setRemoveConfirm(null)}
+                className="px-4 py-2 text-sm rounded-lg border border-input bg-background hover:bg-accent"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => removeServidorFromPasta(removeConfirm)}
+                disabled={removingFromPasta}
+                className="px-4 py-2 text-sm rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50 flex items-center gap-2"
+              >
+                {removingFromPasta ? <Loader2 className="h-3 w-3 animate-spin" /> : <UserX className="h-3 w-3" />}
+                Remover
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
