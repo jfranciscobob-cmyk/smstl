@@ -2163,6 +2163,17 @@ function MonitorContent() {
                                 </button>
                               </td>
                             )}
+                            {canRemoveFromPasta && (
+                              <td className="py-2">
+                                <button
+                                  onClick={() => setRemoveConfirm(s)}
+                                  className="text-[10px] text-muted-foreground hover:text-destructive transition-colors"
+                                  title="Remover desta pasta"
+                                >
+                                  <UserX className="h-3.5 w-3.5" />
+                                </button>
+                              </td>
+                            )}
                           </tr>
                           {expandedSemanalId === s.id && (
                             <tr>
