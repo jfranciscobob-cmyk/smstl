@@ -2207,6 +2207,39 @@ function MonitorContent() {
         currentDiretoriaId={selectedDiretoriaId || userDiretoriaId || ""}
         userId={user?.id || ""}
       />
+
+      {/* Remove from pasta confirmation dialog */}
+      {removeConfirm && (
+        <Dialog open={!!removeConfirm} onOpenChange={() => setRemoveConfirm(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-destructive">
+                <UserX className="h-5 w-5" /> Remover servidor da pasta
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">
+              Tem certeza que deseja remover <strong>{removeConfirm.nome}</strong> desta unidade?
+              O servidor não será excluído do sistema, apenas desvinculado desta pasta.
+            </p>
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setRemoveConfirm(null)}
+                className="px-4 py-2 text-sm rounded-lg border border-input bg-background hover:bg-accent"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => removeServidorFromPasta(removeConfirm)}
+                disabled={removingFromPasta}
+                className="px-4 py-2 text-sm rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50 flex items-center gap-2"
+              >
+                {removingFromPasta ? <Loader2 className="h-3 w-3 animate-spin" /> : <UserX className="h-3 w-3" />}
+                Remover
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
