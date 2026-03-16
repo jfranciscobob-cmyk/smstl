@@ -166,6 +166,34 @@ function MonitorContent() {
   // Transfer modal
   const [transferServidor, setTransferServidor] = useState<ServidorDB | null>(null);
 
+  // Remove from pasta confirmation
+  const [removeConfirm, setRemoveConfirm] = useState<ServidorDB | null>(null);
+  const [removingFromPasta, setRemovingFromPasta] = useState(false);
+
+  const removeServidorFromPasta = async (servidor: ServidorDB) => {
+    if (!selectedUnidadeId) return;
+    setRemovingFromPasta(true);
+    try {
+      // Remove from servidores_unidades junction table
+      await supabase.from("servidores_unidades").delete()
+        .eq("servidor_id", servidor.id)
+        .eq("unidade_id", selectedUnidadeId);
+
+      // If the servidor's primary unidade_id matches, clear it
+      if (servidor.unidade_id === selectedUnidadeId) {
+        await supabase.from("servidores").update({ unidade_id: null }).eq("id", servidor.id);
+      }
+
+      toast({ title: "Servidor removido da pasta", description: `${servidor.nome} foi desvinculado(a) desta unidade.` });
+      loadData();
+    } catch (err: any) {
+      toast({ title: "Erro ao remover", description: err.message, variant: "destructive" });
+    } finally {
+      setRemovingFromPasta(false);
+      setRemoveConfirm(null);
+    }
+  };
+
   // Determine user's diretoria (use first from array for backwards compat)
   const userDiretoriaId = userDiretoriaIds[0] ?? null;
   const canTransfer = isAdmin || (isDiretor && !!selectedDiretoriaId && (selectedDiretoriaId === userDiretoriaId || hasFullAccess));
