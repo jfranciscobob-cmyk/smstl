@@ -4,6 +4,7 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import type { ServidorDB, DiretoriaDB, UnidadeDB, FuncaoDB, AtestadoDB, FaltaAbonadaDB, AfastamentoDB } from "@/hooks/useServidores";
 import { applyAutoPresenca, type EscalaSemanalRow } from "@/lib/presencaAutomatica";
 import { Link, useSearchParams } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   ArrowLeft, Loader2, Users, Clock, AlertTriangle, Palmtree, FileText,
   CheckCircle, Building2, ChevronDown, ChevronRight, Plus, X, Calendar,
