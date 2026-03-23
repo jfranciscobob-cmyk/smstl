@@ -1856,8 +1856,14 @@ function MonitorContent() {
                   {activeAtestados.length === 0 && <p className="text-xs text-muted-foreground italic">Nenhum atestado ativo.</p>}
                   {activeAtestados.map(a => (
                     <div key={a.id} className="flex items-center justify-between rounded-lg px-3 py-2 bg-destructive/5 border border-destructive/10">
-                      <div><p className="text-sm font-medium text-foreground">{getServidorNome(a.servidor_id)}</p><p className="text-[10px] text-muted-foreground">{a.tipo} · {a.dias} dia(s)</p></div>
-                      <span className="text-xs font-mono text-destructive">{a.data_inicio} → {a.data_fim}</span>
+                      <div><p className="text-sm font-medium text-foreground">{getServidorNome(a.servidor_id)}</p><p className="text-[10px] text-muted-foreground">{a.tipo} · {a.dias} dia(s){a.observacao ? ` · ${a.observacao}` : ""}</p></div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-destructive">{a.data_inicio} → {a.data_fim}</span>
+                        <button onClick={() => deleteAtestado(a.id)} title="Excluir atestado"
+                          className="h-5 w-5 flex items-center justify-center rounded text-destructive/60 hover:text-destructive hover:bg-destructive/10">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1928,10 +1934,26 @@ function MonitorContent() {
                 {allServidoresInScope.map(s => {
                   const info = getFaltasNoAno(s.id, s.data_admissao);
                   if (info.usadas === 0 && !s.data_admissao) return null;
+                  const servidorFaltas = faltasAbonadas.filter(f => f.servidor_id === s.id).sort((a, b) => b.data.localeCompare(a.data));
                   return (
-                    <div key={s.id} className="flex items-center justify-between rounded-lg px-3 py-1.5 bg-muted/20">
-                      <span className="text-xs text-foreground">{s.nome}</span>
-                      <span className={cn("text-xs font-mono font-bold", info.usadas >= 5 ? "text-destructive" : info.usadas >= 3 ? "text-warning" : "text-primary")}>{info.usadas}/5</span>
+                    <div key={s.id} className="rounded-lg px-3 py-1.5 bg-muted/20">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-foreground">{s.nome}</span>
+                        <span className={cn("text-xs font-mono font-bold", info.usadas >= 5 ? "text-destructive" : info.usadas >= 3 ? "text-warning" : "text-primary")}>{info.usadas}/5</span>
+                      </div>
+                      {servidorFaltas.length > 0 && (
+                        <div className="mt-1 space-y-0.5">
+                          {servidorFaltas.map(f => (
+                            <div key={f.id} className="flex items-center justify-between text-[10px] text-muted-foreground">
+                              <span>{f.data}{f.observacao ? ` — ${f.observacao}` : ""}</span>
+                              <button onClick={() => deleteFaltaAbonada(f.id)} title="Excluir falta"
+                                className="h-4 w-4 flex items-center justify-center rounded text-destructive/60 hover:text-destructive hover:bg-destructive/10">
+                                <X className="h-2.5 w-2.5" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -2006,6 +2028,10 @@ function MonitorContent() {
                           title="Finalizar afastamento"
                           className="h-6 px-2 rounded text-[10px] font-medium bg-success/10 text-success hover:bg-success/20">
                           Retornou
+                        </button>
+                        <button onClick={() => deleteAfastamento(a.id)} title="Excluir afastamento"
+                          className="h-5 w-5 flex items-center justify-center rounded text-destructive/60 hover:text-destructive hover:bg-destructive/10">
+                          <X className="h-3 w-3" />
                         </button>
                       </div>
                     </div>
