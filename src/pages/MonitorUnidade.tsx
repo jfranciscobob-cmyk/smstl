@@ -1729,6 +1729,7 @@ function MonitorContent() {
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Período 2</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Dias</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Vencidas</th>
+                      {canEditEscalasFerias && <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Ações</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -1789,6 +1790,16 @@ function MonitorContent() {
                                   {s.ferias_vencidas || 0}
                                 </span>
                               </td>
+                              {canEditEscalasFerias && (
+                                <td className="py-1.5">
+                                  {(s.ferias_periodo1_inicio || s.ferias_periodo2_inicio) && (
+                                    <button onClick={() => clearFerias(s.id)} title="Limpar férias deste servidor"
+                                      className="h-5 px-1.5 rounded text-[9px] font-medium text-destructive/70 hover:text-destructive hover:bg-destructive/10">
+                                      Limpar
+                                    </button>
+                                  )}
+                                </td>
+                              )}
                             </>
                           )}
                         </tr>
