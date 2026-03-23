@@ -584,10 +584,46 @@ function MonitorContent() {
   };
 
   const finalizarAfastamento = async (afastamentoId: string, servidorId: string) => {
-    const todayStr = new Date().toISOString().slice(0, 10);
-    await supabase.from("afastamentos").update({ data_fim: todayStr }).eq("id", afastamentoId);
+    // Set data_fim to yesterday so it no longer appears as active today
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().slice(0, 10);
+    await supabase.from("afastamentos").update({ data_fim: yesterdayStr }).eq("id", afastamentoId);
     await supabase.from("servidores").update({ status_presenca: "presente" }).eq("id", servidorId);
     toast({ title: "Afastamento finalizado, servidor marcado como presente!" });
+    loadData();
+  };
+
+  const deleteAtestado = async (id: string) => {
+    const { error } = await supabase.from("atestados").delete().eq("id", id);
+    if (error) { toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Atestado excluído!" });
+    loadData();
+  };
+
+  const deleteFaltaAbonada = async (id: string) => {
+    const { error } = await supabase.from("faltas_abonadas").delete().eq("id", id);
+    if (error) { toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Falta abonada excluída!" });
+    loadData();
+  };
+
+  const deleteAfastamento = async (id: string) => {
+    const { error } = await supabase.from("afastamentos").delete().eq("id", id);
+    if (error) { toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Afastamento excluído!" });
+    loadData();
+  };
+
+  const clearFerias = async (servidorId: string) => {
+    const { error } = await supabase.from("servidores").update({
+      ferias_status_gerencial: "SEM ANO DE REFERÊNCIA",
+      ferias_periodo1_inicio: null, ferias_periodo1_fim: null,
+      ferias_periodo2_inicio: null, ferias_periodo2_fim: null,
+      ferias_total_dias: 0, ferias_vencidas: 0,
+    }).eq("id", servidorId);
+    if (error) { toast({ title: "Erro ao limpar férias", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Férias limpas!" });
     loadData();
   };
 
