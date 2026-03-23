@@ -584,10 +584,46 @@ function MonitorContent() {
   };
 
   const finalizarAfastamento = async (afastamentoId: string, servidorId: string) => {
-    const todayStr = new Date().toISOString().slice(0, 10);
-    await supabase.from("afastamentos").update({ data_fim: todayStr }).eq("id", afastamentoId);
+    // Set data_fim to yesterday so it no longer appears as active today
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().slice(0, 10);
+    await supabase.from("afastamentos").update({ data_fim: yesterdayStr }).eq("id", afastamentoId);
     await supabase.from("servidores").update({ status_presenca: "presente" }).eq("id", servidorId);
     toast({ title: "Afastamento finalizado, servidor marcado como presente!" });
+    loadData();
+  };
+
+  const deleteAtestado = async (id: string) => {
+    const { error } = await supabase.from("atestados").delete().eq("id", id);
+    if (error) { toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Atestado excluído!" });
+    loadData();
+  };
+
+  const deleteFaltaAbonada = async (id: string) => {
+    const { error } = await supabase.from("faltas_abonadas").delete().eq("id", id);
+    if (error) { toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Falta abonada excluída!" });
+    loadData();
+  };
+
+  const deleteAfastamento = async (id: string) => {
+    const { error } = await supabase.from("afastamentos").delete().eq("id", id);
+    if (error) { toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Afastamento excluído!" });
+    loadData();
+  };
+
+  const clearFerias = async (servidorId: string) => {
+    const { error } = await supabase.from("servidores").update({
+      ferias_status_gerencial: "SEM ANO DE REFERÊNCIA",
+      ferias_periodo1_inicio: null, ferias_periodo1_fim: null,
+      ferias_periodo2_inicio: null, ferias_periodo2_fim: null,
+      ferias_total_dias: 0, ferias_vencidas: 0,
+    }).eq("id", servidorId);
+    if (error) { toast({ title: "Erro ao limpar férias", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Férias limpas!" });
     loadData();
   };
 
@@ -1693,6 +1729,7 @@ function MonitorContent() {
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Período 2</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Dias</th>
                       <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Vencidas</th>
+                      {canEditEscalasFerias && <th className="pb-2 font-semibold text-muted-foreground whitespace-nowrap">Ações</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -1753,6 +1790,16 @@ function MonitorContent() {
                                   {s.ferias_vencidas || 0}
                                 </span>
                               </td>
+                              {canEditEscalasFerias && (
+                                <td className="py-1.5">
+                                  {(s.ferias_periodo1_inicio || s.ferias_periodo2_inicio) && (
+                                    <button onClick={() => clearFerias(s.id)} title="Limpar férias deste servidor"
+                                      className="h-5 px-1.5 rounded text-[9px] font-medium text-destructive/70 hover:text-destructive hover:bg-destructive/10">
+                                      Limpar
+                                    </button>
+                                  )}
+                                </td>
+                              )}
                             </>
                           )}
                         </tr>
@@ -1820,8 +1867,14 @@ function MonitorContent() {
                   {activeAtestados.length === 0 && <p className="text-xs text-muted-foreground italic">Nenhum atestado ativo.</p>}
                   {activeAtestados.map(a => (
                     <div key={a.id} className="flex items-center justify-between rounded-lg px-3 py-2 bg-destructive/5 border border-destructive/10">
-                      <div><p className="text-sm font-medium text-foreground">{getServidorNome(a.servidor_id)}</p><p className="text-[10px] text-muted-foreground">{a.tipo} · {a.dias} dia(s)</p></div>
-                      <span className="text-xs font-mono text-destructive">{a.data_inicio} → {a.data_fim}</span>
+                      <div><p className="text-sm font-medium text-foreground">{getServidorNome(a.servidor_id)}</p><p className="text-[10px] text-muted-foreground">{a.tipo} · {a.dias} dia(s){a.observacao ? ` · ${a.observacao}` : ""}</p></div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-destructive">{a.data_inicio} → {a.data_fim}</span>
+                        <button onClick={() => deleteAtestado(a.id)} title="Excluir atestado"
+                          className="h-5 w-5 flex items-center justify-center rounded text-destructive/60 hover:text-destructive hover:bg-destructive/10">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1892,10 +1945,26 @@ function MonitorContent() {
                 {allServidoresInScope.map(s => {
                   const info = getFaltasNoAno(s.id, s.data_admissao);
                   if (info.usadas === 0 && !s.data_admissao) return null;
+                  const servidorFaltas = faltasAbonadas.filter(f => f.servidor_id === s.id).sort((a, b) => b.data.localeCompare(a.data));
                   return (
-                    <div key={s.id} className="flex items-center justify-between rounded-lg px-3 py-1.5 bg-muted/20">
-                      <span className="text-xs text-foreground">{s.nome}</span>
-                      <span className={cn("text-xs font-mono font-bold", info.usadas >= 5 ? "text-destructive" : info.usadas >= 3 ? "text-warning" : "text-primary")}>{info.usadas}/5</span>
+                    <div key={s.id} className="rounded-lg px-3 py-1.5 bg-muted/20">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-foreground">{s.nome}</span>
+                        <span className={cn("text-xs font-mono font-bold", info.usadas >= 5 ? "text-destructive" : info.usadas >= 3 ? "text-warning" : "text-primary")}>{info.usadas}/5</span>
+                      </div>
+                      {servidorFaltas.length > 0 && (
+                        <div className="mt-1 space-y-0.5">
+                          {servidorFaltas.map(f => (
+                            <div key={f.id} className="flex items-center justify-between text-[10px] text-muted-foreground">
+                              <span>{f.data}{f.observacao ? ` — ${f.observacao}` : ""}</span>
+                              <button onClick={() => deleteFaltaAbonada(f.id)} title="Excluir falta"
+                                className="h-4 w-4 flex items-center justify-center rounded text-destructive/60 hover:text-destructive hover:bg-destructive/10">
+                                <X className="h-2.5 w-2.5" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -1970,6 +2039,10 @@ function MonitorContent() {
                           title="Finalizar afastamento"
                           className="h-6 px-2 rounded text-[10px] font-medium bg-success/10 text-success hover:bg-success/20">
                           Retornou
+                        </button>
+                        <button onClick={() => deleteAfastamento(a.id)} title="Excluir afastamento"
+                          className="h-5 w-5 flex items-center justify-center rounded text-destructive/60 hover:text-destructive hover:bg-destructive/10">
+                          <X className="h-3 w-3" />
                         </button>
                       </div>
                     </div>
