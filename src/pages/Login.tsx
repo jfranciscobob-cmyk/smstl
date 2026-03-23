@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Shield, Loader2, Eye, EyeOff, UserPlus, ArrowLeft } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+
+type FeedbackState = {
+  type: "error" | "success";
+  message: string;
+} | null;
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -11,7 +15,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [mode, setMode] = useState<"login" | "register">("login");
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const [feedback, setFeedback] = useState<FeedbackState>(null);
 
   // Register form
   const [regNome, setRegNome] = useState("");
@@ -34,57 +38,66 @@ export default function Login() {
     e.preventDefault();
     if (!email || !password) return;
     setLoading(true);
+    setFeedback(null);
 
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      toast({ title: "Erro no login", description: error.message, variant: "destructive" });
+      setFeedback({ type: "error", message: error.message });
       setLoading(false);
       return;
     }
 
-    toast({ title: "Login realizado com sucesso!" });
     navigate("/");
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFeedback(null);
+
     if (!regEmail || !regPassword || regPassword.length < 6) {
-      toast({ title: "Preencha email e senha (mín. 6 caracteres)", variant: "destructive" });
+      setFeedback({ type: "error", message: "Preencha email e senha com no mínimo 6 caracteres." });
       return;
     }
+
     setSubmitting(true);
 
-    const { data, error } = await supabase.functions.invoke("request-registration", {
-      body: {
-        email: regEmail,
-        nome: regNome,
-        senha: regPassword,
-        role_requested: regRole,
-        diretoria_id: regDiretoriaId || null,
-      },
-    });
+    try {
+      const { data, error } = await supabase.functions.invoke("request-registration", {
+        body: {
+          email: regEmail,
+          nome: regNome,
+          senha: regPassword,
+          role_requested: regRole,
+          diretoria_id: regDiretoriaId || null,
+        },
+      });
 
-    if (error || !data?.success) {
-      toast({ title: "Erro ao solicitar", description: data?.error || error?.message, variant: "destructive" });
+      if (error || !data?.success) {
+        setFeedback({
+          type: "error",
+          message: data?.error || error?.message || "Não foi possível enviar a solicitação.",
+        });
+        return;
+      }
+
+      setRegNome("");
+      setRegEmail("");
+      setRegPassword("");
+      setRegDiretoriaId("");
+      setMode("login");
+      setFeedback({
+        type: "success",
+        message: "Solicitação enviada com sucesso. Aguarde a aprovação da administração para acessar o sistema.",
+      });
+    } finally {
       setSubmitting(false);
-      return;
     }
-
-    toast({
-      title: "Solicitação enviada!",
-      description: "Aguarde a aprovação de um administrador ou diretor para acessar o sistema.",
-    });
-    setMode("login");
-    setSubmitting(false);
-    setRegNome("");
-    setRegEmail("");
-    setRegPassword("");
   };
 
   if (mode === "register") {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4" translate="no">
         <div className="w-full max-w-sm space-y-6">
           <div className="text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl gradient-primary shadow-lg shadow-primary/30">
@@ -95,6 +108,18 @@ export default function Login() {
               Preencha seus dados para solicitar acesso ao sistema
             </p>
           </div>
+
+          {feedback && (
+            <div
+              className={`rounded-lg border px-4 py-3 text-sm ${
+                feedback.type === "error"
+                  ? "border-destructive/30 bg-destructive/10 text-destructive"
+                  : "border-primary/20 bg-primary/10 text-foreground"
+              }`}
+            >
+              {feedback.message}
+            </div>
+          )}
 
           <form onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-2">
@@ -203,7 +228,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4" translate="no">
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl gradient-primary shadow-lg shadow-primary/30">
@@ -214,6 +239,18 @@ export default function Login() {
             Sistema de Gestão de Servidores
           </p>
         </div>
+
+        {feedback && (
+          <div
+            className={`rounded-lg border px-4 py-3 text-sm ${
+              feedback.type === "error"
+                ? "border-destructive/30 bg-destructive/10 text-destructive"
+                : "border-primary/20 bg-primary/10 text-foreground"
+            }`}
+          >
+            {feedback.message}
+          </div>
+        )}
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
