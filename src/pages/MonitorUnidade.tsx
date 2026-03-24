@@ -346,8 +346,8 @@ function MonitorContent() {
     });
   }, [isCoordenador, servidorId, unidades]);
 
-  // Permission: can edit escalas/férias
-  const canEditEscalasFerias = hasFullAccess || isCoordenador;
+  // Permission: can edit escalas/férias — todos os usuários autenticados podem editar dentro de suas pastas
+  const canEditEscalasFerias = true;
 
   const today = new Date();
   const todayDateKey = format(today, "yyyy-MM-dd");
