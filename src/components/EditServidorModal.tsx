@@ -4,8 +4,12 @@ import type { ServidorDB, DiretoriaDB, UnidadeDB, CoordenacaoDB } from "@/hooks/
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle
 } from "@/components/ui/dialog";
-import { X, Save, Loader2, AlertTriangle, Link2 } from "lucide-react";
+import { X, Save, Loader2, AlertTriangle, Link2, Trash2 } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { calcularTotalDiasFerias } from "@/lib/feriasUtils";
 
@@ -14,6 +18,7 @@ interface EditServidorModalProps {
   open: boolean;
   onClose: () => void;
   onSaved: () => void;
+  onDeleted?: () => void;
   diretorias: DiretoriaDB[];
   unidades: UnidadeDB[];
   coordenacoes: CoordenacaoDB[];
@@ -24,12 +29,14 @@ export function EditServidorModal({
   open,
   onClose,
   onSaved,
+  onDeleted,
   diretorias,
   unidades,
   coordenacoes,
 }: EditServidorModalProps) {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [extraUnidadeIds, setExtraUnidadeIds] = useState<string[]>([]);
   const [loadingExtras, setLoadingExtras] = useState(false);
 
@@ -201,6 +208,31 @@ export function EditServidorModal({
 
     setSaving(false);
     toast({ title: "Servidor atualizado!", description: `${form.nome} foi atualizado com sucesso.` });
+    onSaved();
+    onClose();
+  };
+
+  const handleDelete = async () => {
+    if (!servidor) return;
+    setDeleting(true);
+    // Remove related junction records first
+    await Promise.all([
+      supabase.from("servidores_unidades").delete().eq("servidor_id", servidor.id),
+      supabase.from("servidores_setores").delete().eq("servidor_id", servidor.id),
+      supabase.from("servidores_equipes").delete().eq("servidor_id", servidor.id),
+      supabase.from("escalas_semanais").delete().eq("servidor_id", servidor.id),
+      supabase.from("faltas_abonadas").delete().eq("servidor_id", servidor.id),
+      supabase.from("atestados").delete().eq("servidor_id", servidor.id),
+      supabase.from("afastamentos").delete().eq("servidor_id", servidor.id),
+    ]);
+    const { error } = await supabase.from("servidores").delete().eq("id", servidor.id);
+    setDeleting(false);
+    if (error) {
+      toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Servidor removido", description: `${servidor.nome} foi excluído do quadro.` });
+    onDeleted?.();
     onSaved();
     onClose();
   };
@@ -561,21 +593,49 @@ export function EditServidorModal({
           </section>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-2 border-t border-border">
-            <button
-              onClick={onClose}
-              className="h-9 rounded-md border border-input bg-background px-4 text-sm font-medium text-foreground hover:bg-muted transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-            >
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              {saving ? "Salvando..." : "Salvar"}
-            </button>
+          <div className="flex justify-between gap-3 pt-2 border-t border-border">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  disabled={deleting}
+                  className="flex h-9 items-center gap-2 rounded-md bg-destructive px-4 text-sm font-semibold text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:opacity-50"
+                >
+                  {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                  Excluir
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir servidor do quadro?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta ação irá remover <strong>{form.nome}</strong> permanentemente do sistema, incluindo todos os registros associados (escalas, atestados, afastamentos, faltas abonadas). Esta ação não pode ser desfeita.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Sim, excluir permanentemente
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <div className="flex gap-3">
+              <button
+                onClick={onClose}
+                className="h-9 rounded-md border border-input bg-background px-4 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {saving ? "Salvando..." : "Salvar"}
+              </button>
+            </div>
           </div>
         </div>
       </DialogContent>
