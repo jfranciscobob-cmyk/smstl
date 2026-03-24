@@ -1749,7 +1749,26 @@ function MonitorContent() {
                 </div>
               </div>
 
-              {/* Vacations */}
+              {/* Sem escala cadastrada */}
+              {semEscalaPresentes.length > 0 && (
+                <div className="rounded-xl border border-amber-500/30 bg-card p-5">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-2 mb-3">
+                    <AlertTriangle className="h-3.5 w-3.5" /> Sem escala cadastrada ({semEscalaPresentes.length})
+                  </h3>
+                  <div className="space-y-1 max-h-64 overflow-y-auto">
+                    {semEscalaPresentes.map(s => (
+                      <div key={s.id} className="flex items-center justify-between rounded-lg px-3 py-2 bg-amber-500/5 border border-amber-500/10">
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{s.nome}</p>
+                          <p className="text-[10px] text-muted-foreground">{s.cargo}</p>
+                        </div>
+                        <span className="text-xs text-amber-600 dark:text-amber-400">Sem escala</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="rounded-xl border border-warning/30 bg-card p-5">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-warning flex items-center gap-2 mb-3">
                   <Palmtree className="h-3.5 w-3.5" /> Férias próximas (30 dias) — {upcomingVacations.length}
