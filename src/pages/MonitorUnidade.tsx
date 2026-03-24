@@ -498,10 +498,10 @@ function MonitorContent() {
     getServidorWorkingDaysLabel({ servidor: s, escalas: escalasSemanais });
 
   // Servidores presentes: split by on-shift vs off-shift vs no-schedule
-  const presentes = filteredServidores.filter(s => s.status_presenca === "presente");
-  const onShift = presentes.filter(s => hasAnyEscalaConfigured(s, escalasSemanais) && isOnShift(s));
-  const offShift = presentes.filter(s => hasAnyEscalaConfigured(s, escalasSemanais) && !isOnShift(s));
-  const semEscala = presentes.filter(s => !hasAnyEscalaConfigured(s, escalasSemanais));
+  const presentesList = filteredServidores.filter(s => s.status_presenca === "presente");
+  const onShift = presentesList.filter(s => hasAnyEscalaConfigured(s, escalasSemanais) && isOnShift(s));
+  const offShift = presentesList.filter(s => hasAnyEscalaConfigured(s, escalasSemanais) && !isOnShift(s));
+  const semEscalaPresentes = presentesList.filter(s => !hasAnyEscalaConfigured(s, escalasSemanais));
 
   const upcomingVacations = useMemo(() => {
     const limit = addDays(today, 30);
