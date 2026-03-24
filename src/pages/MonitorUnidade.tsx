@@ -346,8 +346,8 @@ function MonitorContent() {
     });
   }, [isCoordenador, servidorId, unidades]);
 
-  // Permission: can edit escalas/férias
-  const canEditEscalasFerias = hasFullAccess || isCoordenador;
+  // Permission: can edit escalas/férias — todos os usuários autenticados podem editar dentro de suas pastas
+  const canEditEscalasFerias = true;
 
   const today = new Date();
   const todayDateKey = format(today, "yyyy-MM-dd");
@@ -1114,7 +1114,7 @@ function MonitorContent() {
   // Current breadcrumb
   const currentDiretoria = diretorias.find(d => d.id === selectedDiretoriaId);
   const currentUnidade = unidades.find(u => u.id === selectedUnidadeId);
-  const canRemoveFromPasta = !!selectedUnidadeId && (isAdmin || isDiretor || hasFullAccess);
+  const canRemoveFromPasta = !!selectedUnidadeId;
   const escalaTableColSpan = 10 + (hasFinancialAccess ? 1 : 0) + (canTransfer ? 1 : 0) + (canRemoveFromPasta ? 1 : 0);
 
   return (
