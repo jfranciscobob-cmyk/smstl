@@ -2142,7 +2142,7 @@ function MonitorContent() {
             )}
 
             {/* Aniversariantes do Mês */}
-            <AniversariantesCard servidores={allServidoresInScope} />
+            <AniversariantesCard servidores={allServidoresInScope} onRefresh={loadData} />
 
 
             {(() => {
