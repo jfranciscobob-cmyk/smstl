@@ -1788,7 +1788,7 @@ function MonitorContent() {
                   {upcomingVacations.map(s => (
                     <div key={s.id} className="flex items-center justify-between rounded-lg px-3 py-2 bg-warning/5 border border-warning/10">
                       <div><p className="text-sm font-medium text-foreground">{s.nome}</p><p className="text-[10px] text-muted-foreground">{s.cargo}</p></div>
-                      <span className="text-xs font-mono text-warning">{s.ferias_periodo1_inicio} → {s.ferias_periodo1_fim}</span>
+                      <span className="text-xs font-mono text-warning">{fmtDate(s.ferias_periodo1_inicio)} → {fmtDate(s.ferias_periodo1_fim)}</span>
                     </div>
                   ))}
                 </div>
@@ -1876,10 +1876,10 @@ function MonitorContent() {
                                 )}>{s.ferias_status_gerencial || "—"}</span>
                               </td>
                               <td className="py-1.5 font-mono text-muted-foreground text-[10px]">
-                                {s.ferias_periodo1_inicio ? `${s.ferias_periodo1_inicio} → ${s.ferias_periodo1_fim || "?"}` : "—"}
+                                {s.ferias_periodo1_inicio ? `${fmtDate(s.ferias_periodo1_inicio)} → ${fmtDate(s.ferias_periodo1_fim) || "?"}` : "—"}
                               </td>
                               <td className="py-1.5 font-mono text-muted-foreground text-[10px]">
-                                {s.ferias_periodo2_inicio ? `${s.ferias_periodo2_inicio} → ${s.ferias_periodo2_fim || "?"}` : "—"}
+                                {s.ferias_periodo2_inicio ? `${fmtDate(s.ferias_periodo2_inicio)} → ${fmtDate(s.ferias_periodo2_fim) || "?"}` : "—"}
                               </td>
                               <td className="py-1.5 font-mono text-foreground font-bold">{s.ferias_total_dias || "—"}</td>
                               <td className="py-1.5">
@@ -1966,7 +1966,7 @@ function MonitorContent() {
                     <div key={a.id} className="flex items-center justify-between rounded-lg px-3 py-2 bg-destructive/5 border border-destructive/10">
                       <div><p className="text-sm font-medium text-foreground">{getServidorNome(a.servidor_id)}</p><p className="text-[10px] text-muted-foreground">{a.tipo} · {a.dias} dia(s){a.observacao ? ` · ${a.observacao}` : ""}</p></div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono text-destructive">{a.data_inicio} → {a.data_fim}</span>
+                        <span className="text-xs font-mono text-destructive">{fmtDate(a.data_inicio)} → {fmtDate(a.data_fim)}</span>
                         <button onClick={() => deleteAtestado(a.id)} title="Excluir atestado"
                           className="h-5 w-5 flex items-center justify-center rounded text-destructive/60 hover:text-destructive hover:bg-destructive/10">
                           <X className="h-3 w-3" />
@@ -1981,7 +1981,7 @@ function MonitorContent() {
                     {endingSoonAtestados.map(a => (
                       <div key={a.id} className="flex items-center justify-between text-xs py-1">
                         <span className="text-foreground">{getServidorNome(a.servidor_id)}</span>
-                        <span className="text-warning font-mono">até {a.data_fim}</span>
+                        <span className="text-warning font-mono">até {fmtDate(a.data_fim)}</span>
                       </div>
                     ))}
                   </div>
@@ -2053,7 +2053,7 @@ function MonitorContent() {
                         <div className="mt-1 space-y-0.5">
                           {servidorFaltas.map(f => (
                             <div key={f.id} className="flex items-center justify-between text-[10px] text-muted-foreground">
-                              <span>{f.data}{f.observacao ? ` — ${f.observacao}` : ""}</span>
+                              <span>{fmtDate(f.data)}{f.observacao ? ` — ${f.observacao}` : ""}</span>
                               <button onClick={() => deleteFaltaAbonada(f.id)} title="Excluir falta"
                                 className="h-4 w-4 flex items-center justify-center rounded text-destructive/60 hover:text-destructive hover:bg-destructive/10">
                                 <X className="h-2.5 w-2.5" />
