@@ -29,12 +29,14 @@ export function EditServidorModal({
   open,
   onClose,
   onSaved,
+  onDeleted,
   diretorias,
   unidades,
   coordenacoes,
 }: EditServidorModalProps) {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [extraUnidadeIds, setExtraUnidadeIds] = useState<string[]>([]);
   const [loadingExtras, setLoadingExtras] = useState(false);
 
