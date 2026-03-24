@@ -31,10 +31,15 @@ import { calcularTotalDiasFerias } from "@/lib/feriasUtils";
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
-function AniversariantesCard({ servidores }: { servidores: ServidorDB[] }) {
+function AniversariantesCard({ servidores, onRefresh }: { servidores: ServidorDB[]; onRefresh?: () => void }) {
+  const { toast } = useToast();
   const now = new Date();
   const currentMonth = now.getMonth();
   const currentDay = now.getDate();
+  const [editMode, setEditMode] = useState(false);
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [editDates, setEditDates] = useState<Record<string, string>>({});
+
   const aniversariantes = useMemo(() =>
     servidores
       .filter(s => {
@@ -49,14 +54,76 @@ function AniversariantesCard({ servidores }: { servidores: ServidorDB[] }) {
       .sort((a, b) => a.diaNascimento - b.diaNascimento),
     [servidores, currentMonth]
   );
+
+  const semData = useMemo(() => servidores.filter(s => !(s as any).data_nascimento), [servidores]);
+
   const aniversariantesHoje = aniversariantes.filter(a => a.diaNascimento === currentDay);
   const aniversariantesSemana = aniversariantes.filter(a => { const diff = a.diaNascimento - currentDay; return diff > 0 && diff <= 7; });
 
+  const handleSaveDate = async (servidorId: string) => {
+    const date = editDates[servidorId];
+    if (!date) return;
+    setSavingId(servidorId);
+    const { error } = await supabase.from("servidores").update({ data_nascimento: date }).eq("id", servidorId);
+    setSavingId(null);
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Salvo!", description: "Data de nascimento atualizada." });
+      setEditDates(prev => { const n = { ...prev }; delete n[servidorId]; return n; });
+      onRefresh?.();
+    }
+  };
+
   return (
     <div className="rounded-xl border border-pink-500/30 bg-card p-5">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-pink-600 dark:text-pink-400 flex items-center gap-2 mb-3">
-        <Cake className="h-3.5 w-3.5" /> Aniversariantes do Mês ({aniversariantes.length})
-      </h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-pink-600 dark:text-pink-400 flex items-center gap-2">
+          <Cake className="h-3.5 w-3.5" /> Aniversariantes do Mês ({aniversariantes.length})
+        </h3>
+        <button
+          onClick={() => setEditMode(!editMode)}
+          className={cn(
+            "flex items-center gap-1 text-xs font-medium rounded-md px-2 py-1 transition-colors",
+            editMode
+              ? "bg-pink-500/20 text-pink-600 dark:text-pink-400"
+              : "bg-muted/50 text-muted-foreground hover:bg-muted"
+          )}
+        >
+          <Pencil className="h-3 w-3" />
+          {editMode ? "Fechar" : "Cadastrar Datas"}
+        </button>
+      </div>
+
+      {editMode && (
+        <div className="mb-4 rounded-lg border border-pink-500/20 bg-pink-500/5 p-3 space-y-2 max-h-60 overflow-y-auto">
+          <p className="text-xs font-semibold text-pink-600 dark:text-pink-400 mb-1">
+            Servidores sem data de nascimento ({semData.length})
+          </p>
+          {semData.length === 0 && (
+            <p className="text-xs text-muted-foreground italic">Todos os servidores já possuem data cadastrada! ✅</p>
+          )}
+          {semData.map(s => (
+            <div key={s.id} className="flex items-center gap-2">
+              <span className="text-xs text-foreground truncate flex-1 min-w-0">{s.nome}</span>
+              <input
+                type="date"
+                className="h-7 rounded border border-input bg-background px-2 text-xs w-[130px]"
+                value={editDates[s.id] || ""}
+                onChange={e => setEditDates(prev => ({ ...prev, [s.id]: e.target.value }))}
+              />
+              <button
+                onClick={() => handleSaveDate(s.id)}
+                disabled={!editDates[s.id] || savingId === s.id}
+                className="h-7 px-2 rounded bg-primary text-primary-foreground text-xs font-medium disabled:opacity-50 flex items-center gap-1"
+              >
+                {savingId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {aniversariantesHoje.length > 0 && (
         <div className="mb-3 rounded-lg bg-pink-500/10 border border-pink-500/20 p-3">
           <p className="text-xs font-bold text-pink-600 dark:text-pink-400 mb-1.5">🎂 Hoje!</p>
@@ -80,7 +147,7 @@ function AniversariantesCard({ servidores }: { servidores: ServidorDB[] }) {
         </div>
       )}
       <div className="space-y-1 max-h-48 overflow-y-auto">
-        {aniversariantes.length === 0 && <p className="text-xs text-muted-foreground italic">Nenhum aniversariante cadastrado neste mês.</p>}
+        {aniversariantes.length === 0 && !editMode && <p className="text-xs text-muted-foreground italic">Nenhum aniversariante cadastrado neste mês.</p>}
         {aniversariantes.map(s => (
           <div key={s.id} className={cn(
             "flex items-center justify-between rounded-lg px-3 py-1.5",
@@ -2075,7 +2142,7 @@ function MonitorContent() {
             )}
 
             {/* Aniversariantes do Mês */}
-            <AniversariantesCard servidores={allServidoresInScope} />
+            <AniversariantesCard servidores={allServidoresInScope} onRefresh={loadData} />
 
 
             {(() => {
