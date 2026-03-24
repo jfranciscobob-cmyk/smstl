@@ -497,10 +497,11 @@ function MonitorContent() {
   const getDiasTrabalhados = (s: ServidorDB): string =>
     getServidorWorkingDaysLabel({ servidor: s, escalas: escalasSemanais });
 
-  // Servidores presentes: split by on-shift vs off-shift
-  // Only consider "on shift" if they actually have a schedule for today
-  const onShift = filteredServidores.filter(s => s.status_presenca === "presente" && isOnShift(s));
-  const offShift = filteredServidores.filter(s => s.status_presenca === "presente" && !isOnShift(s));
+  // Servidores presentes: split by on-shift vs off-shift vs no-schedule
+  const presentesList = filteredServidores.filter(s => s.status_presenca === "presente");
+  const onShift = presentesList.filter(s => hasAnyEscalaConfigured(s, escalasSemanais) && isOnShift(s));
+  const offShift = presentesList.filter(s => hasAnyEscalaConfigured(s, escalasSemanais) && !isOnShift(s));
+  const semEscalaPresentes = presentesList.filter(s => !hasAnyEscalaConfigured(s, escalasSemanais));
 
   const upcomingVacations = useMemo(() => {
     const limit = addDays(today, 30);
@@ -1748,7 +1749,26 @@ function MonitorContent() {
                 </div>
               </div>
 
-              {/* Vacations */}
+              {/* Sem escala cadastrada */}
+              {semEscalaPresentes.length > 0 && (
+                <div className="rounded-xl border border-amber-500/30 bg-card p-5">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-2 mb-3">
+                    <AlertTriangle className="h-3.5 w-3.5" /> Sem escala cadastrada ({semEscalaPresentes.length})
+                  </h3>
+                  <div className="space-y-1 max-h-64 overflow-y-auto">
+                    {semEscalaPresentes.map(s => (
+                      <div key={s.id} className="flex items-center justify-between rounded-lg px-3 py-2 bg-amber-500/5 border border-amber-500/10">
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{s.nome}</p>
+                          <p className="text-[10px] text-muted-foreground">{s.cargo}</p>
+                        </div>
+                        <span className="text-xs text-amber-600 dark:text-amber-400">Sem escala</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="rounded-xl border border-warning/30 bg-card p-5">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-warning flex items-center gap-2 mb-3">
                   <Palmtree className="h-3.5 w-3.5" /> Férias próximas (30 dias) — {upcomingVacations.length}
