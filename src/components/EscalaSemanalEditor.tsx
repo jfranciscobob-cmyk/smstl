@@ -44,17 +44,21 @@ function calcHoursFromTimes(entrada1: string, saida1: string, entrada2: string, 
     if (isNaN(h) || isNaN(m)) return null;
     return h * 60 + m;
   };
+  const calcPair = (e: number | null, s: number | null): number => {
+    if (e === null || s === null) return 0;
+    // Support overnight shifts (e.g. 19:00 -> 07:00)
+    const diff = s > e ? s - e : (24 * 60 - e + s);
+    return diff / 60;
+  };
   let total = 0;
-  const e1 = toMin(entrada1), s1 = toMin(saida1);
-  if (e1 !== null && s1 !== null && s1 > e1) total += (s1 - e1) / 60;
-  const e2 = toMin(entrada2), s2 = toMin(saida2);
-  if (e2 !== null && s2 !== null && s2 > e2) total += (s2 - e2) / 60;
+  total += calcPair(toMin(entrada1), toMin(saida1));
+  total += calcPair(toMin(entrada2), toMin(saida2));
   return Math.round(total * 100) / 100;
 }
 
 export function EscalaSemanalEditor({ servidorId, servidorNome, tipoEscala, defaultEscala, onTotalChange }: Props) {
   const { toast } = useToast();
-  const isPlantao = tipoEscala === "plantao" || tipoEscala === "plantão";
+  const isPlantao = tipoEscala?.toLowerCase().includes("plantao") || tipoEscala?.toLowerCase().includes("plantão") || tipoEscala === "variavel";
   const DIAS_DISPLAY = isPlantao ? [...DIAS_SEMANA, ...DIAS_FIM_DE_SEMANA] : DIAS_SEMANA;
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
