@@ -31,6 +31,13 @@ import { calcularTotalDiasFerias } from "@/lib/feriasUtils";
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
+/** Formata data YYYY-MM-DD para DD/MM/YYYY */
+function fmtDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return "—";
+  const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return dateStr;
+  return `${m[3]}/${m[2]}/${m[1]}`;
+}
 function AniversariantesCard({ servidores, onRefresh }: { servidores: ServidorDB[]; onRefresh?: () => void }) {
   const { toast } = useToast();
   const now = new Date();
