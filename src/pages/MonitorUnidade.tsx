@@ -1114,7 +1114,7 @@ function MonitorContent() {
   // Current breadcrumb
   const currentDiretoria = diretorias.find(d => d.id === selectedDiretoriaId);
   const currentUnidade = unidades.find(u => u.id === selectedUnidadeId);
-  const canRemoveFromPasta = !!selectedUnidadeId && (isAdmin || isDiretor || hasFullAccess);
+  const canRemoveFromPasta = !!selectedUnidadeId;
   const escalaTableColSpan = 10 + (hasFinancialAccess ? 1 : 0) + (canTransfer ? 1 : 0) + (canRemoveFromPasta ? 1 : 0);
 
   return (
