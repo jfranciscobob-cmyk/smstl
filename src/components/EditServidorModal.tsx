@@ -212,6 +212,31 @@ export function EditServidorModal({
     onClose();
   };
 
+  const handleDelete = async () => {
+    if (!servidor) return;
+    setDeleting(true);
+    // Remove related junction records first
+    await Promise.all([
+      supabase.from("servidores_unidades").delete().eq("servidor_id", servidor.id),
+      supabase.from("servidores_setores").delete().eq("servidor_id", servidor.id),
+      supabase.from("servidores_equipes").delete().eq("servidor_id", servidor.id),
+      supabase.from("escalas_semanais").delete().eq("servidor_id", servidor.id),
+      supabase.from("faltas_abonadas").delete().eq("servidor_id", servidor.id),
+      supabase.from("atestados").delete().eq("servidor_id", servidor.id),
+      supabase.from("afastamentos").delete().eq("servidor_id", servidor.id),
+    ]);
+    const { error } = await supabase.from("servidores").delete().eq("id", servidor.id);
+    setDeleting(false);
+    if (error) {
+      toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Servidor removido", description: `${servidor.nome} foi excluído do quadro.` });
+    onDeleted?.();
+    onSaved();
+    onClose();
+  };
+
   const set = (key: string, value: any) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const inputClass = "h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring";
