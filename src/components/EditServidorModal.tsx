@@ -18,6 +18,7 @@ interface EditServidorModalProps {
   open: boolean;
   onClose: () => void;
   onSaved: () => void;
+  onDeleted?: () => void;
   diretorias: DiretoriaDB[];
   unidades: UnidadeDB[];
   coordenacoes: CoordenacaoDB[];
