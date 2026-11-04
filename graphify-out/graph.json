@@ -1,0 +1,2483 @@
+{
+  "generated_at": "2026-11-04T21:21:33.832874+00:00",
+  "files": [
+    {
+      "path": "index.html",
+      "bytes": 1431
+    },
+    {
+      "path": "package.json",
+      "bytes": 3053
+    },
+    {
+      "path": "vite.config.ts",
+      "bytes": 1114
+    },
+    {
+      "path": "vitest.config.ts",
+      "bytes": 395
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 396
+    },
+    {
+      "path": "tailwind.config.ts",
+      "bytes": 3674
+    },
+    {
+      "path": "README.md",
+      "bytes": 1511
+    },
+    {
+      "path": "components.json",
+      "bytes": 414
+    },
+    {
+      "path": "tsconfig.node.json",
+      "bytes": 481
+    },
+    {
+      "path": "postcss.config.js",
+      "bytes": 81
+    },
+    {
+      "path": "eslint.config.js",
+      "bytes": 765
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 238357
+    },
+    {
+      "path": "tsconfig.app.json",
+      "bytes": 680
+    },
+    {
+      "path": "src/main.tsx",
+      "bytes": 1425
+    },
+    {
+      "path": "src/App.css",
+      "bytes": 135
+    },
+    {
+      "path": "src/index.css",
+      "bytes": 3836
+    },
+    {
+      "path": "src/vite-env.d.ts",
+      "bytes": 38
+    },
+    {
+      "path": "src/App.tsx",
+      "bytes": 4240
+    },
+    {
+      "path": "supabase/migrations/20260303151353_2cb0a07b-a1cb-4ae3-902f-2765619dcb69.sql",
+      "bytes": 2092
+    },
+    {
+      "path": "supabase/migrations/20260304173807_7d3a342e-9546-4a33-83d9-1d2322df4122.sql",
+      "bytes": 2209
+    },
+    {
+      "path": "supabase/migrations/20260226224611_7c8ee379-499d-4e16-942b-6810436de85e.sql",
+      "bytes": 183
+    },
+    {
+      "path": "supabase/migrations/20260226155448_b539077e-342c-4f7f-aa4b-78a414a67eba.sql",
+      "bytes": 2225
+    },
+    {
+      "path": "supabase/migrations/20260227011847_046fb857-5608-460c-aa34-d469ecab7187.sql",
+      "bytes": 2855
+    },
+    {
+      "path": "supabase/migrations/20260226203944_e3d068f0-14a7-452a-997f-ebde6c03b2c9.sql",
+      "bytes": 88
+    },
+    {
+      "path": "supabase/migrations/20260226210653_a5803093-5c13-4b54-8fc4-5a3057a8e038.sql",
+      "bytes": 1318
+    },
+    {
+      "path": "supabase/migrations/20260226195431_14f64609-4ab2-4ff9-9247-40ba809eae1a.sql",
+      "bytes": 1216
+    },
+    {
+      "path": "supabase/migrations/20260226173041_17f1fb76-6671-46ac-828d-51a3a6e87b8d.sql",
+      "bytes": 1937
+    },
+    {
+      "path": "supabase/migrations/20260226123150_8862bcb8-58f0-403b-a433-cd850fb1ee3b.sql",
+      "bytes": 5042
+    },
+    {
+      "path": "supabase/migrations/20260226194544_0a73d3d4-2d62-4557-a071-d2c63075fb7f.sql",
+      "bytes": 92
+    },
+    {
+      "path": "supabase/migrations/20260226141510_55987238-6fc2-4f22-8443-e3c68ff13fc3.sql",
+      "bytes": 86
+    },
+    {
+      "path": "supabase/migrations/20260310150934_014a2689-246b-4534-9df2-8e721077dd35.sql",
+      "bytes": 76
+    },
+    {
+      "path": "supabase/migrations/20260304175634_ab21d98f-e691-4262-9d29-4e8a5f01e6ef.sql",
+      "bytes": 628
+    },
+    {
+      "path": "supabase/migrations/20260226163204_b4d712c9-6518-488c-a9f9-459d7dab9b96.sql",
+      "bytes": 87
+    },
+    {
+      "path": "supabase/migrations/20260227011029_1b209661-5f51-495d-86c3-0cb0cfbd44b9.sql",
+      "bytes": 245
+    },
+    {
+      "path": "supabase/migrations/20260226151534_5a641b6a-e507-4b36-ac6e-ad99961956a9.sql",
+      "bytes": 1170
+    },
+    {
+      "path": "supabase/migrations/20260226195938_19c67fb9-2240-4cd0-b5c5-87b625ad528c.sql",
+      "bytes": 96
+    },
+    {
+      "path": "supabase/migrations/20260226165025_e94ba17b-2b16-4e50-96f9-c83f34d85ad6.sql",
+      "bytes": 4415
+    },
+    {
+      "path": "supabase/migrations/20260226172000_bf048e62-e933-4bcf-92c8-1600ae83e4c0.sql",
+      "bytes": 2907
+    },
+    {
+      "path": "supabase/migrations/20260227134200_63b8db17-3c3b-4d15-b870-f6631769189d.sql",
+      "bytes": 829
+    },
+    {
+      "path": "supabase/migrations/20260226143102_ec233053-a149-4325-8c5c-a62b975cd412.sql",
+      "bytes": 89
+    },
+    {
+      "path": "supabase/migrations/20260226183209_4d9b6c1f-81c5-4371-b1b1-747d2e8bf374.sql",
+      "bytes": 1122
+    },
+    {
+      "path": "supabase/migrations/20260227010543_69fbfbfb-2c6e-4c6f-bfa7-6655a550e18b.sql",
+      "bytes": 874
+    },
+    {
+      "path": "supabase/migrations/20260304171624_2922cdf7-3903-4db3-8fa0-46eaf14860ce.sql",
+      "bytes": 1978
+    },
+    {
+      "path": "supabase/migrations/20260323165819_71a2d9ac-0ab9-4608-b646-f56081056214.sql",
+      "bytes": 313
+    },
+    {
+      "path": "supabase/migrations/20260304164728_5d438ea3-9885-4f85-b71e-d5751c2ea93a.sql",
+      "bytes": 71
+    },
+    {
+      "path": "supabase/migrations/20260227001812_80b8cf4b-40bb-4e4c-a00d-ed444d1a5581.sql",
+      "bytes": 1467
+    },
+    {
+      "path": "supabase/migrations/20260226202503_71ce7b62-29a7-4968-8365-fba10f389abd.sql",
+      "bytes": 881
+    },
+    {
+      "path": "supabase/migrations/20260304164747_9b34d2bd-538a-4c32-85dd-4d2149fbe008.sql",
+      "bytes": 316
+    },
+    {
+      "path": "supabase/migrations/20260306170531_1dce6259-f5b6-46c8-9461-d185c1d03d84.sql",
+      "bytes": 1238
+    },
+    {
+      "path": "supabase/migrations/20260226230114_09704cca-5423-4e17-aecc-aae173127dc8.sql",
+      "bytes": 1298
+    },
+    {
+      "path": "supabase/migrations/20260226170237_ebc0798a-d896-4dde-a80a-c5133aa5bb46.sql",
+      "bytes": 1329
+    },
+    {
+      "path": "supabase/functions/import-servidores/index.ts",
+      "bytes": 7690
+    },
+    {
+      "path": "supabase/functions/heartbeat/index.ts",
+      "bytes": 1452
+    },
+    {
+      "path": "supabase/functions/approve-registration/index.ts",
+      "bytes": 4242
+    },
+    {
+      "path": "supabase/functions/birthday-check/index.ts",
+      "bytes": 4431
+    },
+    {
+      "path": "supabase/functions/request-registration/index.ts",
+      "bytes": 2721
+    },
+    {
+      "path": "supabase/functions/update-user/index.ts",
+      "bytes": 3282
+    },
+    {
+      "path": "supabase/functions/create-user/index.ts",
+      "bytes": 3231
+    },
+    {
+      "path": "supabase/functions/delete-user/index.ts",
+      "bytes": 2454
+    },
+    {
+      "path": "src/lib/presencaStatus.ts",
+      "bytes": 142
+    },
+    {
+      "path": "src/lib/escalaUtils.ts",
+      "bytes": 8646
+    },
+    {
+      "path": "src/lib/utils.ts",
+      "bytes": 169
+    },
+    {
+      "path": "src/lib/feriasUtils.ts",
+      "bytes": 1586
+    },
+    {
+      "path": "src/lib/presencaAutomatica.ts",
+      "bytes": 7004
+    },
+    {
+      "path": "src/test/setup.ts",
+      "bytes": 353
+    },
+    {
+      "path": "src/test/example.test.ts",
+      "bytes": 143
+    },
+    {
+      "path": "src/hooks/use-toast.ts",
+      "bytes": 3935
+    },
+    {
+      "path": "src/hooks/useAuth.ts",
+      "bytes": 1291
+    },
+    {
+      "path": "src/hooks/useServidores.ts",
+      "bytes": 6151
+    },
+    {
+      "path": "src/hooks/use-mobile.tsx",
+      "bytes": 576
+    },
+    {
+      "path": "src/hooks/useAuthSession.ts",
+      "bytes": 5174
+    },
+    {
+      "path": "src/hooks/useHeartbeat.ts",
+      "bytes": 497
+    },
+    {
+      "path": "src/components/TransferenciasPendentes.tsx",
+      "bytes": 17866
+    },
+    {
+      "path": "src/components/StatusBadge.tsx",
+      "bytes": 1217
+    },
+    {
+      "path": "src/components/NavLink.tsx",
+      "bytes": 751
+    },
+    {
+      "path": "src/components/CreateServidorModal.tsx",
+      "bytes": 17758
+    },
+    {
+      "path": "src/components/DashboardHeader.tsx",
+      "bytes": 9671
+    },
+    {
+      "path": "src/components/EquipeSaudeList.tsx",
+      "bytes": 17689
+    },
+    {
+      "path": "src/components/VinculoChart.tsx",
+      "bytes": 2030
+    },
+    {
+      "path": "src/components/UnidadeSection.tsx",
+      "bytes": 4261
+    },
+    {
+      "path": "src/components/LoginForm.tsx",
+      "bytes": 4449
+    },
+    {
+      "path": "src/components/SetorList.tsx",
+      "bytes": 22716
+    },
+    {
+      "path": "src/components/GerenciarAvisos.tsx",
+      "bytes": 9043
+    },
+    {
+      "path": "src/components/ServidorRow.tsx",
+      "bytes": 3040
+    },
+    {
+      "path": "src/components/UnidadeServidores.tsx",
+      "bytes": 5909
+    },
+    {
+      "path": "src/components/EscalaSemanalEditor.tsx",
+      "bytes": 10502
+    },
+    {
+      "path": "src/components/ReallocationDialog.tsx",
+      "bytes": 11177
+    },
+    {
+      "path": "src/components/AvisoPopup.tsx",
+      "bytes": 5455
+    },
+    {
+      "path": "src/components/StatCard.tsx",
+      "bytes": 2008
+    },
+    {
+      "path": "src/components/FuncaoList.tsx",
+      "bytes": 8435
+    },
+    {
+      "path": "src/components/EditServidorModal.tsx",
+      "bytes": 32295
+    },
+    {
+      "path": "src/components/AppErrorBoundary.tsx",
+      "bytes": 2426
+    },
+    {
+      "path": "src/components/HierarchyMonitor.tsx",
+      "bytes": 18743
+    },
+    {
+      "path": "src/components/ImportCSVButton.tsx",
+      "bytes": 4576
+    },
+    {
+      "path": "src/components/TransferServidorModal.tsx",
+      "bytes": 7509
+    },
+    {
+      "path": "src/components/ServidorConflictBadge.tsx",
+      "bytes": 2698
+    },
+    {
+      "path": "src/pages/NotFound.tsx",
+      "bytes": 727
+    },
+    {
+      "path": "src/pages/AcessoRapido.tsx",
+      "bytes": 16612
+    },
+    {
+      "path": "src/pages/Dashboard.tsx",
+      "bytes": 51873
+    },
+    {
+      "path": "src/pages/ModoTV.tsx",
+      "bytes": 77932
+    },
+    {
+      "path": "src/pages/SetupAdmin.tsx",
+      "bytes": 3784
+    },
+    {
+      "path": "src/pages/Avisos.tsx",
+      "bytes": 17409
+    },
+    {
+      "path": "src/pages/Login.tsx",
+      "bytes": 12828
+    },
+    {
+      "path": "src/pages/Manual.tsx",
+      "bytes": 15852
+    },
+    {
+      "path": "src/pages/Estrutura.tsx",
+      "bytes": 106553
+    },
+    {
+      "path": "src/pages/Index.tsx",
+      "bytes": 469
+    },
+    {
+      "path": "src/pages/MonitorUnidade.tsx",
+      "bytes": 141908
+    },
+    {
+      "path": "src/pages/AdminUsuarios.tsx",
+      "bytes": 34773
+    },
+    {
+      "path": "src/components/ui/avatar.tsx",
+      "bytes": 1365
+    },
+    {
+      "path": "src/components/ui/aspect-ratio.tsx",
+      "bytes": 143
+    },
+    {
+      "path": "src/components/ui/calendar.tsx",
+      "bytes": 2563
+    },
+    {
+      "path": "src/components/ui/badge.tsx",
+      "bytes": 1089
+    },
+    {
+      "path": "src/components/ui/drawer.tsx",
+      "bytes": 2941
+    },
+    {
+      "path": "src/components/ui/tabs.tsx",
+      "bytes": 1897
+    },
+    {
+      "path": "src/components/ui/menubar.tsx",
+      "bytes": 7863
+    },
+    {
+      "path": "src/components/ui/navigation-menu.tsx",
+      "bytes": 5030
+    },
+    {
+      "path": "src/components/ui/sonner.tsx",
+      "bytes": 877
+    },
+    {
+      "path": "src/components/ui/breadcrumb.tsx",
+      "bytes": 2687
+    },
+    {
+      "path": "src/components/ui/toggle.tsx",
+      "bytes": 1416
+    },
+    {
+      "path": "src/components/ui/toast.tsx",
+      "bytes": 4798
+    },
+    {
+      "path": "src/components/ui/checkbox.tsx",
+      "bytes": 1053
+    },
+    {
+      "path": "src/components/ui/use-toast.ts",
+      "bytes": 82
+    },
+    {
+      "path": "src/components/ui/select.tsx",
+      "bytes": 5575
+    },
+    {
+      "path": "src/components/ui/radio-group.tsx",
+      "bytes": 1447
+    },
+    {
+      "path": "src/components/ui/button.tsx",
+      "bytes": 1840
+    },
+    {
+      "path": "src/components/ui/input-otp.tsx",
+      "bytes": 2166
+    },
+    {
+      "path": "src/components/ui/tooltip.tsx",
+      "bytes": 1155
+    },
+    {
+      "path": "src/components/ui/scroll-area.tsx",
+      "bytes": 1608
+    },
+    {
+      "path": "src/components/ui/context-menu.tsx",
+      "bytes": 7191
+    },
+    {
+      "path": "src/components/ui/card.tsx",
+      "bytes": 1785
+    },
+    {
+      "path": "src/components/ui/alert.tsx",
+      "bytes": 1546
+    },
+    {
+      "path": "src/components/ui/form.tsx",
+      "bytes": 4014
+    },
+    {
+      "path": "src/components/ui/accordion.tsx",
+      "bytes": 1976
+    },
+    {
+      "path": "src/components/ui/skeleton.tsx",
+      "bytes": 234
+    },
+    {
+      "path": "src/components/ui/sheet.tsx",
+      "bytes": 4197
+    },
+    {
+      "path": "src/components/ui/label.tsx",
+      "bytes": 696
+    },
+    {
+      "path": "src/components/ui/carousel.tsx",
+      "bytes": 6249
+    },
+    {
+      "path": "src/components/ui/slider.tsx",
+      "bytes": 1065
+    },
+    {
+      "path": "src/components/ui/command.tsx",
+      "bytes": 4821
+    },
+    {
+      "path": "src/components/ui/dropdown-menu.tsx",
+      "bytes": 7260
+    },
+    {
+      "path": "src/components/ui/pagination.tsx",
+      "bytes": 2683
+    },
+    {
+      "path": "src/components/ui/toaster.tsx",
+      "bytes": 730
+    },
+    {
+      "path": "src/components/ui/collapsible.tsx",
+      "bytes": 320
+    },
+    {
+      "path": "src/components/ui/progress.tsx",
+      "bytes": 765
+    },
+    {
+      "path": "src/components/ui/switch.tsx",
+      "bytes": 1147
+    },
+    {
+      "path": "src/components/ui/popover.tsx",
+      "bytes": 1239
+    },
+    {
+      "path": "src/components/ui/chart.tsx",
+      "bytes": 9987
+    },
+    {
+      "path": "src/components/ui/alert-dialog.tsx",
+      "bytes": 4313
+    },
+    {
+      "path": "src/components/ui/sidebar.tsx",
+      "bytes": 22837
+    },
+    {
+      "path": "src/components/ui/resizable.tsx",
+      "bytes": 1696
+    },
+    {
+      "path": "src/components/ui/dialog.tsx",
+      "bytes": 3761
+    },
+    {
+      "path": "src/components/ui/input.tsx",
+      "bytes": 799
+    },
+    {
+      "path": "src/components/ui/table.tsx",
+      "bytes": 2694
+    },
+    {
+      "path": "src/components/ui/toggle-group.tsx",
+      "bytes": 1714
+    },
+    {
+      "path": "src/components/ui/hover-card.tsx",
+      "bytes": 1193
+    },
+    {
+      "path": "src/components/ui/textarea.tsx",
+      "bytes": 751
+    },
+    {
+      "path": "src/components/ui/separator.tsx",
+      "bytes": 698
+    },
+    {
+      "path": "src/integrations/supabase/types.ts",
+      "bytes": 38254
+    },
+    {
+      "path": "src/integrations/supabase/client.ts",
+      "bytes": 665
+    },
+    {
+      "path": "src/integrations/supabase/previewAuthStorage.ts",
+      "bytes": 6623
+    }
+  ],
+  "dependencies": [
+    {
+      "source": "vite.config.ts",
+      "target": "vite"
+    },
+    {
+      "source": "vite.config.ts",
+      "target": "@vitejs/plugin-react-swc"
+    },
+    {
+      "source": "vite.config.ts",
+      "target": "path"
+    },
+    {
+      "source": "vite.config.ts",
+      "target": "lovable-tagger"
+    },
+    {
+      "source": "vitest.config.ts",
+      "target": "vitest/config"
+    },
+    {
+      "source": "vitest.config.ts",
+      "target": "@vitejs/plugin-react-swc"
+    },
+    {
+      "source": "vitest.config.ts",
+      "target": "path"
+    },
+    {
+      "source": "tailwind.config.ts",
+      "target": "tailwindcss"
+    },
+    {
+      "source": "tailwind.config.ts",
+      "target": "tailwindcss-animate"
+    },
+    {
+      "source": "eslint.config.js",
+      "target": "@eslint/js"
+    },
+    {
+      "source": "eslint.config.js",
+      "target": "globals"
+    },
+    {
+      "source": "eslint.config.js",
+      "target": "eslint-plugin-react-hooks"
+    },
+    {
+      "source": "eslint.config.js",
+      "target": "eslint-plugin-react-refresh"
+    },
+    {
+      "source": "eslint.config.js",
+      "target": "typescript-eslint"
+    },
+    {
+      "source": "src/main.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/main.tsx",
+      "target": "react-dom/client"
+    },
+    {
+      "source": "src/main.tsx",
+      "target": "@/components/AppErrorBoundary"
+    },
+    {
+      "source": "src/main.tsx",
+      "target": "./App.tsx"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "@/components/ui/toaster"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "@/components/ui/sonner"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "@/components/ui/tooltip"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "@tanstack/react-query"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "react-router-dom"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "@/hooks/useAuthSession"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "./pages/Dashboard"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "./pages/Estrutura"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "./pages/MonitorUnidade"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "./pages/AcessoRapido"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "./pages/Login"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "./pages/AdminUsuarios"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "./pages/SetupAdmin"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "./pages/NotFound"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "./pages/Manual"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "./pages/ModoTV"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "./pages/Avisos"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "./components/AvisoPopup"
+    },
+    {
+      "source": "src/App.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "supabase/functions/import-servidores/index.ts",
+      "target": "https://deno.land/std@0.168.0/http/server.ts"
+    },
+    {
+      "source": "supabase/functions/import-servidores/index.ts",
+      "target": "https://esm.sh/@supabase/supabase-js@2"
+    },
+    {
+      "source": "supabase/functions/heartbeat/index.ts",
+      "target": "https://deno.land/std@0.168.0/http/server.ts"
+    },
+    {
+      "source": "supabase/functions/heartbeat/index.ts",
+      "target": "https://esm.sh/@supabase/supabase-js@2"
+    },
+    {
+      "source": "supabase/functions/approve-registration/index.ts",
+      "target": "https://deno.land/std@0.168.0/http/server.ts"
+    },
+    {
+      "source": "supabase/functions/approve-registration/index.ts",
+      "target": "https://esm.sh/@supabase/supabase-js@2"
+    },
+    {
+      "source": "supabase/functions/birthday-check/index.ts",
+      "target": "https://esm.sh/@supabase/supabase-js@2.97.0"
+    },
+    {
+      "source": "supabase/functions/request-registration/index.ts",
+      "target": "https://deno.land/std@0.168.0/http/server.ts"
+    },
+    {
+      "source": "supabase/functions/request-registration/index.ts",
+      "target": "https://esm.sh/@supabase/supabase-js@2"
+    },
+    {
+      "source": "supabase/functions/update-user/index.ts",
+      "target": "https://deno.land/std@0.168.0/http/server.ts"
+    },
+    {
+      "source": "supabase/functions/update-user/index.ts",
+      "target": "https://esm.sh/@supabase/supabase-js@2"
+    },
+    {
+      "source": "supabase/functions/create-user/index.ts",
+      "target": "https://deno.land/std@0.168.0/http/server.ts"
+    },
+    {
+      "source": "supabase/functions/create-user/index.ts",
+      "target": "https://esm.sh/@supabase/supabase-js@2"
+    },
+    {
+      "source": "supabase/functions/delete-user/index.ts",
+      "target": "https://deno.land/std@0.168.0/http/server.ts"
+    },
+    {
+      "source": "supabase/functions/delete-user/index.ts",
+      "target": "https://esm.sh/@supabase/supabase-js@2"
+    },
+    {
+      "source": "src/lib/utils.ts",
+      "target": "clsx"
+    },
+    {
+      "source": "src/lib/utils.ts",
+      "target": "tailwind-merge"
+    },
+    {
+      "source": "src/lib/feriasUtils.ts",
+      "target": "date-fns"
+    },
+    {
+      "source": "src/lib/presencaAutomatica.ts",
+      "target": "@/lib/escalaUtils"
+    },
+    {
+      "source": "src/test/example.test.ts",
+      "target": "vitest"
+    },
+    {
+      "source": "src/hooks/use-toast.ts",
+      "target": "react"
+    },
+    {
+      "source": "src/hooks/use-toast.ts",
+      "target": "@/components/ui/toast"
+    },
+    {
+      "source": "src/hooks/useAuth.ts",
+      "target": "react"
+    },
+    {
+      "source": "src/hooks/useAuth.ts",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/hooks/useAuth.ts",
+      "target": "@supabase/supabase-js"
+    },
+    {
+      "source": "src/hooks/useServidores.ts",
+      "target": "@tanstack/react-query"
+    },
+    {
+      "source": "src/hooks/useServidores.ts",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/hooks/useServidores.ts",
+      "target": "@/lib/presencaStatus"
+    },
+    {
+      "source": "src/hooks/use-mobile.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/hooks/useAuthSession.ts",
+      "target": "react"
+    },
+    {
+      "source": "src/hooks/useAuthSession.ts",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/hooks/useAuthSession.ts",
+      "target": "@supabase/supabase-js"
+    },
+    {
+      "source": "src/hooks/useHeartbeat.ts",
+      "target": "react"
+    },
+    {
+      "source": "src/hooks/useHeartbeat.ts",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/components/TransferenciasPendentes.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/TransferenciasPendentes.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/components/TransferenciasPendentes.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/components/TransferenciasPendentes.tsx",
+      "target": "@/components/ui/dialog"
+    },
+    {
+      "source": "src/components/TransferenciasPendentes.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/TransferenciasPendentes.tsx",
+      "target": "@/hooks/use-toast"
+    },
+    {
+      "source": "src/components/StatusBadge.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/StatusBadge.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/NavLink.tsx",
+      "target": "react-router-dom"
+    },
+    {
+      "source": "src/components/NavLink.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/NavLink.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/CreateServidorModal.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/CreateServidorModal.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/components/CreateServidorModal.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/components/CreateServidorModal.tsx",
+      "target": "@/components/ui/dialog"
+    },
+    {
+      "source": "src/components/CreateServidorModal.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/CreateServidorModal.tsx",
+      "target": "@/components/ui/alert"
+    },
+    {
+      "source": "src/components/CreateServidorModal.tsx",
+      "target": "@/hooks/use-toast"
+    },
+    {
+      "source": "src/components/CreateServidorModal.tsx",
+      "target": "@/lib/feriasUtils"
+    },
+    {
+      "source": "src/components/DashboardHeader.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/DashboardHeader.tsx",
+      "target": "react-router-dom"
+    },
+    {
+      "source": "src/components/DashboardHeader.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/DashboardHeader.tsx",
+      "target": "@/hooks/useAuthSession"
+    },
+    {
+      "source": "src/components/DashboardHeader.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/components/DashboardHeader.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/components/DashboardHeader.tsx",
+      "target": "./TransferenciasPendentes"
+    },
+    {
+      "source": "src/components/EquipeSaudeList.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/EquipeSaudeList.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/components/EquipeSaudeList.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/EquipeSaudeList.tsx",
+      "target": "@/components/ui/checkbox"
+    },
+    {
+      "source": "src/components/EquipeSaudeList.tsx",
+      "target": "@/hooks/use-toast"
+    },
+    {
+      "source": "src/components/EquipeSaudeList.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/components/VinculoChart.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/components/VinculoChart.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/UnidadeSection.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/UnidadeSection.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/components/UnidadeSection.tsx",
+      "target": "./ServidorRow"
+    },
+    {
+      "source": "src/components/UnidadeSection.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/UnidadeSection.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/LoginForm.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/LoginForm.tsx",
+      "target": "@/hooks/useAuth"
+    },
+    {
+      "source": "src/components/LoginForm.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/SetorList.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/SetorList.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/components/SetorList.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/SetorList.tsx",
+      "target": "@/components/ui/checkbox"
+    },
+    {
+      "source": "src/components/SetorList.tsx",
+      "target": "@/components/ui/alert-dialog"
+    },
+    {
+      "source": "src/components/GerenciarAvisos.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/GerenciarAvisos.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/components/GerenciarAvisos.tsx",
+      "target": "@/components/ui/button"
+    },
+    {
+      "source": "src/components/GerenciarAvisos.tsx",
+      "target": "@/components/ui/input"
+    },
+    {
+      "source": "src/components/GerenciarAvisos.tsx",
+      "target": "@/components/ui/textarea"
+    },
+    {
+      "source": "src/components/GerenciarAvisos.tsx",
+      "target": "@/components/ui/select"
+    },
+    {
+      "source": "src/components/GerenciarAvisos.tsx",
+      "target": "@/hooks/use-toast"
+    },
+    {
+      "source": "src/components/GerenciarAvisos.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ServidorRow.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/components/ServidorRow.tsx",
+      "target": "./StatusBadge"
+    },
+    {
+      "source": "src/components/ServidorRow.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/UnidadeServidores.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/UnidadeServidores.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/components/UnidadeServidores.tsx",
+      "target": "./StatusBadge"
+    },
+    {
+      "source": "src/components/UnidadeServidores.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/UnidadeServidores.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/EscalaSemanalEditor.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/EscalaSemanalEditor.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/components/EscalaSemanalEditor.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/EscalaSemanalEditor.tsx",
+      "target": "@/hooks/use-toast"
+    },
+    {
+      "source": "src/components/EscalaSemanalEditor.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ReallocationDialog.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ReallocationDialog.tsx",
+      "target": "@/components/ui/dialog"
+    },
+    {
+      "source": "src/components/ReallocationDialog.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ReallocationDialog.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/components/ReallocationDialog.tsx",
+      "target": "@/hooks/use-toast"
+    },
+    {
+      "source": "src/components/ReallocationDialog.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/components/AvisoPopup.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/AvisoPopup.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/components/AvisoPopup.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/AvisoPopup.tsx",
+      "target": "@/components/ui/button"
+    },
+    {
+      "source": "src/components/StatCard.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/StatCard.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/FuncaoList.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/FuncaoList.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/components/FuncaoList.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/FuncaoList.tsx",
+      "target": "@/components/ui/checkbox"
+    },
+    {
+      "source": "src/components/EditServidorModal.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/EditServidorModal.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/components/EditServidorModal.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/components/EditServidorModal.tsx",
+      "target": "@/components/ui/dialog"
+    },
+    {
+      "source": "src/components/EditServidorModal.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/EditServidorModal.tsx",
+      "target": "@/components/ui/alert"
+    },
+    {
+      "source": "src/components/EditServidorModal.tsx",
+      "target": "@/components/ui/alert-dialog"
+    },
+    {
+      "source": "src/components/EditServidorModal.tsx",
+      "target": "@/hooks/use-toast"
+    },
+    {
+      "source": "src/components/EditServidorModal.tsx",
+      "target": "@/lib/feriasUtils"
+    },
+    {
+      "source": "src/components/AppErrorBoundary.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/AppErrorBoundary.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/HierarchyMonitor.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/HierarchyMonitor.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/components/HierarchyMonitor.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/components/HierarchyMonitor.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/HierarchyMonitor.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/HierarchyMonitor.tsx",
+      "target": "@/lib/presencaStatus"
+    },
+    {
+      "source": "src/components/ImportCSVButton.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ImportCSVButton.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/components/ImportCSVButton.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/TransferServidorModal.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/TransferServidorModal.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/components/TransferServidorModal.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/components/TransferServidorModal.tsx",
+      "target": "@/components/ui/dialog"
+    },
+    {
+      "source": "src/components/TransferServidorModal.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/TransferServidorModal.tsx",
+      "target": "@/hooks/use-toast"
+    },
+    {
+      "source": "src/components/ServidorConflictBadge.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ServidorConflictBadge.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/pages/NotFound.tsx",
+      "target": "react-router-dom"
+    },
+    {
+      "source": "src/pages/NotFound.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/pages/AcessoRapido.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/pages/AcessoRapido.tsx",
+      "target": "react-router-dom"
+    },
+    {
+      "source": "src/pages/AcessoRapido.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/pages/AcessoRapido.tsx",
+      "target": "@/hooks/useAuthSession"
+    },
+    {
+      "source": "src/pages/AcessoRapido.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/pages/AcessoRapido.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/pages/AcessoRapido.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/pages/Dashboard.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/pages/Dashboard.tsx",
+      "target": "@/hooks/useAuthSession"
+    },
+    {
+      "source": "src/pages/Dashboard.tsx",
+      "target": "@/hooks/useHeartbeat"
+    },
+    {
+      "source": "src/pages/Dashboard.tsx",
+      "target": "@/components/ImportCSVButton"
+    },
+    {
+      "source": "src/pages/Dashboard.tsx",
+      "target": "@/components/DashboardHeader"
+    },
+    {
+      "source": "src/pages/Dashboard.tsx",
+      "target": "@/components/EditServidorModal"
+    },
+    {
+      "source": "src/pages/Dashboard.tsx",
+      "target": "@/components/CreateServidorModal"
+    },
+    {
+      "source": "src/pages/Dashboard.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/pages/Dashboard.tsx",
+      "target": "@/lib/presencaAutomatica"
+    },
+    {
+      "source": "src/pages/Dashboard.tsx",
+      "target": "@/lib/presencaStatus"
+    },
+    {
+      "source": "src/pages/Dashboard.tsx",
+      "target": "@/lib/escalaUtils"
+    },
+    {
+      "source": "src/pages/Dashboard.tsx",
+      "target": "react-router-dom"
+    },
+    {
+      "source": "src/pages/Dashboard.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/pages/Dashboard.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/pages/Dashboard.tsx",
+      "target": "recharts"
+    },
+    {
+      "source": "src/pages/ModoTV.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/pages/ModoTV.tsx",
+      "target": "react-router-dom"
+    },
+    {
+      "source": "src/pages/ModoTV.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/pages/ModoTV.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/pages/ModoTV.tsx",
+      "target": "@/lib/presencaAutomatica"
+    },
+    {
+      "source": "src/pages/ModoTV.tsx",
+      "target": "@/lib/presencaStatus"
+    },
+    {
+      "source": "src/pages/ModoTV.tsx",
+      "target": "recharts"
+    },
+    {
+      "source": "src/pages/ModoTV.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/pages/SetupAdmin.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/pages/SetupAdmin.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/pages/SetupAdmin.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/pages/SetupAdmin.tsx",
+      "target": "@/hooks/use-toast"
+    },
+    {
+      "source": "src/pages/Avisos.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/pages/Avisos.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/pages/Avisos.tsx",
+      "target": "@/hooks/useAuthSession"
+    },
+    {
+      "source": "src/pages/Avisos.tsx",
+      "target": "@/components/ui/button"
+    },
+    {
+      "source": "src/pages/Avisos.tsx",
+      "target": "@/components/ui/input"
+    },
+    {
+      "source": "src/pages/Avisos.tsx",
+      "target": "@/components/ui/textarea"
+    },
+    {
+      "source": "src/pages/Avisos.tsx",
+      "target": "@/components/ui/select"
+    },
+    {
+      "source": "src/pages/Avisos.tsx",
+      "target": "@/hooks/use-toast"
+    },
+    {
+      "source": "src/pages/Avisos.tsx",
+      "target": "react-router-dom"
+    },
+    {
+      "source": "src/pages/Avisos.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/pages/Login.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/pages/Login.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/pages/Login.tsx",
+      "target": "react-router-dom"
+    },
+    {
+      "source": "src/pages/Login.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/pages/Manual.tsx",
+      "target": "react-router-dom"
+    },
+    {
+      "source": "src/pages/Manual.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/pages/Manual.tsx",
+      "target": "@/components/ui/button"
+    },
+    {
+      "source": "src/pages/Estrutura.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/pages/Estrutura.tsx",
+      "target": "@/hooks/useAuth"
+    },
+    {
+      "source": "src/pages/Estrutura.tsx",
+      "target": "@/hooks/useAuthSession"
+    },
+    {
+      "source": "src/pages/Estrutura.tsx",
+      "target": "@/components/LoginForm"
+    },
+    {
+      "source": "src/pages/Estrutura.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/pages/Estrutura.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/pages/Estrutura.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/pages/Estrutura.tsx",
+      "target": "react-router-dom"
+    },
+    {
+      "source": "src/pages/Estrutura.tsx",
+      "target": "@/hooks/use-toast"
+    },
+    {
+      "source": "src/pages/Estrutura.tsx",
+      "target": "@/components/CreateServidorModal"
+    },
+    {
+      "source": "src/pages/Estrutura.tsx",
+      "target": "@/components/UnidadeServidores"
+    },
+    {
+      "source": "src/pages/Estrutura.tsx",
+      "target": "@/components/EditServidorModal"
+    },
+    {
+      "source": "src/pages/Estrutura.tsx",
+      "target": "@/components/SetorList"
+    },
+    {
+      "source": "src/pages/Estrutura.tsx",
+      "target": "@/components/FuncaoList"
+    },
+    {
+      "source": "src/pages/Estrutura.tsx",
+      "target": "@/components/EquipeSaudeList"
+    },
+    {
+      "source": "src/pages/Estrutura.tsx",
+      "target": "@/components/ui/checkbox"
+    },
+    {
+      "source": "src/pages/Estrutura.tsx",
+      "target": "@/components/ServidorConflictBadge"
+    },
+    {
+      "source": "src/pages/Estrutura.tsx",
+      "target": "@/components/ReallocationDialog"
+    },
+    {
+      "source": "src/pages/MonitorUnidade.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/pages/MonitorUnidade.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/pages/MonitorUnidade.tsx",
+      "target": "@/hooks/useAuthSession"
+    },
+    {
+      "source": "src/pages/MonitorUnidade.tsx",
+      "target": "@/hooks/useServidores"
+    },
+    {
+      "source": "src/pages/MonitorUnidade.tsx",
+      "target": "@/lib/presencaAutomatica"
+    },
+    {
+      "source": "src/pages/MonitorUnidade.tsx",
+      "target": "react-router-dom"
+    },
+    {
+      "source": "src/pages/MonitorUnidade.tsx",
+      "target": "@/components/ui/dialog"
+    },
+    {
+      "source": "src/pages/MonitorUnidade.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/pages/MonitorUnidade.tsx",
+      "target": "@/hooks/use-toast"
+    },
+    {
+      "source": "src/pages/MonitorUnidade.tsx",
+      "target": "date-fns"
+    },
+    {
+      "source": "src/pages/MonitorUnidade.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/pages/MonitorUnidade.tsx",
+      "target": "@/lib/escalaUtils"
+    },
+    {
+      "source": "src/pages/MonitorUnidade.tsx",
+      "target": "@/components/EscalaSemanalEditor"
+    },
+    {
+      "source": "src/pages/MonitorUnidade.tsx",
+      "target": "@/components/TransferServidorModal"
+    },
+    {
+      "source": "src/pages/MonitorUnidade.tsx",
+      "target": "@/lib/presencaStatus"
+    },
+    {
+      "source": "src/pages/MonitorUnidade.tsx",
+      "target": "@/lib/feriasUtils"
+    },
+    {
+      "source": "src/pages/AdminUsuarios.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/pages/AdminUsuarios.tsx",
+      "target": "react-router-dom"
+    },
+    {
+      "source": "src/pages/AdminUsuarios.tsx",
+      "target": "@/integrations/supabase/client"
+    },
+    {
+      "source": "src/pages/AdminUsuarios.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/pages/AdminUsuarios.tsx",
+      "target": "@/hooks/use-toast"
+    },
+    {
+      "source": "src/pages/AdminUsuarios.tsx",
+      "target": "@/components/ui/checkbox"
+    },
+    {
+      "source": "src/pages/AdminUsuarios.tsx",
+      "target": "@/hooks/useAuthSession"
+    },
+    {
+      "source": "src/pages/AdminUsuarios.tsx",
+      "target": "@/components/GerenciarAvisos"
+    },
+    {
+      "source": "src/components/ui/avatar.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/avatar.tsx",
+      "target": "@radix-ui/react-avatar"
+    },
+    {
+      "source": "src/components/ui/avatar.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/aspect-ratio.tsx",
+      "target": "@radix-ui/react-aspect-ratio"
+    },
+    {
+      "source": "src/components/ui/calendar.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/calendar.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/calendar.tsx",
+      "target": "react-day-picker"
+    },
+    {
+      "source": "src/components/ui/calendar.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/calendar.tsx",
+      "target": "@/components/ui/button"
+    },
+    {
+      "source": "src/components/ui/badge.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/badge.tsx",
+      "target": "class-variance-authority"
+    },
+    {
+      "source": "src/components/ui/badge.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/drawer.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/drawer.tsx",
+      "target": "vaul"
+    },
+    {
+      "source": "src/components/ui/drawer.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/tabs.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/tabs.tsx",
+      "target": "@radix-ui/react-tabs"
+    },
+    {
+      "source": "src/components/ui/tabs.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/menubar.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/menubar.tsx",
+      "target": "@radix-ui/react-menubar"
+    },
+    {
+      "source": "src/components/ui/menubar.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/menubar.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/navigation-menu.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/navigation-menu.tsx",
+      "target": "@radix-ui/react-navigation-menu"
+    },
+    {
+      "source": "src/components/ui/navigation-menu.tsx",
+      "target": "class-variance-authority"
+    },
+    {
+      "source": "src/components/ui/navigation-menu.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/navigation-menu.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/sonner.tsx",
+      "target": "next-themes"
+    },
+    {
+      "source": "src/components/ui/sonner.tsx",
+      "target": "sonner"
+    },
+    {
+      "source": "src/components/ui/breadcrumb.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/breadcrumb.tsx",
+      "target": "@radix-ui/react-slot"
+    },
+    {
+      "source": "src/components/ui/breadcrumb.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/breadcrumb.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/toggle.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/toggle.tsx",
+      "target": "@radix-ui/react-toggle"
+    },
+    {
+      "source": "src/components/ui/toggle.tsx",
+      "target": "class-variance-authority"
+    },
+    {
+      "source": "src/components/ui/toggle.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/toast.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/toast.tsx",
+      "target": "@radix-ui/react-toast"
+    },
+    {
+      "source": "src/components/ui/toast.tsx",
+      "target": "class-variance-authority"
+    },
+    {
+      "source": "src/components/ui/toast.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/toast.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/checkbox.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/checkbox.tsx",
+      "target": "@radix-ui/react-checkbox"
+    },
+    {
+      "source": "src/components/ui/checkbox.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/checkbox.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/use-toast.ts",
+      "target": "@/hooks/use-toast"
+    },
+    {
+      "source": "src/components/ui/select.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/select.tsx",
+      "target": "@radix-ui/react-select"
+    },
+    {
+      "source": "src/components/ui/select.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/select.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/radio-group.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/radio-group.tsx",
+      "target": "@radix-ui/react-radio-group"
+    },
+    {
+      "source": "src/components/ui/radio-group.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/radio-group.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/button.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/button.tsx",
+      "target": "@radix-ui/react-slot"
+    },
+    {
+      "source": "src/components/ui/button.tsx",
+      "target": "class-variance-authority"
+    },
+    {
+      "source": "src/components/ui/button.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/input-otp.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/input-otp.tsx",
+      "target": "input-otp"
+    },
+    {
+      "source": "src/components/ui/input-otp.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/input-otp.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/tooltip.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/tooltip.tsx",
+      "target": "@radix-ui/react-tooltip"
+    },
+    {
+      "source": "src/components/ui/tooltip.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/scroll-area.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/scroll-area.tsx",
+      "target": "@radix-ui/react-scroll-area"
+    },
+    {
+      "source": "src/components/ui/scroll-area.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/context-menu.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/context-menu.tsx",
+      "target": "@radix-ui/react-context-menu"
+    },
+    {
+      "source": "src/components/ui/context-menu.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/context-menu.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/card.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/card.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/alert.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/alert.tsx",
+      "target": "class-variance-authority"
+    },
+    {
+      "source": "src/components/ui/alert.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/form.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/form.tsx",
+      "target": "@radix-ui/react-label"
+    },
+    {
+      "source": "src/components/ui/form.tsx",
+      "target": "@radix-ui/react-slot"
+    },
+    {
+      "source": "src/components/ui/form.tsx",
+      "target": "react-hook-form"
+    },
+    {
+      "source": "src/components/ui/form.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/form.tsx",
+      "target": "@/components/ui/label"
+    },
+    {
+      "source": "src/components/ui/accordion.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/accordion.tsx",
+      "target": "@radix-ui/react-accordion"
+    },
+    {
+      "source": "src/components/ui/accordion.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/accordion.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/skeleton.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/sheet.tsx",
+      "target": "@radix-ui/react-dialog"
+    },
+    {
+      "source": "src/components/ui/sheet.tsx",
+      "target": "class-variance-authority"
+    },
+    {
+      "source": "src/components/ui/sheet.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/sheet.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/sheet.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/label.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/label.tsx",
+      "target": "@radix-ui/react-label"
+    },
+    {
+      "source": "src/components/ui/label.tsx",
+      "target": "class-variance-authority"
+    },
+    {
+      "source": "src/components/ui/label.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/carousel.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/carousel.tsx",
+      "target": "embla-carousel-react"
+    },
+    {
+      "source": "src/components/ui/carousel.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/carousel.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/carousel.tsx",
+      "target": "@/components/ui/button"
+    },
+    {
+      "source": "src/components/ui/slider.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/slider.tsx",
+      "target": "@radix-ui/react-slider"
+    },
+    {
+      "source": "src/components/ui/slider.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/command.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/command.tsx",
+      "target": "@radix-ui/react-dialog"
+    },
+    {
+      "source": "src/components/ui/command.tsx",
+      "target": "cmdk"
+    },
+    {
+      "source": "src/components/ui/command.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/command.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/command.tsx",
+      "target": "@/components/ui/dialog"
+    },
+    {
+      "source": "src/components/ui/dropdown-menu.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/dropdown-menu.tsx",
+      "target": "@radix-ui/react-dropdown-menu"
+    },
+    {
+      "source": "src/components/ui/dropdown-menu.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/dropdown-menu.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/pagination.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/pagination.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/pagination.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/pagination.tsx",
+      "target": "@/components/ui/button"
+    },
+    {
+      "source": "src/components/ui/toaster.tsx",
+      "target": "@/hooks/use-toast"
+    },
+    {
+      "source": "src/components/ui/toaster.tsx",
+      "target": "@/components/ui/toast"
+    },
+    {
+      "source": "src/components/ui/collapsible.tsx",
+      "target": "@radix-ui/react-collapsible"
+    },
+    {
+      "source": "src/components/ui/progress.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/progress.tsx",
+      "target": "@radix-ui/react-progress"
+    },
+    {
+      "source": "src/components/ui/progress.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/switch.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/switch.tsx",
+      "target": "@radix-ui/react-switch"
+    },
+    {
+      "source": "src/components/ui/switch.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/popover.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/popover.tsx",
+      "target": "@radix-ui/react-popover"
+    },
+    {
+      "source": "src/components/ui/popover.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/chart.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/chart.tsx",
+      "target": "recharts"
+    },
+    {
+      "source": "src/components/ui/chart.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/alert-dialog.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/alert-dialog.tsx",
+      "target": "@radix-ui/react-alert-dialog"
+    },
+    {
+      "source": "src/components/ui/alert-dialog.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/alert-dialog.tsx",
+      "target": "@/components/ui/button"
+    },
+    {
+      "source": "src/components/ui/sidebar.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/sidebar.tsx",
+      "target": "@radix-ui/react-slot"
+    },
+    {
+      "source": "src/components/ui/sidebar.tsx",
+      "target": "class-variance-authority"
+    },
+    {
+      "source": "src/components/ui/sidebar.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/sidebar.tsx",
+      "target": "@/hooks/use-mobile"
+    },
+    {
+      "source": "src/components/ui/sidebar.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/sidebar.tsx",
+      "target": "@/components/ui/button"
+    },
+    {
+      "source": "src/components/ui/sidebar.tsx",
+      "target": "@/components/ui/input"
+    },
+    {
+      "source": "src/components/ui/sidebar.tsx",
+      "target": "@/components/ui/separator"
+    },
+    {
+      "source": "src/components/ui/sidebar.tsx",
+      "target": "@/components/ui/sheet"
+    },
+    {
+      "source": "src/components/ui/sidebar.tsx",
+      "target": "@/components/ui/skeleton"
+    },
+    {
+      "source": "src/components/ui/sidebar.tsx",
+      "target": "@/components/ui/tooltip"
+    },
+    {
+      "source": "src/components/ui/resizable.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/resizable.tsx",
+      "target": "react-resizable-panels"
+    },
+    {
+      "source": "src/components/ui/resizable.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/dialog.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/dialog.tsx",
+      "target": "@radix-ui/react-dialog"
+    },
+    {
+      "source": "src/components/ui/dialog.tsx",
+      "target": "lucide-react"
+    },
+    {
+      "source": "src/components/ui/dialog.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/input.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/input.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/table.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/table.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/toggle-group.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/toggle-group.tsx",
+      "target": "@radix-ui/react-toggle-group"
+    },
+    {
+      "source": "src/components/ui/toggle-group.tsx",
+      "target": "class-variance-authority"
+    },
+    {
+      "source": "src/components/ui/toggle-group.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/toggle-group.tsx",
+      "target": "@/components/ui/toggle"
+    },
+    {
+      "source": "src/components/ui/hover-card.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/hover-card.tsx",
+      "target": "@radix-ui/react-hover-card"
+    },
+    {
+      "source": "src/components/ui/hover-card.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/textarea.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/textarea.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/components/ui/separator.tsx",
+      "target": "react"
+    },
+    {
+      "source": "src/components/ui/separator.tsx",
+      "target": "@radix-ui/react-separator"
+    },
+    {
+      "source": "src/components/ui/separator.tsx",
+      "target": "@/lib/utils"
+    },
+    {
+      "source": "src/integrations/supabase/client.ts",
+      "target": "@supabase/supabase-js"
+    },
+    {
+      "source": "src/integrations/supabase/client.ts",
+      "target": "./types"
+    },
+    {
+      "source": "src/integrations/supabase/client.ts",
+      "target": "./previewAuthStorage"
+    },
+    {
+      "source": "src/integrations/supabase/client.ts",
+      "target": "@/integrations/supabase/client"
+    }
+  ]
+}

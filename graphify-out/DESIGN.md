@@ -1,0 +1,173 @@
+# Design system
+
+Generated: 2026-11-04T21:21:33.832874+00:00
+
+## Tokens
+- --background: 195 25% 97% (src/index.css)
+- --foreground: 200 50% 8% (src/index.css)
+- --card: 0 0% 100% (src/index.css)
+- --card-foreground: 200 50% 8% (src/index.css)
+- --popover: 0 0% 100% (src/index.css)
+- --popover-foreground: 200 50% 8% (src/index.css)
+- --primary: 174 62% 30% (src/index.css)
+- --primary-foreground: 0 0% 100% (src/index.css)
+- --primary-glow: 174 70% 42% (src/index.css)
+- --secondary: 200 25% 93% (src/index.css)
+- --secondary-foreground: 200 50% 15% (src/index.css)
+- --muted: 200 15% 94% (src/index.css)
+- --muted-foreground: 200 10% 46% (src/index.css)
+- --accent: 174 45% 92% (src/index.css)
+- --accent-foreground: 174 62% 22% (src/index.css)
+- --destructive: 0 72% 51% (src/index.css)
+- --destructive-foreground: 0 0% 100% (src/index.css)
+- --border: 200 20% 90% (src/index.css)
+- --input: 200 20% 88% (src/index.css)
+- --ring: 174 62% 30% (src/index.css)
+- --radius: 0.75rem (src/index.css)
+- --success: 152 60% 40% (src/index.css)
+- --success-foreground: 0 0% 100% (src/index.css)
+- --warning: 38 92% 50% (src/index.css)
+- --warning-foreground: 0 0% 100% (src/index.css)
+- --info: 210 75% 50% (src/index.css)
+- --info-foreground: 0 0% 100% (src/index.css)
+- --absent: 0 72% 51% (src/index.css)
+- --vacation: 38 92% 50% (src/index.css)
+- --present: 152 60% 40% (src/index.css)
+- --leave: 270 50% 55% (src/index.css)
+- --gradient-primary: linear-gradient(135deg, hsl(174 62% 30%), hsl(174 70% 42%)) (src/index.css)
+- --gradient-hero: linear-gradient(135deg, hsl(200 50% 8%), hsl(200 40% 15%)) (src/index.css)
+- --shadow-card: 0 1px 3px 0 hsl(200 20% 10% / 0.04), 0 1px 2px -1px hsl(200 20% 10% / 0.04) (src/index.css)
+- --shadow-card-hover: 0 4px 12px -2px hsl(200 20% 10% / 0.08), 0 2px 6px -1px hsl(200 20% 10% / 0.04) (src/index.css)
+- --shadow-stat: 0 0 0 1px hsl(200 20% 90%), 0 1px 3px hsl(200 20% 10% / 0.06) (src/index.css)
+- --sidebar-background: 200 30% 12% (src/index.css)
+- --sidebar-foreground: 200 10% 85% (src/index.css)
+- --sidebar-primary: 174 62% 45% (src/index.css)
+- --sidebar-primary-foreground: 0 0% 100% (src/index.css)
+- --sidebar-accent: 200 25% 18% (src/index.css)
+- --sidebar-accent-foreground: 200 10% 90% (src/index.css)
+- --sidebar-border: 200 20% 20% (src/index.css)
+- --sidebar-ring: 174 62% 45% (src/index.css)
+
+## UI components
+- accordion
+- alert
+- alert-dialog
+- aspect-ratio
+- avatar
+- badge
+- breadcrumb
+- button
+- calendar
+- card
+- carousel
+- chart
+- checkbox
+- collapsible
+- command
+- context-menu
+- dialog
+- drawer
+- dropdown-menu
+- form
+- hover-card
+- input
+- input-otp
+- label
+- menubar
+- navigation-menu
+- pagination
+- popover
+- progress
+- radio-group
+- resizable
+- scroll-area
+- select
+- separator
+- sheet
+- sidebar
+- skeleton
+- slider
+- sonner
+- switch
+- table
+- tabs
+- textarea
+- toast
+- toaster
+- toggle
+- toggle-group
+- tooltip
+
+## Project components
+- src/components/AppErrorBoundary.tsx
+- src/components/AvisoPopup.tsx
+- src/components/CreateServidorModal.tsx
+- src/components/DashboardHeader.tsx
+- src/components/EditServidorModal.tsx
+- src/components/EquipeSaudeList.tsx
+- src/components/EscalaSemanalEditor.tsx
+- src/components/FuncaoList.tsx
+- src/components/GerenciarAvisos.tsx
+- src/components/HierarchyMonitor.tsx
+- src/components/ImportCSVButton.tsx
+- src/components/LoginForm.tsx
+- src/components/NavLink.tsx
+- src/components/ReallocationDialog.tsx
+- src/components/ServidorConflictBadge.tsx
+- src/components/ServidorRow.tsx
+- src/components/SetorList.tsx
+- src/components/StatCard.tsx
+- src/components/StatusBadge.tsx
+- src/components/TransferServidorModal.tsx
+- src/components/TransferenciasPendentes.tsx
+- src/components/UnidadeSection.tsx
+- src/components/UnidadeServidores.tsx
+- src/components/VinculoChart.tsx
+- src/components/ui/accordion.tsx
+- src/components/ui/alert-dialog.tsx
+- src/components/ui/alert.tsx
+- src/components/ui/aspect-ratio.tsx
+- src/components/ui/avatar.tsx
+- src/components/ui/badge.tsx
+- src/components/ui/breadcrumb.tsx
+- src/components/ui/button.tsx
+- src/components/ui/calendar.tsx
+- src/components/ui/card.tsx
+- src/components/ui/carousel.tsx
+- src/components/ui/chart.tsx
+- src/components/ui/checkbox.tsx
+- src/components/ui/collapsible.tsx
+- src/components/ui/command.tsx
+- src/components/ui/context-menu.tsx
+- src/components/ui/dialog.tsx
+- src/components/ui/drawer.tsx
+- src/components/ui/dropdown-menu.tsx
+- src/components/ui/form.tsx
+- src/components/ui/hover-card.tsx
+- src/components/ui/input-otp.tsx
+- src/components/ui/input.tsx
+- src/components/ui/label.tsx
+- src/components/ui/menubar.tsx
+- src/components/ui/navigation-menu.tsx
+- src/components/ui/pagination.tsx
+- src/components/ui/popover.tsx
+- src/components/ui/progress.tsx
+- src/components/ui/radio-group.tsx
+- src/components/ui/resizable.tsx
+- src/components/ui/scroll-area.tsx
+- src/components/ui/select.tsx
+- src/components/ui/separator.tsx
+- src/components/ui/sheet.tsx
+- src/components/ui/sidebar.tsx
+- src/components/ui/skeleton.tsx
+- src/components/ui/slider.tsx
+- src/components/ui/sonner.tsx
+- src/components/ui/switch.tsx
+- src/components/ui/table.tsx
+- src/components/ui/tabs.tsx
+- src/components/ui/textarea.tsx
+- src/components/ui/toast.tsx
+- src/components/ui/toaster.tsx
+- src/components/ui/toggle-group.tsx
+- src/components/ui/toggle.tsx
+- src/components/ui/tooltip.tsx
